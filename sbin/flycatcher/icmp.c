@@ -34,7 +34,6 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
-#include <endian.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,6 +42,7 @@
 #include <arpa/inet.h>
 
 #include <fc/assert.h>
+#include <fc/endian.h>
 #include <fc/log.h>
 
 #include "flycatcher.h"

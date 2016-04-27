@@ -34,11 +34,11 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
-#include <endian.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include <fc/endian.h>
 #include <fc/log.h>
 
 #include "flycatcher.h"

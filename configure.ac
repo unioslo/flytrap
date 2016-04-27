@@ -6,21 +6,50 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign])
 AM_CONFIG_HEADER(include/config.h)
 
-# compilers
+############################################################################
+#
+# Toolchain
+#
+
+# C compiler and features
 AC_LANG(C)
 AC_PROG_CC
 AC_PROG_CC_STDC
 AC_PROG_CPP
-AC_PROG_RANLIB
 AC_GNU_SOURCE
 AC_C_CONST
 AC_C_RESTRICT
 AC_C_VOLATILE
 
-# tools
+# other programs
 AC_PROG_INSTALL
+AC_PROG_RANLIB
 
-# libraries
+############################################################################
+#
+# Headers and functions
+#
+
+AC_CHECK_HEADERS([endian.h sys/endian.h])
+AC_CHECK_DECLS([
+    be16enc, be16dec, le16enc, le16dec,
+    be32enc, be32dec, le32enc, le32dec,
+    be64enc, be64dec, le64enc, le64dec
+], [], [], [[
+#if HAVE_SYS_ENDIAN_H
+#include <sys/endian.h>
+#endif
+#if HAVE_ENDIAN_H
+#include <endian.h>
+#endif
+]])
+AC_CHECK_FUNCS([strlcat strlcmp strlcpy])
+
+############################################################################
+#
+# Extra libraries
+#
+
 save_LIBS="${LIBS}"
 LIBS=""
 AC_SEARCH_LIBS([pcap_open_live], [pcap])
