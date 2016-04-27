@@ -52,14 +52,15 @@ packet_analyze_ethernet(struct packet *p, const void *data, size_t len)
 	const ether_hdr *eh;
 	int ret;
 
-	if (len < sizeof(ether_hdr) + 46 /* + sizeof(ether_ftr) */) {
-		fc_notice("%d.%03d short Ethernet packet (%zd)",
-		    p->ts.tv_sec, p->ts.tv_usec / 1000, p->len);
+	if (len < sizeof(ether_hdr)) {
+		fc_notice("%d.%03d short Ethernet packet (%zd < %zd)",
+		    p->ts.tv_sec, p->ts.tv_usec / 1000,
+		    len, sizeof(ether_hdr));
 		return (-1);
 	}
 	eh = data;
 	data = eh + 1;
-	len -= sizeof(ether_hdr);
+	len -= sizeof *eh;
 	fc_debug("%d.%03d recv type %04x packet "
 	    "from %02x:%02x:%02x:%02x:%02x:%02x "
 	    "to %02x:%02x:%02x:%02x:%02x:%02x",
@@ -89,8 +90,8 @@ ethernet_send(struct iface *i, ether_type type, ether_addr *dst, const void *dat
 	int ret;
 
 	p.i = i;
-	p.len = sizeof *eh + (len < 46 ? 46 : len);
-	if ((eh = calloc(1, p.len)) == NULL)
+	p.len = sizeof *eh + len;
+	if ((eh = malloc(p.len)) == NULL)
 		return (-1);
 	p.data = eh;
 	memcpy(&eh->dst, dst, sizeof eh->dst);

@@ -57,22 +57,48 @@
 int
 packet_analyze_ip(struct packet *p, const void *data, size_t len)
 {
-	const ip_hdr *ih;
-	ipv4_addr srcip, dstip;
+	struct ipv4_flow fl;
+	const ipv4_hdr *ih;
+	size_t ihl;
+	int ret;
 
-	(void)p;
-	if (len < sizeof(ip_hdr)) {
-		fc_notice("\tshort IP packet (%zd < %zd)", len, sizeof(ip_hdr));
+	if (len < sizeof(ipv4_hdr)) {
+		fc_notice("%d.%03d short IP packet (%zd < %zd)",
+		    p->ts.tv_sec, p->ts.tv_usec / 1000,
+		    len, sizeof(ipv4_hdr));
 		return (-1);
 	}
 	ih = data;
-	memcpy(&srcip, &ih->srcip, sizeof(ipv4_addr));
-	memcpy(&dstip, &ih->dstip, sizeof(ipv4_addr));
-	fc_debug("\tIP version %d from %d.%d.%d.%d to %d.%d.%d.%d",
-	    ip_hdr_ver(ih),
-	    srcip.o[0], srcip.o[1], srcip.o[2], srcip.o[3],
-	    dstip.o[0], dstip.o[1], dstip.o[2], dstip.o[3]);
-	return (0);
+	ihl = ipv4_hdr_ihl(ih) * 4;
+	if (ihl < 20 || len < ihl || len != be16toh(ih->len)) {
+		fc_notice("%d.%03d malformed IP header (plen %zd len %zd ihl %zd)",
+		    p->ts.tv_sec, p->ts.tv_usec / 1000,
+		    len, be16toh(ih->len), ihl);
+		return (-1);
+	}
+	data = (const uint8_t *)data + ihl;
+	len -= ihl;
+	fc_debug("\tIP version %d proto %d from %d.%d.%d.%d to %d.%d.%d.%d",
+	    ipv4_hdr_ver(ih), ih->proto,
+	    ih->srcip.o[0], ih->srcip.o[1], ih->srcip.o[2], ih->srcip.o[3],
+	    ih->dstip.o[0], ih->dstip.o[1], ih->dstip.o[2], ih->dstip.o[3]);
+	fl.p = p;
+	fl.src = ih->srcip;
+	fl.dst = ih->dstip;
+	switch (ih->proto) {
+	case ip_proto_icmp:
+		ret = packet_analyze_icmp(&fl, data, len);
+		break;
+	case ip_proto_tcp:
+		ret = 0;
+		break;
+	case ip_proto_udp:
+		ret = 0;
+		break;
+	default:
+		ret = -1;
+	}
+	return (ret);
 }
 
 /*
@@ -96,4 +122,51 @@ ipv4_fromstr(const char *dqs, ipv4_addr *addr)
 		addr->o[i] = ul;
 	}
 	return (e);
+}
+
+uint16_t
+ip_cksum(uint16_t isum, const void *data, size_t len)
+{
+	const uint16_t *w;
+	uint32_t sum;
+
+	for (w = data, len /= 2, sum = isum; len > 0; --len, ++w)
+		sum += be16toh(*w);
+	while (sum > 0xffff)
+		sum -= 0xffff;
+	return (sum);
+}
+
+int
+ipv4_reply(const struct ipv4_flow *fl, ip_proto proto,
+    const void *data, size_t len)
+{
+	ether_addr ether;
+	ipv4_hdr *ih;
+	size_t iplen;
+	int ret;
+
+	if (arp_find(&fl->src, &ether) != 0) {
+		fc_notice("ARP lookup failed: %d.%d.%d.%d",
+		    fl->src.o[0], fl->src.o[1], fl->src.o[2], fl->src.o[3]);
+		return (-1);
+	}
+	iplen = sizeof *ih + len;
+	if ((ih = malloc(iplen)) == NULL)
+		return (-1);
+	ih->ver_ihl = 0x45;
+	ih->dscp_ecn = 0x00;
+	ih->len = htobe16(iplen);
+	ih->id = 0x0000;
+	ih->fl_off = 0x0000;
+	ih->ttl = 0x40;
+	ih->proto = proto;
+	ih->srcip = fl->dst;
+	ih->dstip = fl->src;
+	ih->sum = htobe16(~ip_cksum(0, ih, sizeof *ih));
+	memcpy(ih + 1, data, len);
+	ret = ethernet_send(fl->p->i, ether_type_ip, &ether,
+	    ih, iplen);
+	free(ih);
+	return (ret);
 }

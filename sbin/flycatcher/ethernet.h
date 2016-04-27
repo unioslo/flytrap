@@ -76,25 +76,49 @@ typedef struct arp_pkt {
 	ipv4_addr	 tpa;
 } __attribute__((__packed__)) arp_pkt;
 
-typedef struct ip_hdr {
-#define ip_hdr_ver(ih) ((ih)->ver_ihl >> 4)
-#define ip_hdr_ihl(ih) ((ih)->ver_ihl & 0xf)
+typedef enum ip_proto {
+	ip_proto_icmp	 = 0x01,
+	ip_proto_tcp	 = 0x06,
+	ip_proto_udp	 = 0x11,
+} ip_proto;
+
+typedef struct ipv4_hdr {
+#define ipv4_hdr_ver(ih) ((ih)->ver_ihl >> 4)
+#define ipv4_hdr_ihl(ih) ((ih)->ver_ihl & 0xf)
 	uint8_t		 ver_ihl;
-#define ip_hdr_dscp(ih) ((ih)->dscp_ecn >> 2)
-#define ip_hdr_ecn(ih) ((ih)->dscp_ecn & 0x3)
+#define ipv4_hdr_dscp(ih) ((ih)->dscp_ecn >> 2)
+#define ipv4_hdr_ecn(ih) ((ih)->dscp_ecn & 0x3)
 	uint8_t		 dscp_ecn;
 	uint16_t	 len;
 	uint16_t	 id;
-#define ip_hdr_fl(ih) (be16toh((ih)->fl_off) >> 2)
-#define ip_hdr_off(ih) (be16toh((ih)->fl_off) & 0x3)
+#define ipv4_hdr_fl(ih) (be16toh((ih)->fl_off) >> 2)
+#define ipv4_hdr_off(ih) (be16toh((ih)->fl_off) & 0x3)
 	uint16_t	 fl_off;
 	uint8_t		 ttl;
 	uint8_t		 proto;
-	uint8_t		 sum;
+	uint16_t	 sum;
 	ipv4_addr	 srcip;
 	ipv4_addr	 dstip;
 	uint8_t		 opt[];
-} __attribute__((__packed__)) ip_hdr;
+} __attribute__((__packed__)) ipv4_hdr;
+
+typedef enum icmp_type {
+	icmp_type_echo_reply	 = 0x00,
+	icmp_type_echo_request	 = 0x08,
+} icmp_type;
+
+typedef struct icmp_hdr {
+	uint8_t		 type;
+	uint8_t		 code;
+	uint16_t	 sum;
+	uint8_t		 data[];
+} __attribute__((__packed__)) icmp_hdr;
+
+typedef struct ipv4_flow {
+	struct packet	*p;
+	ipv4_addr	 src;
+	ipv4_addr	 dst;
+} ipv4_flow;
 
 int	 arp_reserve(const ipv4_addr *);
 int	 arp_find(const ipv4_addr *, ether_addr *);
@@ -102,11 +126,14 @@ int	 arp_find(const ipv4_addr *, ether_addr *);
 uint32_t ether_crc32(const uint8_t *, size_t);
 
 char	*ipv4_fromstr(const char *, ipv4_addr *);
+uint16_t ip_cksum(uint16_t, const void *, size_t);
+int	 ipv4_reply(const struct ipv4_flow *, ip_proto, const void *, size_t);
+
 
 int	 packet_analyze_ethernet(struct packet *, const void *, size_t);
 int	 packet_analyze_arp(struct packet *, const void *, size_t);
 int	 packet_analyze_ip(struct packet *, const void *, size_t);
-int	 packet_analyze_icmp(struct packet *, const void *, size_t);
+int	 packet_analyze_icmp(const ipv4_flow *, const void *, size_t);
 int	 ethernet_send(struct iface *, ether_type, ether_addr *, const void *, size_t);
 
 #endif

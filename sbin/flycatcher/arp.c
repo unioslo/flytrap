@@ -243,8 +243,9 @@ packet_analyze_arp(struct packet *p, const void *data, size_t len)
 	uint64_t when;
 
 	if (len < sizeof(arp_pkt)) {
-		fc_notice("\tshort ARP packet (%zd < %zd)",
-		    p->len, sizeof(arp_pkt));
+		fc_notice("%d.%03d short ARP packet (%zd < %zd)",
+		    p->ts.tv_sec, p->ts.tv_usec / 1000,
+		    len, sizeof(arp_pkt));
 		return (-1);
 	}
 	ap = (const arp_pkt *)data;
