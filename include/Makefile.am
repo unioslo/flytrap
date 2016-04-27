@@ -1,0 +1,10 @@
+noinst_HEADERS =
+noinst_HEADERS += fc/assert.h
+noinst_HEADERS += fc/ctype.h
+noinst_HEADERS += fc/dict.h
+noinst_HEADERS += fc/flopen.h
+noinst_HEADERS += fc/hash.h
+noinst_HEADERS += fc/log.h
+noinst_HEADERS += fc/pidfile.h
+noinst_HEADERS += fc/sbuf.h
+noinst_HEADERS += fc/strutil.h
