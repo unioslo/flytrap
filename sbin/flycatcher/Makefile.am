@@ -5,13 +5,17 @@ sbin_PROGRAMS		 = flycatcher
 flycatcher_SOURCES	 =
 flycatcher_SOURCES	+= arp.c
 flycatcher_SOURCES	+= crc32.c
-flycatcher_SOURCES	+= ethernet.c
 flycatcher_SOURCES	+= flycatcher.c
-flycatcher_SOURCES	+= icmp.c
-flycatcher_SOURCES	+= iface.c
-flycatcher_SOURCES	+= ip.c
 flycatcher_SOURCES	+= main.c
+
+# Interface
+flycatcher_SOURCES	+= iface.c
 flycatcher_SOURCES	+= packet.c
+
+# Protocol stack
+flycatcher_SOURCES	+= ether.c
+flycatcher_SOURCES	+= icmp4.c
+flycatcher_SOURCES	+= ip4.c
 
 flycatcher_LDADD	 = $(LIBPCAP) $(top_builddir)/lib/libfc/libfc.a
 
