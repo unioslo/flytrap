@@ -110,6 +110,7 @@ arp_delete(struct arpn *n)
 	}
 }
 
+#if 0
 /*
  * Expire
  */
@@ -127,6 +128,7 @@ arp_expire(struct arpn *n, uint64_t cutoff)
 				arp_expire(n->sub[i], cutoff);
 	}
 }
+#endif
 
 /*
  * Insert an address into a tree.
@@ -142,11 +144,6 @@ arp_insert(struct arpn *n, uint32_t addr, uint64_t when)
 		n = &arp_root;
 	if (n->plen == 32) {
 		fc_assert(n->addr == addr);
-		if (n->last > 0)
-			fc_verbose("%08x: last seen %d.%03d",
-			    addr, n->last / 1000, n->last % 1000);
-		if (when > n->last)
-			n->last = when;
 		return (n);
 	}
 	splen = n->plen + 4;
@@ -156,7 +153,7 @@ arp_insert(struct arpn *n, uint32_t addr, uint64_t when)
 			return (NULL);
 		sn->addr = n->addr | (sub << (32 - splen));
 		sn->plen = splen;
-		sn->first = when;
+		sn->first = sn->last = when;
 		fc_debug("added node %08x/%d", sn->addr, sn->plen);
 		if (sn->plen == 32) {
 			fc_verbose("arp: inserted %d.%d.%d.%d",
@@ -167,8 +164,10 @@ arp_insert(struct arpn *n, uint32_t addr, uint64_t when)
 	}
 	if ((rn = arp_insert(sn, addr, when)) == NULL)
 		return (NULL);
+#if 0
 	if (sn->last > n->last)
 		n->last = sn->last;
+#endif
 	return (rn);
 }
 
@@ -318,18 +317,15 @@ packet_analyze_arp(struct packet *p, const void *data, size_t len)
 	when = p->ts.tv_sec * 1000 + p->ts.tv_usec / 1000;
 	switch (be16toh(ap->oper)) {
 	case arp_oper_who_has:
-		/*
-		 * ARP request
-		 *
-		 * If nreq is zero, this is either a completely new entry
-		 * or an old one which hasn't been seen in a while.  Reset
-		 * the three-second timeout.
-		 */
+		/* ARP request */
 		arp_register(&ap->spa, &ap->sha, when);
 		if ((an = arp_insert(NULL, be32toh(ap->tpa.q), when)) == NULL)
 			return (-1);
-		if (an->nreq++ == 0)
-			an->first = when;
+		if (an->last != 0) {
+			fc_verbose("%d.%d.%d.%d: last seen %d.%03d",
+			    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3],
+			    an->last / 1000, an->last % 1000);
+		}
 		if (an->reserved) {
 			/* ignore */
 			fc_debug("\ttarget address is reserved");
@@ -339,22 +335,29 @@ packet_analyze_arp(struct packet *p, const void *data, size_t len)
 			fc_debug("refreshing %d.%d.%d.%d",
 			    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3]);
 			an->nreq = 0;
+			an->last = when;
 			if (arp_reply(p->i, ap, an) != 0)
 				return (-1);
+		} else if (an->nreq == 0 || when - an->last >= 30000) {
+			/* new or stale, start over */
+			an->nreq = 1;
+			an->first = an->last = when;
 		} else if (an->nreq >= 3 && when - an->first >= 3000) {
 			/* claim new address */
 			fc_verbose("claiming %d.%d.%d.%d nreq = %d", ap->tpa.o[0],
 			    ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3], an->nreq);
 			an->claimed = 1;
 			an->nreq = 0;
+			an->last = when;
 			if (arp_reply(p->i, ap, an) != 0)
 				return (-1);
+		} else {
+			an->nreq++;
+			an->last = when;
 		}
 		break;
 	case arp_oper_is_at:
-		/*
-		 * ARP reply
-		 */
+		/* ARP reply */
 		arp_register(&ap->spa, &ap->sha, when);
 		arp_register(&ap->tpa, &ap->tha, when);
 		break;
