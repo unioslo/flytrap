@@ -111,7 +111,10 @@ iface_activate(struct iface *i)
 
 	/* compose and compile filter program */
 	sbuf_new(&fsb, fsz, sizeof fsz, 0);
-	sbuf_printf(&fsb, "arp or ether host %02x:%02x:%02x:%02x:%02x:%02x",
+	sbuf_printf(&fsb,
+	    "arp"
+	    " or ether dst %02x:%02x:%02x:%02x:%02x:%02x"
+	    " or ether dst ff:ff:ff:ff:ff:ff",
 	    i->ether.o[0], i->ether.o[1], i->ether.o[2],
 	    i->ether.o[3], i->ether.o[4], i->ether.o[5]);
 	sbuf_finish(&fsb);
