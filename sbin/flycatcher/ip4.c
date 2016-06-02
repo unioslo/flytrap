@@ -146,7 +146,7 @@ ipv4_reply(const struct ipv4_flow *fl, ip_proto proto,
 	size_t iplen;
 	int ret;
 
-	if (arp_find(&fl->src, &ether) != 0) {
+	if (arp_lookup(&fl->src, &ether) != 0) {
 		fc_notice("ARP lookup failed: %d.%d.%d.%d",
 		    fl->src.o[0], fl->src.o[1], fl->src.o[2], fl->src.o[3]);
 		return (-1);

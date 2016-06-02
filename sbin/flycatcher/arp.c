@@ -138,6 +138,8 @@ arp_insert(struct arpn *n, uint32_t addr, uint64_t when)
 	uint32_t sub;
 	uint8_t splen;
 
+	if (n == NULL)
+		n = &arp_root;
 	if (n->plen == 32) {
 		fc_assert(n->addr == addr);
 		if (n->last > 0)
@@ -171,10 +173,45 @@ arp_insert(struct arpn *n, uint32_t addr, uint64_t when)
 }
 
 /*
+ * ARP registration
+ */
+int
+arp_register(const ipv4_addr *ipv4, const ether_addr *ether, uint64_t when)
+{
+	struct arpn *an;
+
+	if ((an = arp_insert(NULL, be32toh(ipv4->q), when)) == NULL)
+		return (-1);
+	if (memcmp(&an->ether, ether, sizeof an->ether) != 0) {
+		/* warn if the ipv4_addr moved from one ether_addr to another */
+		if (an->ether.o[0] || an->ether.o[1] || an->ether.o[2] ||
+		    an->ether.o[3] || an->ether.o[4] || an->ether.o[5]) {
+			fc_verbose("%d.%d.%d.%d moved"
+			    " from %02x:%02x:%02x:%02x:%02x:%02x"
+			    " to %02x:%02x:%02x:%02x:%02x:%02x",
+			    ipv4->o[0], ipv4->o[1], ipv4->o[2], ipv4->o[3],
+			    an->ether.o[0], an->ether.o[1], an->ether.o[2],
+			    an->ether.o[3], an->ether.o[4], an->ether.o[5],
+			    ether->o[0], ether->o[1], ether->o[2],
+			    ether->o[3], ether->o[4], ether->o[5]);
+		} else {
+			fc_verbose("%d.%d.%d.%d registered"
+			    " at %02x:%02x:%02x:%02x:%02x:%02x",
+			    ipv4->o[0], ipv4->o[1], ipv4->o[2], ipv4->o[3],
+			    ether->o[0], ether->o[1], ether->o[2],
+			    ether->o[3], ether->o[4], ether->o[5]);
+		}
+		memcpy(&an->ether, ether, sizeof an->ether);
+	}
+	an->nreq = 0;
+	return (0);
+}
+
+/*
  * ARP lookup
  */
 int
-arp_find(const ipv4_addr *ipv4, ether_addr *ether)
+arp_lookup(const ipv4_addr *ipv4, ether_addr *ether)
 {
 	struct arpn *an;
 
@@ -233,7 +270,7 @@ arp_reserve(const ipv4_addr *addr)
 
 	fc_debug("arp: reserving %d.%d.%d.%d",
 	    addr->o[0], addr->o[1], addr->o[2], addr->o[3]);
-	if ((an = arp_insert(&arp_root, be32toh(addr->q), 0)) == NULL)
+	if ((an = arp_insert(NULL, be32toh(addr->q), 0)) == NULL)
 		return (-1);
 	an->reserved = 1;
 	return (0);
@@ -279,8 +316,6 @@ packet_analyze_arp(struct packet *p, const void *data, size_t len)
 		return (0);
 	}
 	when = p->ts.tv_sec * 1000 + p->ts.tv_usec / 1000;
-	if ((an = arp_insert(&arp_root, be32toh(ap->tpa.q), when)) == NULL)
-		return (-1);
 	switch (be16toh(ap->oper)) {
 	case arp_oper_who_has:
 		/*
@@ -290,6 +325,9 @@ packet_analyze_arp(struct packet *p, const void *data, size_t len)
 		 * or an old one which hasn't been seen in a while.  Reset
 		 * the three-second timeout.
 		 */
+		arp_register(&ap->spa, &ap->sha, when);
+		if ((an = arp_insert(NULL, be32toh(ap->tpa.q), when)) == NULL)
+			return (-1);
 		if (an->nreq++ == 0)
 			an->first = when;
 		if (an->reserved) {
@@ -317,9 +355,8 @@ packet_analyze_arp(struct packet *p, const void *data, size_t len)
 		/*
 		 * ARP reply
 		 */
-		/* TODO: compare and warn if moved? */
-		memcpy(&an->ether, &ap->tha, sizeof an->ether);
-		an->nreq = 0;
+		arp_register(&ap->spa, &ap->sha, when);
+		arp_register(&ap->tpa, &ap->tha, when);
 		break;
 	}
 	return (0);

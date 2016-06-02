@@ -122,7 +122,8 @@ typedef struct ipv4_flow {
 } ipv4_flow;
 
 int	 arp_reserve(const ipv4_addr *);
-int	 arp_find(const ipv4_addr *, ether_addr *);
+int	 arp_register(const ipv4_addr *, const ether_addr *, uint64_t);
+int	 arp_lookup(const ipv4_addr *, ether_addr *);
 
 uint32_t ether_crc32(const uint8_t *, size_t);
 
