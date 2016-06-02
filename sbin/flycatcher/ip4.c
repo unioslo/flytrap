@@ -152,7 +152,7 @@ ipv4_reply(const struct ipv4_flow *fl, ip_proto proto,
 		return (-1);
 	}
 	iplen = sizeof *ih + len;
-	if ((ih = malloc(iplen)) == NULL)
+	if ((ih = calloc(1, iplen)) == NULL)
 		return (-1);
 	ih->ver_ihl = 0x45;
 	ih->dscp_ecn = 0x00;

@@ -60,15 +60,14 @@ icmp_reply(const ipv4_flow *fl, uint16_t id, uint16_t seq,
 	icmp_hdr *ih;
 	size_t len;
 
-	len = sizeof(icmp_hdr) + 2 + 2 + payloadlen;
-	if ((ih = malloc(len)) == NULL)
+	len = sizeof(icmp_hdr) + payloadlen;
+	if ((ih = calloc(1, len)) == NULL)
 		return (-1);
 	ih->type = htobe16(icmp_type_echo_reply);
 	ih->code = htobe16(0);
-	((uint16_t *)ih->data)[0] = htobe16(id);
-	((uint16_t *)ih->data)[1] = htobe16(seq);
+	ih->hdata = htobe32(id << 16 | seq);
 	memcpy(ih->data, payload, payloadlen);
-	ih->sum = ~ip_cksum(0, ih, len);
+	ih->sum = htobe16(~ip_cksum(0, ih, len));
 	ipv4_reply(fl, ip_proto_icmp, ih, len);
 	return (0);
 }
@@ -99,11 +98,11 @@ packet_analyze_icmp4(const ipv4_flow *fl, const void *data, size_t len)
 	len -= sizeof *ih;
 	switch (ih->type) {
 	case icmp_type_echo_request:
-		id = be16toh(((const uint16_t *)ih->data)[0]);
-		seq = be16toh(((const uint16_t *)ih->data)[1]);
+		id = be32toh(ih->hdata) >> 16;
+		seq = be32toh(ih->hdata) & 0xffff;
 		fc_debug("\techo request id 0x%04x seq 0x%04x", id, seq);
 		ret = icmp_reply(fl, id, seq,
-		    (const uint16_t *)ih->data + 2, len - 4);
+		    (const uint16_t *)ih->data, len);
 		break;
 	}
 	return (ret);

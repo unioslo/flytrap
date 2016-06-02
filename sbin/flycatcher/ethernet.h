@@ -111,6 +111,7 @@ typedef struct icmp_hdr {
 	uint8_t		 type;
 	uint8_t		 code;
 	uint16_t	 sum;
+	uint32_t	 hdata;
 	uint8_t		 data[];
 } __attribute__((__packed__)) icmp_hdr;
 
