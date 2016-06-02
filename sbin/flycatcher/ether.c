@@ -74,7 +74,7 @@ packet_analyze_ethernet(struct packet *p, const void *data, size_t len)
 		ret = packet_analyze_arp(p, data, len);
 		break;
 	case ether_type_ip:
-		ret = packet_analyze_ip(p, data, len);
+		ret = packet_analyze_ip4(p, data, len);
 		break;
 	default:
 		ret = -1;

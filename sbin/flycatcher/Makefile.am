@@ -16,6 +16,8 @@ flycatcher_SOURCES	+= packet.c
 flycatcher_SOURCES	+= ether.c
 flycatcher_SOURCES	+= icmp4.c
 flycatcher_SOURCES	+= ip4.c
+flycatcher_SOURCES	+= tcp4.c
+flycatcher_SOURCES	+= udp4.c
 
 flycatcher_LDADD	 = $(LIBPCAP) $(top_builddir)/lib/libfc/libfc.a
 

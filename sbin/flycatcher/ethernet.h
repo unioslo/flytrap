@@ -132,8 +132,10 @@ int	 ipv4_reply(const struct ipv4_flow *, ip_proto, const void *, size_t);
 
 int	 packet_analyze_ethernet(struct packet *, const void *, size_t);
 int	 packet_analyze_arp(struct packet *, const void *, size_t);
-int	 packet_analyze_ip(struct packet *, const void *, size_t);
-int	 packet_analyze_icmp(const ipv4_flow *, const void *, size_t);
+int	 packet_analyze_ip4(struct packet *, const void *, size_t);
+int	 packet_analyze_icmp4(const ipv4_flow *, const void *, size_t);
+int	 packet_analyze_udp4(const ipv4_flow *, const void *, size_t);
+int	 packet_analyze_tcp4(const ipv4_flow *, const void *, size_t);
 int	 ethernet_send(struct iface *, ether_type, ether_addr *, const void *, size_t);
 
 #endif

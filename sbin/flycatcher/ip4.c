@@ -55,7 +55,7 @@
  * Analyze a captured IP packet
  */
 int
-packet_analyze_ip(struct packet *p, const void *data, size_t len)
+packet_analyze_ip4(struct packet *p, const void *data, size_t len)
 {
 	struct ipv4_flow fl;
 	const ipv4_hdr *ih;
@@ -87,13 +87,13 @@ packet_analyze_ip(struct packet *p, const void *data, size_t len)
 	fl.dst = ih->dstip;
 	switch (ih->proto) {
 	case ip_proto_icmp:
-		ret = packet_analyze_icmp(&fl, data, len);
+		ret = packet_analyze_icmp4(&fl, data, len);
 		break;
 	case ip_proto_tcp:
-		ret = 0;
+		ret = packet_analyze_tcp4(&fl, data, len);
 		break;
 	case ip_proto_udp:
-		ret = 0;
+		ret = packet_analyze_udp4(&fl, data, len);
 		break;
 	default:
 		ret = -1;
