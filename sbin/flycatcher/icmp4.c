@@ -68,6 +68,9 @@ icmp_reply(const ipv4_flow *fl, uint16_t id, uint16_t seq,
 	ih->hdata = htobe32(id << 16 | seq);
 	memcpy(ih->data, payload, payloadlen);
 	ih->sum = htobe16(~ip_cksum(0, ih, len));
+	fc_verbose("echo reply to %d.%d.%d.%d id 0x%04x seq 0x%04x",
+	    fl->src.o[0], fl->src.o[1], fl->src.o[2], fl->src.o[3],
+	    id, seq);
 	ipv4_reply(fl, ip_proto_icmp, ih, len);
 	return (0);
 }
@@ -100,7 +103,9 @@ packet_analyze_icmp4(const ipv4_flow *fl, const void *data, size_t len)
 	case icmp_type_echo_request:
 		id = be32toh(ih->hdata) >> 16;
 		seq = be32toh(ih->hdata) & 0xffff;
-		fc_debug("\techo request id 0x%04x seq 0x%04x", id, seq);
+		fc_verbose("echo request from %d.%d.%d.%d id 0x%04x seq 0x%04x",
+		    fl->src.o[0], fl->src.o[1], fl->src.o[2], fl->src.o[3],
+		    id, seq);
 		ret = icmp_reply(fl, id, seq,
 		    (const uint16_t *)ih->data, len);
 		break;

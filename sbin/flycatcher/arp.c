@@ -178,6 +178,8 @@ arp_find(const ipv4_addr *ipv4, ether_addr *ether)
 {
 	struct arpn *an;
 
+	fc_debug("ARP lookup %d.%d.%d.%d",
+	    ipv4->o[0], ipv4->o[1], ipv4->o[2], ipv4->o[3]);
 	an = &arp_root;
 	if ((an = an->sub[ipv4->o[0] / 16]) == NULL ||
 	    (an = an->sub[ipv4->o[0] % 16]) == NULL ||
@@ -189,6 +191,11 @@ arp_find(const ipv4_addr *ipv4, ether_addr *ether)
 	    (an = an->sub[ipv4->o[3] % 16]) == NULL)
 		return (-1);
 	memcpy(ether, &an->ether, sizeof(ether_addr));
+	fc_debug("%d.%d.%d.%d is"
+	    " at %02x:%02x:%02x:%02x:%02x:%02x",
+	    ipv4->o[0], ipv4->o[1], ipv4->o[2], ipv4->o[3],
+	    ether->o[0], ether->o[1], ether->o[2],
+	    ether->o[3], ether->o[4], ether->o[5]);
 	return (0);
 }
 
@@ -298,7 +305,7 @@ packet_analyze_arp(struct packet *p, const void *data, size_t len)
 				return (-1);
 		} else if (an->nreq >= 3 && when - an->first >= 3000) {
 			/* claim new address */
-			fc_debug("claiming %d.%d.%d.%d nreq = %d", ap->tpa.o[0],
+			fc_verbose("claiming %d.%d.%d.%d nreq = %d", ap->tpa.o[0],
 			    ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3], an->nreq);
 			an->claimed = 1;
 			an->nreq = 0;

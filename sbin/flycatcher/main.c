@@ -36,6 +36,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <fc/log.h>
+
 #include "flycatcher.h"
 #include "ethernet.h"
 
@@ -54,7 +56,7 @@ static void
 usage(void)
 {
 
-	fprintf(stderr, "usage: flycatcher [-n] [-x addr] -i interface\n");
+	fprintf(stderr, "usage: flycatcher [-dnv] [-x addr] -i interface\n");
 	exit(1);
 }
 
@@ -65,13 +67,22 @@ main(int argc, char *argv[])
 	int opt;
 
 	iface = NULL;
-	while ((opt = getopt(argc, argv, "hi:nvx:")) != -1) {
+	fc_log_level = FC_LOG_LEVEL_NOTICE;
+	while ((opt = getopt(argc, argv, "dhi:nvx:")) != -1) {
 		switch (opt) {
+		case 'd':
+			if (fc_log_level > FC_LOG_LEVEL_DEBUG)
+				fc_log_level = FC_LOG_LEVEL_DEBUG;
+			break;
 		case 'i':
 			iface = optarg;
 			break;
 		case 'n':
 			fc_dryrun = 1;
+			break;
+		case 'v':
+			if (fc_log_level > FC_LOG_LEVEL_VERBOSE)
+				fc_log_level = FC_LOG_LEVEL_VERBOSE;
 			break;
 		case 'x':
 			if (exclude(optarg) != 0)
