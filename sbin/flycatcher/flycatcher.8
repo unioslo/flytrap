@@ -34,6 +34,8 @@
 .Nd Detect and impede port scanners
 .Sh SYNOPSIS
 .Nm
+.Op Fl dnv
+.Op Fl x Ar address
 .Fl i Ar interface
 .Pp
 .Nm
@@ -43,10 +45,38 @@ The
 .Nm
 daemon attempts to detect port scanners and, if possible, slow them
 down by forging responses to keep them occupied.
+.Pp
+The following options are available:
+.Bl -tag -width Fl
+.It Fl d
+Enable log messages at debug level or higher.
+.It Fl n
+Dry-run mode.
+Does everything except inject packets into the network.
+.It Fl i Ar interface
+Listen on the specified interface.
+.It Fl v
+Enable log messages at verbose level or higher.
+.It Fl x Ar address
+Whitelist the specified IP address.
+This prevents
+.Nm
+from ever claiming it, even if it sees repeated unanswered ARP
+requests for it.
+This may be required on platforms where
+.Xr pcap 3
+does not capture outgoing traffic, as
+.Nm
+will see incoming ARP requests for its host's IP addresses, but not
+the replies.
+.El
 .Sh SEE ALSO
+.Xr pcap 3 ,
+.Xr arp 8 ,
 .Xr tcpdump 8
 .Sh AUTHORS
 The
 .Nm
 daemon and this manual page were written by
-.An Dag-Erling Sm\(/orgrav Aq d.e.smorgrav@usit.uio.no .
+.An Dag-Erling Sm\(/orgrav Aq d.e.smorgrav@usit.uio.no
+for the University of Oslo.
