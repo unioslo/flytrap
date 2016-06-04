@@ -115,6 +115,37 @@ typedef struct icmp_hdr {
 	uint8_t		 data[];
 } __attribute__((__packed__)) icmp_hdr;
 
+typedef struct tcp4_hdr {
+	uint16_t	 sp;
+	uint16_t	 dp;
+	uint32_t	 seq;
+	uint32_t	 ack;
+#define tcp4_hdr_off(th) ((th)->off_ns >> 4)
+#define tcp4_hdr_ns(th)  ((th)->off_ns & 0x01)
+	uint8_t		 off_ns;
+#define tcp4_hdr_cwr(th) ((th)->fl & 0x80)
+#define tcp4_hdr_ece(th) ((th)->fl & 0x40)
+#define tcp4_hdr_urg(th) ((th)->fl & 0x20)
+#define tcp4_hdr_ack(th) ((th)->fl & 0x10)
+#define tcp4_hdr_psh(th) ((th)->fl & 0x08)
+#define tcp4_hdr_rst(th) ((th)->fl & 0x04)
+#define tcp4_hdr_syn(th) ((th)->fl & 0x02)
+#define tcp4_hdr_fin(th) ((th)->fl & 0x01)
+	uint8_t		 fl;
+	uint16_t	 win;
+	uint16_t	 sum;
+	uint16_t	 urg;
+	uint8_t		 opt[];
+} __attribute__((__packed__)) tcp4_hdr;
+
+typedef struct udp4_hdr {
+	uint16_t	 sp;
+	uint16_t	 dp;
+	uint16_t	 len;
+	uint16_t	 sum;
+	uint8_t		 data[];
+} __attribute__((__packed__)) udp4_hdr;
+
 typedef struct ipv4_flow {
 	struct packet	*p;
 	/* pseudo-header */

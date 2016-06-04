@@ -36,6 +36,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <fc/endian.h>
+#include <fc/log.h>
+
 #include "flycatcher.h"
 #include "ethernet.h"
 #include "iface.h"
@@ -47,9 +50,33 @@
 int
 packet_analyze_tcp4(const ipv4_flow *fl, const void *data, size_t len)
 {
+	char flags[] = "NCEUAPRSF";
+	const tcp4_hdr *th;
+	size_t thlen;
+	unsigned int bit, mask;
+	uint16_t sum;
 
-	(void)fl;
-	(void)data;
-	(void)len;
+	th = data;
+	thlen = len >= sizeof *th ? tcp4_hdr_off(th) : sizeof *th;
+	if (len < thlen) {
+		fc_notice("%d.%03d short TCP packet (%zd < %zd)",
+		    fl->p->ts.tv_sec, fl->p->ts.tv_usec / 1000,
+		    len, thlen);
+		return (-1);
+	}
+	if ((sum = ~ip_cksum(fl->sum, data, len)) != 0) {
+		fc_notice("%d.%03d invalid TCP checksum 0x%04hx",
+		    fl->p->ts.tv_sec, fl->p->ts.tv_usec / 1000, sum);
+		return (-1);
+	}
+	data = (const uint8_t *)data + thlen;
+	len -= thlen;
+	if (!tcp4_hdr_ns(th))
+		flags[0] = '-';
+	for (bit = 1, mask = 0x80; mask > 0; ++bit, mask >>= 1)
+		if (!(th->fl & mask))
+			flags[bit] = '-';
+	log_packet4(&fl->p->ts, &fl->src, be16toh(th->sp),
+	    &fl->dst, be16toh(th->dp), "TCP", len, flags);
 	return (0);
 }
