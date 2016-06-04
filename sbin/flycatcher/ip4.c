@@ -134,8 +134,10 @@ ip_cksum(uint16_t isum, const void *data, size_t len)
 	const uint16_t *w;
 	uint32_t sum;
 
-	for (w = data, len /= 2, sum = isum; len > 0; --len, ++w)
+	for (w = data, sum = isum; len > 1; len -= 2, ++w)
 		sum += be16toh(*w);
+	if (len)
+		sum += *(const uint8_t *)w << 8;
 	while (sum > 0xffff)
 		sum -= 0xffff;
 	return (sum);
