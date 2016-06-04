@@ -140,4 +140,8 @@ int	 packet_analyze_udp4(const ipv4_flow *, const void *, size_t);
 int	 packet_analyze_tcp4(const ipv4_flow *, const void *, size_t);
 int	 ethernet_send(struct iface *, ether_type, ether_addr *, const void *, size_t);
 
+int	 log_packet4(struct timeval *,
+    const ipv4_addr *, int, const ipv4_addr *, int,
+    const char *, size_t, const char *, ...);
+
 #endif

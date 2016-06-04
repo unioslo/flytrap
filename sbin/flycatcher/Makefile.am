@@ -6,6 +6,7 @@ flycatcher_SOURCES	 =
 flycatcher_SOURCES	+= arp.c
 flycatcher_SOURCES	+= crc32.c
 flycatcher_SOURCES	+= flycatcher.c
+flycatcher_SOURCES	+= log.c
 flycatcher_SOURCES	+= main.c
 
 # Interface
