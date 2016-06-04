@@ -76,15 +76,19 @@ packet_analyze_ip4(struct packet *p, const void *data, size_t len)
 		    len, be16toh(ih->len), ihl);
 		return (-1);
 	}
-	data = (const uint8_t *)data + ihl;
-	len -= ihl;
-	fc_debug("\tIP version %d proto %d from %d.%d.%d.%d to %d.%d.%d.%d",
-	    ipv4_hdr_ver(ih), ih->proto,
+	fc_debug("\tIP version %d proto %d len %zu"
+	    " from %d.%d.%d.%d to %d.%d.%d.%d",
+	    ipv4_hdr_ver(ih), ih->proto, len,
 	    ih->srcip.o[0], ih->srcip.o[1], ih->srcip.o[2], ih->srcip.o[3],
 	    ih->dstip.o[0], ih->dstip.o[1], ih->dstip.o[2], ih->dstip.o[3]);
+	data = (const uint8_t *)data + ihl;
+	len -= ihl;
 	fl.p = p;
 	fl.src = ih->srcip;
 	fl.dst = ih->dstip;
+	fl.proto = htobe16(ih->proto);
+	fl.len = htobe16(len);
+	fl.sum = ip_cksum(0, &fl.pseudo, sizeof fl.pseudo);
 	switch (ih->proto) {
 	case ip_proto_icmp:
 		ret = packet_analyze_icmp4(&fl, data, len);

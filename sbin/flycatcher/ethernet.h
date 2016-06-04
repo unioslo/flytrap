@@ -117,8 +117,17 @@ typedef struct icmp_hdr {
 
 typedef struct ipv4_flow {
 	struct packet	*p;
-	ipv4_addr	 src;
-	ipv4_addr	 dst;
+	/* pseudo-header */
+	union {
+		uint8_t		 pseudo[12];
+		struct {
+			ipv4_addr	 src;
+			ipv4_addr	 dst;
+			uint16_t	 proto;
+			uint16_t	 len;
+		} __attribute__((__packed__));
+	};
+	uint16_t	 sum;
 } ipv4_flow;
 
 int	 arp_reserve(const ipv4_addr *);
