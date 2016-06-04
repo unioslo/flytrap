@@ -85,10 +85,11 @@ packet_analyze_icmp4(const ipv4_flow *fl, const void *data, size_t len)
 	uint16_t id, seq, sum;
 	int ret;
 
-	if (len < sizeof(icmp_hdr)) {
+	ih = data;
+	if (len < sizeof *ih) {
 		fc_notice("%d.%03d short ICMP packet (%zd < %zd)",
 		    fl->p->ts.tv_sec, fl->p->ts.tv_usec / 1000,
-		    len, sizeof(icmp_hdr));
+		    len, sizeof *ih);
 		return (-1);
 	}
 	if ((sum = ~ip_cksum(0, data, len)) != 0) {
@@ -96,7 +97,6 @@ packet_analyze_icmp4(const ipv4_flow *fl, const void *data, size_t len)
 		    fl->p->ts.tv_sec, fl->p->ts.tv_usec / 1000, sum);
 		return (-1);
 	}
-	ih = data;
 	data = ih + 1;
 	len -= sizeof *ih;
 	switch (ih->type) {
