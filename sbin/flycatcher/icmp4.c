@@ -110,5 +110,7 @@ packet_analyze_icmp4(const ipv4_flow *fl, const void *data, size_t len)
 		    (const uint16_t *)ih->data, len);
 		break;
 	}
+	log_packet4(&fl->p->ts, &fl->src, 0, &fl->dst, 0,
+	    "ICMP", len, "%u.%u", ih->type, ih->code);
 	return (ret);
 }
