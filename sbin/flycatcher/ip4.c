@@ -157,7 +157,7 @@ ipv4_reply(const struct ipv4_flow *fl, ip_proto proto,
 		    fl->src.o[0], fl->src.o[1], fl->src.o[2], fl->src.o[3]);
 		return (-1);
 	}
-	fc_verbose("ip4 proto %d to %02x:%02x:%02x:%02x:%02x:%02x", proto,
+	fc_debug("ip4 proto %d to %02x:%02x:%02x:%02x:%02x:%02x", proto,
 	    ether.o[0], ether.o[1], ether.o[2],
 	    ether.o[3], ether.o[4], ether.o[5]);
 	iplen = sizeof *ih + len;
