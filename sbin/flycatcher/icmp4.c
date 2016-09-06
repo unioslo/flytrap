@@ -54,7 +54,7 @@
  * Reply to an echo request
  */
 static int
-icmp_reply(const ipv4_flow *fl, uint16_t id, uint16_t seq,
+icmp4_reply(const ipv4_flow *fl, uint16_t id, uint16_t seq,
     const void *payload, size_t payloadlen)
 {
 	icmp_hdr *ih;
@@ -72,6 +72,7 @@ icmp_reply(const ipv4_flow *fl, uint16_t id, uint16_t seq,
 	    fl->src.o[0], fl->src.o[1], fl->src.o[2], fl->src.o[3],
 	    id, seq);
 	ipv4_reply(fl, ip_proto_icmp, ih, len);
+	free(ih);
 	return (0);
 }
 
@@ -106,9 +107,11 @@ packet_analyze_icmp4(const ipv4_flow *fl, const void *data, size_t len)
 		fc_verbose("echo request from %d.%d.%d.%d id 0x%04x seq 0x%04x",
 		    fl->src.o[0], fl->src.o[1], fl->src.o[2], fl->src.o[3],
 		    id, seq);
-		ret = icmp_reply(fl, id, seq,
+		ret = icmp4_reply(fl, id, seq,
 		    (const uint16_t *)ih->data, len);
 		break;
+	default:
+		ret = 0;
 	}
 	log_packet4(&fl->p->ts, &fl->src, 0, &fl->dst, 0,
 	    "ICMP", len, "%u.%u", ih->type, ih->code);
