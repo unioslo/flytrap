@@ -35,6 +35,8 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <fc/endian.h>
 #include <fc/log.h>
@@ -43,6 +45,143 @@
 #include "ethernet.h"
 #include "iface.h"
 #include "packet.h"
+
+/*
+ * Reply to a TCP packet with an RST.
+ */
+static int
+tcp4_go_away(const ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
+{
+	tcp4_hdr oth = { 0 };
+	uint16_t olen, sum;
+	int ret;
+
+	(void)ilen;
+
+	/* fill in packet */
+	oth.sp = ith->dp;
+	oth.dp = ith->sp;
+	oth.off_ns = (sizeof oth >> 2) << 4;
+	oth.fl = TCP4_RST;
+	oth.seq = htobe32(FLYCATCHER_TCP4_SEQ);
+	oth.ack = ith->seq;
+	oth.win = htobe16(0);
+
+	/* compute pseudo-header checksum, then packet checksum */
+	sum = ip_cksum(0, &fl->dst, sizeof fl->dst);
+	sum = ip_cksum(sum, &fl->src, sizeof fl->src);
+	sum = ip_cksum(sum, &fl->proto, sizeof fl->proto);
+	olen = htobe16(sizeof oth);
+	sum = ip_cksum(sum, &olen, sizeof olen);
+	oth.sum = htobe16(~ip_cksum(sum, &oth, sizeof oth));
+
+	/* send packet */
+	ret = ipv4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
+	return (ret);
+}
+
+/*
+ * Reply to a SYN packet with a SYN/ACK with a very small window size.
+ */
+static int
+tcp4_hello(const ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
+{
+	tcp4_hdr oth = { 0 };
+	uint16_t olen, sum;
+	int ret;
+
+	(void)ilen;
+
+	/* fill in packet */
+	oth.sp = ith->dp;
+	oth.dp = ith->sp;
+	oth.off_ns = (sizeof oth >> 2) << 4;
+	oth.fl = TCP4_SYN | TCP4_ACK;
+	oth.seq = htobe32(FLYCATCHER_TCP4_SEQ);
+	oth.ack = htobe32(be32toh(ith->seq) + 1);
+	oth.win = htobe16(0);
+
+	/* compute pseudo-header checksum, then packet checksum */
+	sum = ip_cksum(0, &fl->dst, sizeof fl->dst);
+	sum = ip_cksum(sum, &fl->src, sizeof fl->src);
+	sum = ip_cksum(sum, &fl->proto, sizeof fl->proto);
+	olen = htobe16(sizeof oth);
+	sum = ip_cksum(sum, &olen, sizeof olen);
+	oth.sum = htobe16(~ip_cksum(sum, &oth, sizeof oth));
+
+	/* send packet */
+	ret = ipv4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
+	return (ret);
+}
+
+/*
+ * Reply to a TCP packet with another which acknowledges receipt but
+ * informs the peer that we don't have any free buffer space.
+ */
+static int
+tcp4_please_hold(const ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
+{
+	tcp4_hdr oth = { 0 };
+	uint16_t olen, sum;
+	int ret;
+
+	(void)ilen;
+
+	/* fill in packet */
+	oth.sp = ith->dp;
+	oth.dp = ith->sp;
+	oth.off_ns = (sizeof oth >> 2) << 4;
+	oth.fl = (ith->fl & TCP4_SYN) | TCP4_ACK;
+	oth.seq = htobe32(FLYCATCHER_TCP4_SEQ);
+	oth.ack = ith->seq;
+	oth.win = htobe16(0);
+
+	/* compute pseudo-header checksum, then packet checksum */
+	sum = ip_cksum(0, &fl->dst, sizeof fl->dst);
+	sum = ip_cksum(sum, &fl->src, sizeof fl->src);
+	sum = ip_cksum(sum, &fl->proto, sizeof fl->proto);
+	olen = htobe16(sizeof oth);
+	sum = ip_cksum(sum, &olen, sizeof olen);
+	oth.sum = htobe16(~ip_cksum(sum, &oth, sizeof oth));
+
+	/* send packet */
+	ret = ipv4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
+	return (ret);
+}
+
+/*
+ * Reply to a FIN packet with a FIN/ACK.
+ */
+static int
+tcp4_goodbye(const ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
+{
+	tcp4_hdr oth = { 0 };
+	uint16_t olen, sum;
+	int ret;
+
+	(void)ilen;
+
+	/* fill in packet */
+	oth.sp = ith->dp;
+	oth.dp = ith->sp;
+	oth.off_ns = (sizeof oth >> 2) << 4;
+	oth.fl = TCP4_FIN | TCP4_ACK;
+	oth.seq = htobe32(FLYCATCHER_TCP4_SEQ);
+	oth.ack = ith->seq;
+	oth.win = htobe16(0);
+
+	/* compute pseudo-header checksum, then packet checksum */
+	sum = ip_cksum(0, &fl->dst, sizeof fl->dst);
+	sum = ip_cksum(sum, &fl->src, sizeof fl->src);
+	sum = ip_cksum(sum, &fl->proto, sizeof fl->proto);
+	olen = htobe16(sizeof oth);
+	sum = ip_cksum(sum, &olen, sizeof olen);
+	oth.sum = htobe16(~ip_cksum(sum, &oth, sizeof oth));
+
+	/* send packet */
+	ret = ipv4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
+	return (ret);
+}
 
 /*
  * Analyze a captured TCP packet
@@ -55,6 +194,7 @@ packet_analyze_tcp4(const ipv4_flow *fl, const void *data, size_t len)
 	size_t thlen;
 	unsigned int bit, mask;
 	uint16_t sum;
+	int ret;
 
 	th = data;
 	thlen = len >= sizeof *th ? (tcp4_hdr_off(th) * 4) : sizeof *th;
@@ -78,5 +218,29 @@ packet_analyze_tcp4(const ipv4_flow *fl, const void *data, size_t len)
 			flags[bit] = '-';
 	log_packet4(&fl->p->ts, &fl->src, be16toh(th->sp),
 	    &fl->dst, be16toh(th->dp), "TCP", len, flags);
-	return (0);
+	if (th->fl & TCP4_SYN) {
+		if (th->fl & TCP4_ACK)
+			ret = tcp4_go_away(fl, th, len);
+		else
+			ret = tcp4_hello(fl, th, len);
+	} else if (th->fl & TCP4_FIN) {
+		/* closing connection */
+		/*
+		 * This is disabled for now, as I haven't found a way to
+		 * handle FIN correctly without keeping connection state.
+		 * We may consider doing so in the future if we find a
+		 * clever way to represent state with a minimal amount of
+		 * resources and without exposing ourselves to a DoS.
+		 */
+		ret = 0 && tcp4_goodbye(fl, th, len);
+	} else if (th->fl & TCP4_RST) {
+		/* ignore packet */
+		ret = 0;
+	} else if (len > 0) {
+		ret = tcp4_please_hold(fl, th, len);
+	} else {
+		/* ignore packet */
+		ret = 0;
+	}
+	return (ret);
 }

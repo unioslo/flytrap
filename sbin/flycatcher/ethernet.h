@@ -37,6 +37,8 @@ typedef union { uint8_t o[16]; uint16_t w[8]; } __attribute__((__packed__)) ipv6
 #define FLYCATCHER_ETHER_ADDR { 0x02, 0x00, 0x18, 0x11, 0x09, 0x02 }
 extern ether_addr flycatcher_ether_addr;
 
+#define FLYCATCHER_TCP4_SEQ 0x18110902U
+
 typedef enum ether_type {
 	ether_type_ip	 = 0x0800,
 	ether_type_arp	 = 0x0806,
@@ -123,18 +125,33 @@ typedef struct tcp4_hdr {
 #define tcp4_hdr_off(th) ((th)->off_ns >> 4)
 #define tcp4_hdr_ns(th)  ((th)->off_ns & 0x01)
 	uint8_t		 off_ns;
-#define tcp4_hdr_cwr(th) ((th)->fl & 0x80)
-#define tcp4_hdr_ece(th) ((th)->fl & 0x40)
-#define tcp4_hdr_urg(th) ((th)->fl & 0x20)
-#define tcp4_hdr_ack(th) ((th)->fl & 0x10)
-#define tcp4_hdr_psh(th) ((th)->fl & 0x08)
-#define tcp4_hdr_rst(th) ((th)->fl & 0x04)
-#define tcp4_hdr_syn(th) ((th)->fl & 0x02)
-#define tcp4_hdr_fin(th) ((th)->fl & 0x01)
+#define TCP4_CWR	 0x80
+#define TCP4_ECE	 0x40
+#define TCP4_URG	 0x20
+#define TCP4_ACK	 0x10
+#define TCP4_PSH	 0x08
+#define TCP4_RST	 0x04
+#define TCP4_SYN	 0x02
+#define TCP4_FIN	 0x01
+#define tcp4_hdr_cwr(th) ((th)->fl & TCP4_CWR)
+#define tcp4_hdr_ece(th) ((th)->fl & TCP4_ECE)
+#define tcp4_hdr_urg(th) ((th)->fl & TCP4_URG)
+#define tcp4_hdr_ack(th) ((th)->fl & TCP4_ACK)
+#define tcp4_hdr_psh(th) ((th)->fl & TCP4_PSH)
+#define tcp4_hdr_rst(th) ((th)->fl & TCP4_RST)
+#define tcp4_hdr_syn(th) ((th)->fl & TCP4_SYN)
+#define tcp4_hdr_fin(th) ((th)->fl & TCP4_FIN)
 	uint8_t		 fl;
 	uint16_t	 win;
 	uint16_t	 sum;
 	uint16_t	 urg;
+#define TCP_OPT_END	 0
+#define TCP_OPT_NOP	 1
+#define TCP_OPT_MSS	 2
+#define TCP_OPT_WS	 3
+#define TCP_OPT_SACKOK	 4
+#define TCP_OPT_SACK	 5
+#define TCP_OPT_TIME	 8
 	uint8_t		 opt[];
 } __attribute__((__packed__)) tcp4_hdr;
 
