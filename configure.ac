@@ -1,5 +1,5 @@
 AC_PREREQ([2.64])
-AC_INIT([Flycatcher], [0.20160419], [d.e.smorgrav@usit.uio.no],
+AC_INIT([Flycatcher], [0.20160907], [d.e.smorgrav@usit.uio.no],
     [flycatcher], [https://www.github.com/unioslo/flycatcher])
 AC_CONFIG_SRCDIR([sbin/flycatcher/flycatcher.c])
 AC_CONFIG_MACRO_DIR([m4])
