@@ -57,7 +57,7 @@ packet_analyze_tcp4(const ipv4_flow *fl, const void *data, size_t len)
 	uint16_t sum;
 
 	th = data;
-	thlen = len >= sizeof *th ? tcp4_hdr_off(th) : sizeof *th;
+	thlen = len >= sizeof *th ? (tcp4_hdr_off(th) * 4) : sizeof *th;
 	if (len < thlen) {
 		fc_notice("%d.%03d short TCP packet (%zd < %zd)",
 		    fl->p->ts.tv_sec, fl->p->ts.tv_usec / 1000,
