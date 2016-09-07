@@ -1,3 +1,3 @@
 ACLOCAL_AMFLAGS = -I m4
-SUBDIRS = include lib sbin t
+SUBDIRS = include lib bin sbin t
 EXTRA_DIST = HISTORY INSTALL LICENSE autogen.sh

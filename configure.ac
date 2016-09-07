@@ -27,7 +27,7 @@ AC_PROG_RANLIB
 
 ############################################################################
 #
-# Headers and functions
+# Headers, types and functions
 #
 
 AC_CHECK_HEADERS([endian.h sys/endian.h])
@@ -44,6 +44,15 @@ AC_CHECK_DECLS([
 #endif
 ]])
 AC_CHECK_FUNCS([strlcat strlcmp strlcpy])
+AC_CHECK_HEADERS([sys/socket.h netinet/in.h])
+AC_CHECK_MEMBERS([struct sockaddr_in.sin_len], [], [], [[
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#if HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+]])
 
 ############################################################################
 #
@@ -74,6 +83,8 @@ AC_CONFIG_FILES([
     include/Makefile
     lib/Makefile
     lib/libfc/Makefile
+    bin/Makefile
+    bin/fly/Makefile
     sbin/Makefile
     sbin/flycatcher/Makefile
     t/Makefile
