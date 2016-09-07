@@ -68,7 +68,7 @@ main(int argc, char *argv[])
 
 	iface = NULL;
 	fc_log_level = FC_LOG_LEVEL_NOTICE;
-	while ((opt = getopt(argc, argv, "dhi:nvx:")) != -1) {
+	while ((opt = getopt(argc, argv, "dhi:l:nvx:")) != -1) {
 		switch (opt) {
 		case 'd':
 			if (fc_log_level > FC_LOG_LEVEL_DEBUG)
@@ -76,6 +76,9 @@ main(int argc, char *argv[])
 			break;
 		case 'i':
 			iface = optarg;
+			break;
+		case 'l':
+			fc_logname = optarg;
 			break;
 		case 'n':
 			fc_dryrun = 1;

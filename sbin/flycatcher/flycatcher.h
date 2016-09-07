@@ -44,5 +44,8 @@ int iface_transmit(struct iface *, struct packet *);
 int packet_analyze(struct packet *);
 
 extern int fc_dryrun;
+extern const char *fc_logname;
+
+int log_open(const char *);
 
 #endif

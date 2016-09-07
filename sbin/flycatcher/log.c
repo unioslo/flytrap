@@ -51,7 +51,7 @@ log_packet4(struct timeval *tv,
 {
 	va_list ap;
 
-	fprintf(logfile ? logfile : stdout,
+	fprintf(logfile,
 	    "%llu.%06lu,%d.%d.%d.%d,%d,%d.%d.%d.%d,%d,%s,%zu,",
 	    (unsigned long long)tv->tv_sec, (unsigned long)tv->tv_usec,
 	    sa->o[0], sa->o[1], sa->o[2], sa->o[3], sp,
@@ -61,5 +61,22 @@ log_packet4(struct timeval *tv,
 	vfprintf(logfile ? logfile : stdout, fmt, ap);
 	va_end(ap);
 	fprintf(logfile ? logfile : stdout, "\n");
+	fflush(logfile);
+	return (0);
+}
+
+int
+log_open(const char *logfn)
+{
+	FILE *nf, *of;
+
+	if (logfn == NULL)
+		nf = stdout;
+	else if ((nf = fopen(logfn, "a")) == NULL)
+		return (-1);
+	of = logfile;
+	logfile = nf;
+	if (of != NULL && of != stdout)
+		fclose(of);
 	return (0);
 }
