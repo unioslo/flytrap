@@ -64,7 +64,7 @@ int
 main(int argc, char *argv[])
 {
 	const char *iface;
-	int opt;
+	int opt, ret;
 
 	iface = NULL;
 	fc_log_level = FC_LOG_LEVEL_NOTICE;
@@ -101,7 +101,9 @@ main(int argc, char *argv[])
 	if (iface == NULL)
 		usage();
 
-	if (flycatcher(iface) != 0)
-		exit(1);
-	exit(0);
+	fc_log_init("flycatcher", NULL);
+	ret = flycatcher(iface);
+	fc_log_exit();
+
+	exit(ret == 0 ? 0 : 1);
 }

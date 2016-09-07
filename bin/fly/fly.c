@@ -164,7 +164,8 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
-	int opt, linger = 0, timeout = 10;
+	int linger = 0, timeout = 10;
+	int opt, ret;
 
 	while ((opt = getopt(argc, argv, "dlv")) != -1)
 		switch (opt) {
@@ -189,8 +190,9 @@ main(int argc, char *argv[])
 	if (argc != 1)
 		usage();
 
-	if (fly(*argv, linger, timeout) != 0)
-		exit(1);
+	fc_log_init("fly", NULL);
+	ret = fly(*argv, linger, timeout);
+	fc_log_exit();
 
-	exit(0);
+	exit(ret == 0 ? 0 : 1);
 }

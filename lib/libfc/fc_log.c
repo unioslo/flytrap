@@ -35,11 +35,14 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <syslog.h>
 
 #define FC_LOGV_REQUIRED
 #include <fc/log.h>
+#include <fc/strutil.h>
 
+static char fc_prog_name[16];
 fc_log_level_t fc_log_level;
 
 #if 0
@@ -88,7 +91,8 @@ void
 fc_logv(fc_log_level_t level, const char *fmt, va_list ap)
 {
 
-	fprintf(stderr, "flycatcher: %s: ", fc_log_level_to_string(level));
+	fprintf(stderr, "%s: %s: ", fc_prog_name,
+	    fc_log_level_to_string(level));
 	vfprintf(stderr, fmt, ap);
 	fprintf(stderr, "\n");
 }
@@ -130,7 +134,7 @@ int
 fc_log_init(const char *ident, const char *logspec)
 {
 
-	(void)ident;
+	strlcpy(fc_prog_name, ident, sizeof fc_prog_name);
 	(void)logspec;
 	return (0);
 }
