@@ -53,6 +53,7 @@ AC_CHECK_MEMBERS([struct sockaddr_in.sin_len], [], [], [[
 #include <netinet/in.h>
 #endif
 ]])
+AC_CHECK_HEADERS([pcap.h pcap/pcap.h])
 
 ############################################################################
 #

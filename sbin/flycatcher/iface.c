@@ -39,7 +39,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if HAVE_PCAP_PCAP_H
 #include <pcap/pcap.h>
+#elif HAVE_PCAP_H
+#include <pcap.h>
+#else
+#error pcap library required
+#endif
 
 #include <fc/log.h>
 #include <fc/sbuf.h>
