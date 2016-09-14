@@ -26,7 +26,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd September 7, 2016
+.Dd September 14, 2016
 .Dt FLYCATCHER 8
 .Os
 .Sh NAME
@@ -34,8 +34,9 @@
 .Nd Detect and impede port scanners
 .Sh SYNOPSIS
 .Nm
-.Op Fl dnv
+.Op Fl dfnv
 .Op Fl l Ar logfile
+.Op Fl p Ar pidfile
 .Op Fl x Ar address
 .Fl i Ar interface
 .Pp
@@ -51,6 +52,8 @@ The following options are available:
 .Bl -tag -width Fl
 .It Fl d
 Enable log messages at debug level or higher.
+.It Fl f
+Foreground mode: do not daemonize and do not create a pidfile.
 .It Fl n
 Dry-run mode.
 Does everything except inject packets into the network.
@@ -60,6 +63,9 @@ Listen on the specified interface.
 Log information about received packets in CSV format to the specified
 file instead of
 .Va stdout .
+.It Fl p Ar pidfile
+Write the daemon's PID to the specified file instead of
+.Pa /var/run/flycatcher.pid .
 .It Fl v
 Enable log messages at verbose level or higher.
 .It Fl x Ar address
