@@ -43,6 +43,7 @@ typedef enum {
 void fc_logv(fc_log_level_t, const char *, va_list);
 #endif
 void fc_log(fc_log_level_t, const char *, ...);
+void fc_fatal(const char *, ...);
 int fc_log_init(const char *, const char *);
 int fc_log_exit(void);
 
