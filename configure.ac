@@ -87,6 +87,7 @@ AC_CONFIG_FILES([
     bin/fly/Makefile
     sbin/Makefile
     sbin/flycatcher/Makefile
+    rc/flycatcher.systemd
     t/Makefile
 ])
 AC_OUTPUT

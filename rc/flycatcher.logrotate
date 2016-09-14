@@ -1,0 +1,9 @@
+# Install as /etc/logrotate.d/flycatcher to enable log rotation
+/var/log/flycatcher.log {
+    missingok
+    nocreate
+    sharedscripts
+    postrotate
+        kill -HUP `cat /var/run/flycatcher.pid`
+    endscript
+}
