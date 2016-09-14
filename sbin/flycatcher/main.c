@@ -31,15 +31,21 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include <fc/log.h>
+#include <fc/pidfile.h>
 
 #include "flycatcher.h"
 #include "ethernet.h"
+
+static const char *fc_pidfile = "/var/run/flycatcher.pid";
+static int fc_foreground = 0;
 
 static int
 exclude(const char *dqs)
@@ -53,10 +59,30 @@ exclude(const char *dqs)
 }
 
 static void
+daemonize(void)
+{
+	struct fc_pidfh *pidfh;
+	pid_t pid;
+
+	if ((pidfh = fc_pidfile_open(fc_pidfile, 0600, &pid)) == NULL) {
+		if (errno == EEXIST) {
+			fc_fatal("already running with PID %lu",
+			    (unsigned long)pid);
+		} else {
+			fc_fatal("unable to open or create pidfile %s: %s",
+			    fc_pidfile, strerror(errno));
+		}
+	}
+	if (daemon(0, 0) != 0)
+		fc_fatal("unable to daemonize: %s", strerror(errno));
+	fc_pidfile_write(pidfh);
+}
+
+static void
 usage(void)
 {
 
-	fprintf(stderr, "usage: flycatcher [-dnv] [-x addr] -i interface\n");
+	fprintf(stderr, "usage: flycatcher [-dfnv] [-p pidfile] [-x addr] -i interface\n");
 	exit(1);
 }
 
@@ -74,6 +100,9 @@ main(int argc, char *argv[])
 			if (fc_log_level > FC_LOG_LEVEL_DEBUG)
 				fc_log_level = FC_LOG_LEVEL_DEBUG;
 			break;
+		case 'f':
+			fc_foreground = 1;
+			break;
 		case 'i':
 			iface = optarg;
 			break;
@@ -82,6 +111,9 @@ main(int argc, char *argv[])
 			break;
 		case 'n':
 			fc_dryrun = 1;
+			break;
+		case 'p':
+			fc_pidfile = optarg;
 			break;
 		case 'v':
 			if (fc_log_level > FC_LOG_LEVEL_VERBOSE)
@@ -103,6 +135,9 @@ main(int argc, char *argv[])
 		usage();
 	if (iface == NULL)
 		usage();
+
+	if (!fc_foreground)
+		daemonize();
 
 	fc_log_init("flycatcher", NULL);
 	ret = flycatcher(iface);
