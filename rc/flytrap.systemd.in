@@ -1,0 +1,18 @@
+# Install as /usr/lib/systemd/system/flytrap.service
+
+[Unit]
+Description=IP scan logger
+Documentation=man:flytrap(8)
+After=network.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/flytrap.pid
+EnvironmentFile=/etc/sysconfig/flytrap
+ExecStart=@prefix@/sbin/flytrap $OPTIONS -i $INTERFACE
+KillMode=process
+Restart=on-failure
+RestartSec=42s
+
+[Install]
+WantedBy=multi-user.target

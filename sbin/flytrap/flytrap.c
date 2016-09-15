@@ -38,7 +38,7 @@
 
 #include <ft/log.h>
 
-#include "flycatcher.h"
+#include "flytrap.h"
 
 int fc_dryrun;
 const char *fc_logname;

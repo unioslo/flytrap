@@ -1,5 +1,5 @@
-# Install as /etc/logrotate.d/flycatcher to enable log rotation
-/var/log/flycatcher.log {
+# Install as /etc/logrotate.d/flytrap to enable log rotation
+/var/log/flytrap.log {
     # Rotate daily, keep four weeks
     daily
     rotate 28
@@ -9,9 +9,9 @@
     compresscmd @Z@
     uncompresscmd @UNZ@
     
-    # signal flycatcher(8) after rotating
+    # signal flytrap(8) after rotating
     sharedscripts
     postrotate
-        kill -HUP `cat /var/run/flycatcher.pid`
+        kill -HUP `cat /var/run/flytrap.pid`
     endscript
 }

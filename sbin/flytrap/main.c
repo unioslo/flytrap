@@ -41,10 +41,10 @@
 #include <ft/log.h>
 #include <ft/pidfile.h>
 
-#include "flycatcher.h"
+#include "flytrap.h"
 #include "ethernet.h"
 
-static const char *fc_pidfile = "/var/run/flycatcher.pid";
+static const char *fc_pidfile = "/var/run/flytrap.pid";
 static int fc_foreground = 0;
 
 static int
@@ -82,7 +82,7 @@ static void
 usage(void)
 {
 
-	fprintf(stderr, "usage: flycatcher [-dfnv] [-p pidfile] [-x addr] -i interface\n");
+	fprintf(stderr, "usage: flytrap [-dfnv] [-p pidfile] [-x addr] -i interface\n");
 	exit(1);
 }
 
@@ -139,7 +139,7 @@ main(int argc, char *argv[])
 	if (!fc_foreground)
 		daemonize();
 
-	fc_log_init("flycatcher", NULL);
+	fc_log_init("flytrap", NULL);
 	ret = flycatcher(ifname);
 	fc_log_exit();
 

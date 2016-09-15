@@ -41,7 +41,7 @@
 #include <ft/endian.h>
 #include <ft/log.h>
 
-#include "flycatcher.h"
+#include "flytrap.h"
 #include "ethernet.h"
 #include "iface.h"
 #include "packet.h"

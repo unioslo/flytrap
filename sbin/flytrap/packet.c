@@ -36,7 +36,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "flycatcher.h"
+#include "flytrap.h"
 #include "ethernet.h"
 #include "packet.h"
 

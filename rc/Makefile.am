@@ -1,1 +1,1 @@
-EXTRA_DIST = flycatcher.logrotate.in flycatcher.systemd.in
+EXTRA_DIST = flytrap.logrotate.in flytrap.systemd.in

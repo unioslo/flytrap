@@ -51,7 +51,7 @@
 #include <ft/sbuf.h>
 #include <ft/strutil.h>
 
-#include "flycatcher.h"
+#include "flytrap.h"
 #include "ethernet.h"
 #include "iface.h"
 #include "packet.h"

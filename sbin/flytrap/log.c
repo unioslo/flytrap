@@ -38,7 +38,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "flycatcher.h"
+#include "flytrap.h"
 #include "ethernet.h"
 
 static FILE *logfile;
