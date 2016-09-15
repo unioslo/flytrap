@@ -47,9 +47,9 @@
 #error pcap library required
 #endif
 
-#include <fc/log.h>
-#include <fc/sbuf.h>
-#include <fc/strutil.h>
+#include <ft/log.h>
+#include <ft/sbuf.h>
+#include <ft/strutil.h>
 
 #include "flycatcher.h"
 #include "ethernet.h"

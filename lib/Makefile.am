@@ -1,1 +1,1 @@
-SUBDIRS = libfc
+SUBDIRS = libft

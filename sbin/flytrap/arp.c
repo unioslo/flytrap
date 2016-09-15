@@ -39,9 +39,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <fc/assert.h>
-#include <fc/endian.h>
-#include <fc/log.h>
+#include <ft/assert.h>
+#include <ft/endian.h>
+#include <ft/log.h>
 
 #include "flycatcher.h"
 #include "ethernet.h"

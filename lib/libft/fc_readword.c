@@ -36,8 +36,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <fc/ctype.h>
-#include "fc/strutil.h"
+#include <ft/ctype.h>
+#include "ft/strutil.h"
 
 #define MIN_WORD_SIZE	32
 

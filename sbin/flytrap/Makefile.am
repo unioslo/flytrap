@@ -20,7 +20,7 @@ flycatcher_SOURCES	+= ip4.c
 flycatcher_SOURCES	+= tcp4.c
 flycatcher_SOURCES	+= udp4.c
 
-flycatcher_LDADD	 = $(LIBPCAP) $(top_builddir)/lib/libfc/libfc.a
+flycatcher_LDADD	 = $(LIBPCAP) $(top_builddir)/lib/libft/libfc.a
 
 noinst_HEADERS		 =
 noinst_HEADERS		+= ethernet.h

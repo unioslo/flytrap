@@ -39,8 +39,8 @@
 #include <syslog.h>
 
 #define FC_LOGV_REQUIRED
-#include <fc/log.h>
-#include <fc/strutil.h>
+#include <ft/log.h>
+#include <ft/strutil.h>
 
 static char fc_prog_name[16];
 fc_log_level_t fc_log_level;

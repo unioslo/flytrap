@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2016 Universitetet i Oslo
+ * Copyright (c) 2016 The University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,68 +27,24 @@
  * SUCH DAMAGE.
  */
 
-#if HAVE_CONFIG_H
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+# include "config.h"
 #endif
 
-#include <errno.h>
-#include <signal.h>
+#include <stdarg.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <fc/log.h>
+#include <ft/assert.h>
+#define FC_LOGV_REQUIRED
+#include <ft/log.h>
 
-#include "flycatcher.h"
-
-int fc_dryrun;
-const char *fc_logname;
-
-static sig_atomic_t sighup;
-
-static void
-signal_handler(int sig)
+void
+fc_abort(const char *fmt, ...)
 {
+	va_list ap;
 
-	switch (sig) {
-	case SIGHUP:
-		sighup++;
-		break;
-	}
-}
-
-int
-flycatcher(const char *iname)
-{
-	struct iface *i;
-	struct packet *p;
-
-	if (log_open(fc_logname) != 0) {
-		fc_error("failed to open log file: %s", strerror(errno));
-		return (-1);
-	}
-	signal(SIGHUP, signal_handler); 
-	if ((i = iface_open(iname)) == NULL)
-		return (-1);
-	if (iface_activate(i) != 0)
-		goto fail;
-	for (;;) {
-		if (sighup) {
-			sighup--;
-			if (log_open(fc_logname) != 0) {
-				fc_warning("failed to reopen log file: %s",
-				    strerror(errno));
-			}
-		}
-		if ((p = iface_next(i)) == NULL) {
-			if (errno == EAGAIN)
-				continue;
-			goto fail;
-		}
-		packet_analyze(p);
-	}
-	signal(SIGHUP, SIG_DFL);
-	return (0);
-fail:
-	iface_close(i);
-	return (-1);
+	va_start(ap, fmt);
+	fc_logv(FC_LOG_LEVEL_ERROR, fmt, ap);
+	va_end(ap);
+	abort();
 }

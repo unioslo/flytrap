@@ -1,1 +1,1 @@
-SUBDIRS = flycatcher
+SUBDIRS = flytrap

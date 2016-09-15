@@ -42,9 +42,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <fc/ctype.h>
-#include <fc/endian.h>
-#include <fc/log.h>
+#include <ft/ctype.h>
+#include <ft/endian.h>
+#include <ft/log.h>
 
 #define FLY_DEFAULT_PORT 80
 static const char data[] = "GET / HTTP/0.9\r\n\r\n";

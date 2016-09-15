@@ -45,8 +45,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "fc/flopen.h"
-#include "fc/pidfile.h"
+#include "ft/flopen.h"
+#include "ft/pidfile.h"
 
 struct fc_pidfh {
 	int	pf_fd;

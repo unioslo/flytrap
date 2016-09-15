@@ -41,7 +41,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "fc/flopen.h"
+#include "ft/flopen.h"
 
 int
 fc_flopen(const char *path, int flags, ...)

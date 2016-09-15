@@ -1,5 +1,6 @@
 /*-
- * Copyright (c) 2016 The University of Oslo
+ * Copyright (c) 2011-2012 Dag-Erling Smørgrav
+ * Copyright (c) 2014 The University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,20 +32,27 @@
 # include "config.h"
 #endif
 
-#include <stdarg.h>
-#include <stdlib.h>
+#ifndef HAVE_STRLCPY
 
-#include <fc/assert.h>
-#define FC_LOGV_REQUIRED
-#include <fc/log.h>
+#include <stddef.h>
 
-void
-fc_abort(const char *fmt, ...)
+#include <ft/strutil.h>
+
+/*
+ * Like strcpy(3), but always NUL-terminates; returns strlen(src)
+ */
+
+size_t
+fc_strlcpy(char *dst, const char *src, size_t size)
 {
-	va_list ap;
+	size_t len;
 
-	va_start(ap, fmt);
-	fc_logv(FC_LOG_LEVEL_ERROR, fmt, ap);
-	va_end(ap);
-	abort();
+	for (len = 0; *src && size > 1; ++len, --size)
+		*dst++ = *src++;
+	*dst = '\0';
+	while (*src)
+		++len, ++src;
+	return (len);
 }
+
+#endif

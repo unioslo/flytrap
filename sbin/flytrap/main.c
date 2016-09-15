@@ -38,8 +38,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <fc/log.h>
-#include <fc/pidfile.h>
+#include <ft/log.h>
+#include <ft/pidfile.h>
 
 #include "flycatcher.h"
 #include "ethernet.h"

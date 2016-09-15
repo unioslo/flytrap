@@ -1,7 +1,7 @@
 AC_PREREQ([2.59])
 AC_INIT([Flycatcher], [0.20160915], [d.e.smorgrav@usit.uio.no],
     [flycatcher], [https://www.github.com/unioslo/flycatcher])
-AC_CONFIG_SRCDIR([sbin/flycatcher/flycatcher.c])
+AC_CONFIG_SRCDIR([sbin/flytrap/flycatcher.c])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign])
 AM_CONFIG_HEADER(include/config.h)
@@ -93,11 +93,11 @@ AC_CONFIG_FILES([
     Makefile
     include/Makefile
     lib/Makefile
-    lib/libfc/Makefile
+    lib/libft/Makefile
     bin/Makefile
     bin/fly/Makefile
     sbin/Makefile
-    sbin/flycatcher/Makefile
+    sbin/flytrap/Makefile
     rc/Makefile
     rc/flycatcher.logrotate
     rc/flycatcher.systemd

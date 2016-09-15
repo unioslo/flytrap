@@ -34,7 +34,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <fc/hash.h>
+#include <ft/hash.h>
 
 /*
  * Implementation of the hash function described in Pearson, Peter

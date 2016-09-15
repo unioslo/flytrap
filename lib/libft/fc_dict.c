@@ -38,8 +38,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <fc/dict.h>
-#include <fc/hash.h>
+#include <ft/dict.h>
+#include <ft/hash.h>
 
 struct fc_dict_ent {
 	const char		*key;

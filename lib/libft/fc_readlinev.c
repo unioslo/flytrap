@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <fc/strutil.h>
+#include <ft/strutil.h>
 
 #define MIN_WORDV_SIZE	32
 

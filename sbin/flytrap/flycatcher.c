@@ -1,6 +1,5 @@
 /*-
- * Copyright (c) 2011-2012 Dag-Erling Smørgrav
- * Copyright (c) 2014 The University of Oslo
+ * Copyright (c) 2016 Universitetet i Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,33 +27,68 @@
  * SUCH DAMAGE.
  */
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
+#if HAVE_CONFIG_H
+#include "config.h"
 #endif
 
-#ifndef HAVE_STRLCAT
+#include <errno.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include <stddef.h>
+#include <ft/log.h>
 
-#include <fc/strutil.h>
+#include "flycatcher.h"
 
-/*
- * Like strcat(3), but always NUL-terminates; returns strlen(src)
- */
+int fc_dryrun;
+const char *fc_logname;
 
-size_t
-fc_strlcat(char *dst, const char *src, size_t size)
+static sig_atomic_t sighup;
+
+static void
+signal_handler(int sig)
 {
-	size_t len;
 
-	for (len = 0; *dst && size > 1; ++len, --size)
-		dst++;
-	for (; *src && size > 1; ++len, --size)
-		*dst++ = *src++;
-	*dst = '\0';
-	while (*src)
-		++len, ++src;
-	return (len);
+	switch (sig) {
+	case SIGHUP:
+		sighup++;
+		break;
+	}
 }
 
-#endif
+int
+flycatcher(const char *iname)
+{
+	struct iface *i;
+	struct packet *p;
+
+	if (log_open(fc_logname) != 0) {
+		fc_error("failed to open log file: %s", strerror(errno));
+		return (-1);
+	}
+	signal(SIGHUP, signal_handler); 
+	if ((i = iface_open(iname)) == NULL)
+		return (-1);
+	if (iface_activate(i) != 0)
+		goto fail;
+	for (;;) {
+		if (sighup) {
+			sighup--;
+			if (log_open(fc_logname) != 0) {
+				fc_warning("failed to reopen log file: %s",
+				    strerror(errno));
+			}
+		}
+		if ((p = iface_next(i)) == NULL) {
+			if (errno == EAGAIN)
+				continue;
+			goto fail;
+		}
+		packet_analyze(p);
+	}
+	signal(SIGHUP, SIG_DFL);
+	return (0);
+fail:
+	iface_close(i);
+	return (-1);
+}

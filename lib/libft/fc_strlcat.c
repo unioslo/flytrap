@@ -32,22 +32,24 @@
 # include "config.h"
 #endif
 
-#ifndef HAVE_STRLCPY
+#ifndef HAVE_STRLCAT
 
 #include <stddef.h>
 
-#include <fc/strutil.h>
+#include <ft/strutil.h>
 
 /*
- * Like strcpy(3), but always NUL-terminates; returns strlen(src)
+ * Like strcat(3), but always NUL-terminates; returns strlen(src)
  */
 
 size_t
-fc_strlcpy(char *dst, const char *src, size_t size)
+fc_strlcat(char *dst, const char *src, size_t size)
 {
 	size_t len;
 
-	for (len = 0; *src && size > 1; ++len, --size)
+	for (len = 0; *dst && size > 1; ++len, --size)
+		dst++;
+	for (; *src && size > 1; ++len, --size)
 		*dst++ = *src++;
 	*dst = '\0';
 	while (*src)
