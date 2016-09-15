@@ -44,7 +44,7 @@
 static FILE *logfile;
 
 int
-log_packet4(struct timeval *tv,
+log_packet4(const struct timeval *tv,
     const ipv4_addr *sa, int sp,
     const ipv4_addr *da, int dp,
     const char *proto, size_t len, const char *fmt, ...)
