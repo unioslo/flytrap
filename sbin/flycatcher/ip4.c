@@ -55,9 +55,9 @@
  * Analyze a captured IP packet
  */
 int
-packet_analyze_ip4(struct packet *p, const void *data, size_t len)
+packet_analyze_ip4(packet *p, const void *data, size_t len)
 {
-	struct ipv4_flow fl;
+	ipv4_flow fl;
 	const ipv4_hdr *ih;
 	size_t ihl;
 	int ret;
@@ -144,7 +144,7 @@ ip_cksum(uint16_t isum, const void *data, size_t len)
 }
 
 int
-ipv4_reply(const struct ipv4_flow *fl, ip_proto proto,
+ipv4_reply(const ipv4_flow *fl, ip_proto proto,
     const void *data, size_t len)
 {
 	ether_addr ether;

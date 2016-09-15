@@ -47,7 +47,7 @@
 #include "packet.h"
 
 int
-packet_analyze_ethernet(struct packet *p, const void *data, size_t len)
+packet_analyze_ethernet(packet *p, const void *data, size_t len)
 {
 	const ether_hdr *eh;
 	int ret;
@@ -83,9 +83,9 @@ packet_analyze_ethernet(struct packet *p, const void *data, size_t len)
 }
 
 int
-ethernet_send(struct iface *i, ether_type type, ether_addr *dst, const void *data, size_t len)
+ethernet_send(iface *i, ether_type type, ether_addr *dst, const void *data, size_t len)
 {
-	struct packet p;
+	packet p;
 	ether_hdr *eh;
 	int ret;
 

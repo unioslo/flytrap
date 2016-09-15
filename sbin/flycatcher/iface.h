@@ -33,11 +33,11 @@
 /* reduce header dependencies */
 typedef struct pcap pcap_t;
 
-struct iface {
+typedef struct iface {
 	char		 name[64];
 	pcap_t		*pch;
 	ether_addr	 ether;
-};
+} iface;
 
 
 #endif

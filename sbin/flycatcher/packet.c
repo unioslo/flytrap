@@ -41,7 +41,7 @@
 #include "packet.h"
 
 int
-packet_analyze(struct packet *p)
+packet_analyze(packet *p)
 {
 	int ret;
 

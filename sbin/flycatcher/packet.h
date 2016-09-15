@@ -30,11 +30,11 @@
 #ifndef FLYCATCHER_PACKET_H_INCLUDED
 #define FLYCATCHER_PACKET_H_INCLUDED
 
-struct packet {
+typedef struct packet {
 	struct iface	*i;
 	struct timeval	 ts;
 	const void	*data;
 	size_t		 len;
-};
+} packet;
 
 #endif

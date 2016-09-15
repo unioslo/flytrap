@@ -65,11 +65,11 @@ ether_addr	 flycatcher_ether_addr = { FLYCATCHER_ETHER_ADDR };
  *
  * TODO: pcap_findalldevs()
  */
-struct iface *
+iface *
 iface_open(const char *name)
 {
 	char pceb[PCAP_ERRBUF_SIZE];
-	struct iface *i;
+	iface *i;
 
 	*pceb = '\0';
 	if ((i = calloc(1, sizeof *i)) == NULL)
@@ -156,19 +156,19 @@ iface_activate(iface *i)
 }
 
 void
-iface_close(struct iface *i)
+iface_close(iface *i)
 {
 
 	pcap_close(i->pch);
 	free(i);
 }
 
-struct packet *
-iface_next(struct iface *i)
+packet *
+iface_next(iface *i)
 {
 	struct pcap_pkthdr *ph;
 	const uint8_t *pd;
-	struct packet *p;
+	packet *p;
 	int pcr;
 
 	if ((pcr = pcap_next_ex(i->pch, &ph, &pd)) < 0) {
@@ -195,7 +195,7 @@ iface_next(struct iface *i)
 }
 
 int
-iface_transmit(struct iface *i, struct packet *p)
+iface_transmit(iface *i, struct packet *p)
 {
 
 	if (!fc_dryrun && pcap_inject(i->pch, p->data, p->len) != (int)p->len)
