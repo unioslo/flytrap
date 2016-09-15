@@ -27,14 +27,22 @@ AC_PROG_RANLIB
 
 ############################################################################
 #
-# Headers, types and functions
+# Headers and functions
 #
 
 AC_CHECK_HEADERS([endian.h sys/endian.h])
+AX_GCC_BUILTIN([__builtin_bswap16])
+AX_GCC_BUILTIN([__builtin_bswap32])
+AX_GCC_BUILTIN([__builtin_bswap64])
 AC_CHECK_DECLS([
+    bswap16, bswap32, bswap64,
     be16enc, be16dec, le16enc, le16dec,
     be32enc, be32dec, le32enc, le32dec,
-    be64enc, be64dec, le64enc, le64dec
+    be64enc, be64dec, le64enc, le64dec,
+    htobe16, be16toh, htole16, le16toh,
+    htobe32, be32toh, htole32, le32toh,
+    htobe64, be64toh, htole64, le64toh,
+    nothing
 ], [], [], [[
 #if HAVE_SYS_ENDIAN_H
 #include <sys/endian.h>
