@@ -99,18 +99,13 @@ fail:
 }
 
 int
-iface_activate(struct iface *i)
+iface_activate(iface *i)
 {
 	char fsz[1024];
 	struct sbuf fsb;
 	struct bpf_program fprog;
 
 	/* activate interface */
-	if (pcap_setdirection(i->pch, PCAP_D_INOUT) != 0) {
-		fc_error("%s: failed to set direction: %s",
-		    i->name, pcap_geterr(i->pch));
-		return (-1);
-	}
 #if HAVE_PCAP_PCAP_H
 	if (pcap_activate(i->pch) != 0) {
 		fc_error("%s: failed to activate: %s",
@@ -118,6 +113,11 @@ iface_activate(struct iface *i)
 		return (-1);
 	}
 #endif
+	if (pcap_setdirection(i->pch, PCAP_D_INOUT) != 0) {
+		fc_error("%s: failed to set direction: %s",
+		    i->name, pcap_geterr(i->pch));
+		return (-1);
+	}
 	fc_verbose("%s: interface activated", i->name);
 
 	/* we only understand Ethernet */
