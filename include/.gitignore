@@ -1,4 +1,3 @@
-Makefile.in
-Makefile
-config.h.in
-config.h
+/config.h.in
+/config.h
+/stamp-h1

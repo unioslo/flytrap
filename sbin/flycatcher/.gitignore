@@ -1,6 +1,1 @@
-.deps
-.libs
-Makefile.in
-Makefile
-*.o
 flycatcher
