@@ -4,10 +4,10 @@
     daily
     rotate 28
 
-    # Compress with xz
+    # Compress rotated logs
     compress
-    compresscmd /usr/bin/xz
-    uncompresscmd /usr/bin/unxz
+    compresscmd @Z@
+    uncompresscmd @UNZ@
     
     # signal flycatcher(8) after rotating
     sharedscripts

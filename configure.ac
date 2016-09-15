@@ -24,6 +24,8 @@ AC_C_VOLATILE
 # other programs
 AC_PROG_INSTALL
 AC_PROG_RANLIB
+AC_PATH_PROGS([Z], [xz bzip2 gzip])
+AC_PATH_PROGS([UNZ], [unxz bunzip2 gunzip])
 
 ############################################################################
 #
@@ -96,6 +98,8 @@ AC_CONFIG_FILES([
     bin/fly/Makefile
     sbin/Makefile
     sbin/flycatcher/Makefile
+    rc/Makefile
+    rc/flycatcher.logrotate
     rc/flycatcher.systemd
     t/Makefile
 ])
