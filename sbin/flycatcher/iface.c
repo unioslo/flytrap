@@ -195,10 +195,10 @@ iface_next(iface *i)
 }
 
 int
-iface_transmit(iface *i, struct packet *p)
+iface_transmit(packet *p)
 {
 
-	if (!fc_dryrun && pcap_inject(i->pch, p->data, p->len) != (int)p->len)
+	if (!fc_dryrun && pcap_inject(p->i->pch, p->data, p->len) != (int)p->len)
 		return (-1);
 	return (0);
 }

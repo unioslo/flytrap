@@ -50,7 +50,7 @@
  * Reply to a TCP packet with an RST.
  */
 static int
-tcp4_go_away(const ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
+tcp4_go_away(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 {
 	tcp4_hdr oth;
 	uint16_t olen, sum;
@@ -86,7 +86,7 @@ tcp4_go_away(const ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
  * Reply to a SYN packet with a SYN/ACK with a very small window size.
  */
 static int
-tcp4_hello(const ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
+tcp4_hello(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 {
 	tcp4_hdr oth;
 	uint16_t olen, sum;
@@ -123,7 +123,7 @@ tcp4_hello(const ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
  * informs the peer that we don't have any free buffer space.
  */
 static int
-tcp4_please_hold(const ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
+tcp4_please_hold(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 {
 	tcp4_hdr oth;
 	uint16_t olen, sum;
@@ -159,7 +159,7 @@ tcp4_please_hold(const ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
  * Reply to a FIN packet with a FIN/ACK.
  */
 static int
-tcp4_goodbye(const ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
+tcp4_goodbye(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 {
 	tcp4_hdr oth;
 	uint16_t olen, sum;
@@ -195,7 +195,7 @@ tcp4_goodbye(const ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
  * Analyze a captured TCP packet
  */
 int
-packet_analyze_tcp4(const ipv4_flow *fl, const void *data, size_t len)
+packet_analyze_tcp4(ipv4_flow *fl, const void *data, size_t len)
 {
 	char flags[] = "NCEUAPRSF";
 	const tcp4_hdr *th;
@@ -208,23 +208,28 @@ packet_analyze_tcp4(const ipv4_flow *fl, const void *data, size_t len)
 	thlen = len >= sizeof *th ? (tcp4_hdr_off(th) * 4U) : sizeof *th;
 	if (len < thlen) {
 		fc_notice("%d.%03d short TCP packet (%zd < %zd)",
-		    fl->p->ts.tv_sec, fl->p->ts.tv_usec / 1000,
+		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
 		    len, thlen);
 		return (-1);
 	}
 	if ((sum = ~ip_cksum(fl->sum, data, len)) != 0) {
 		fc_notice("%d.%03d invalid TCP checksum 0x%04hx",
-		    fl->p->ts.tv_sec, fl->p->ts.tv_usec / 1000, sum);
+		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
+		    sum);
 		return (-1);
 	}
 	data = (const uint8_t *)data + thlen;
 	len -= thlen;
+	fc_verbose("tcp4 port %hu to %hu seq %lu ack %lu win %hu len %zu",
+	    (unsigned short)be16toh(th->sp), (unsigned short)be16toh(th->dp),
+	    (unsigned long)be32toh(th->seq), (unsigned long)be32toh(th->ack),
+	    (unsigned short)be16toh(th->win), len);
 	if (!tcp4_hdr_ns(th))
 		flags[0] = '-';
 	for (bit = 1, mask = 0x80; mask > 0; ++bit, mask >>= 1)
 		if (!(th->fl & mask))
 			flags[bit] = '-';
-	log_packet4(&fl->p->ts, &fl->src, be16toh(th->sp),
+	log_packet4(&fl->eth->p->ts, &fl->src, be16toh(th->sp),
 	    &fl->dst, be16toh(th->dp), "TCP", len, flags);
 	if (th->fl & TCP4_SYN) {
 		if (th->fl & TCP4_ACK)

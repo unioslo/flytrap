@@ -49,6 +49,7 @@
 int
 packet_analyze_ethernet(packet *p, const void *data, size_t len)
 {
+	ether_flow fl;
 	const ether_hdr *eh;
 	int ret;
 
@@ -69,12 +70,17 @@ packet_analyze_ethernet(packet *p, const void *data, size_t len)
 	    eh->src.o[3], eh->src.o[4], eh->src.o[5],
 	    eh->dst.o[0], eh->dst.o[1], eh->dst.o[2],
 	    eh->dst.o[3], eh->dst.o[4], eh->dst.o[5]);
-	switch (be16toh(eh->type)) {
+	fl.p = p;
+	fl.src = eh->src;
+	fl.dst = eh->dst;
+	fl.type = be16toh(eh->type);
+	fl.len = len;
+	switch (fl.type) {
 	case ether_type_arp:
-		ret = packet_analyze_arp(p, data, len);
+		ret = packet_analyze_arp(&fl, data, len);
 		break;
 	case ether_type_ip:
-		ret = packet_analyze_ip4(p, data, len);
+		ret = packet_analyze_ip4(&fl, data, len);
 		break;
 	default:
 		ret = -1;
@@ -83,7 +89,8 @@ packet_analyze_ethernet(packet *p, const void *data, size_t len)
 }
 
 int
-ethernet_send(iface *i, ether_type type, ether_addr *dst, const void *data, size_t len)
+ethernet_send(iface *i, ether_type type, ether_addr *dst,
+    const void *data, size_t len)
 {
 	packet p;
 	ether_hdr *eh;
@@ -107,7 +114,21 @@ ethernet_send(iface *i, ether_type type, ether_addr *dst, const void *data, size
 	    eh->src.o[3], eh->src.o[4], eh->src.o[5],
 	    eh->dst.o[0], eh->dst.o[1], eh->dst.o[2],
 	    eh->dst.o[3], eh->dst.o[4], eh->dst.o[5]);
-	ret = iface_transmit(i, &p);
+	ret = iface_transmit(&p);
 	free(eh);
+	if (ret != 0) {
+		fc_warning("failed to send type %04x packet "
+		    "to %02x:%02x:%02x:%02x:%02x:%02x",
+		    eh->dst.o[0], eh->dst.o[1], eh->dst.o[2],
+		    eh->dst.o[3], eh->dst.o[4], eh->dst.o[5]);
+	}
 	return (ret);
 }
+
+int
+ethernet_reply(ether_flow *fl, const void *data, size_t len)
+{
+
+	return (ethernet_send(fl->p->i, fl->type, &fl->src, data, len));
+}
+

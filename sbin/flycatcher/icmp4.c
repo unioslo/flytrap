@@ -54,7 +54,7 @@
  * Reply to an echo request
  */
 static int
-icmp4_reply(const ipv4_flow *fl, uint16_t id, uint16_t seq,
+icmp4_reply(ipv4_flow *fl, uint16_t id, uint16_t seq,
     const void *payload, size_t payloadlen)
 {
 	icmp_hdr *ih;
@@ -81,7 +81,7 @@ icmp4_reply(const ipv4_flow *fl, uint16_t id, uint16_t seq,
  * Analyze a captured ICMP packet
  */
 int
-packet_analyze_icmp4(const ipv4_flow *fl, const void *data, size_t len)
+packet_analyze_icmp4(ipv4_flow *fl, const void *data, size_t len)
 {
 	const icmp_hdr *ih;
 	uint16_t id, seq, sum;
@@ -90,13 +90,14 @@ packet_analyze_icmp4(const ipv4_flow *fl, const void *data, size_t len)
 	ih = data;
 	if (len < sizeof *ih) {
 		fc_notice("%d.%03d short ICMP packet (%zd < %zd)",
-		    fl->p->ts.tv_sec, fl->p->ts.tv_usec / 1000,
+		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
 		    len, sizeof *ih);
 		return (-1);
 	}
 	if ((sum = ~ip_cksum(0, data, len)) != 0) {
 		fc_notice("%d.%03d invalid ICMP checksum 0x%04hx",
-		    fl->p->ts.tv_sec, fl->p->ts.tv_usec / 1000, sum);
+		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
+		    sum);
 		return (-1);
 	}
 	data = ih + 1;
@@ -114,7 +115,7 @@ packet_analyze_icmp4(const ipv4_flow *fl, const void *data, size_t len)
 	default:
 		ret = 0;
 	}
-	log_packet4(&fl->p->ts, &fl->src, 0, &fl->dst, 0,
+	log_packet4(&fl->eth->p->ts, &fl->src, 0, &fl->dst, 0,
 	    "ICMP", len, "%u.%u", ih->type, ih->code);
 	return (ret);
 }

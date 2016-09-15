@@ -30,22 +30,21 @@
 #ifndef FLYCATCHER_H_INCLUDED
 #define FLYCATCHER_H_INCLUDED
 
-int flycatcher(const char *);
-
-struct iface;
-struct packet;
-
-struct iface *iface_open(const char *);
-int iface_activate(struct iface *);
-void iface_close(struct iface *);
-struct packet *iface_next(struct iface *);
-int iface_transmit(struct iface *, struct packet *);
-
-int packet_analyze(struct packet *);
-
 extern int fc_dryrun;
 extern const char *fc_logname;
 
-int log_open(const char *);
+/* main loop */
+int		 flycatcher(const char *);
+
+/* log subsystem */
+int		 log_open(const char *);
+
+/* interfaces and packets */
+struct iface	*iface_open(const char *);
+int		 iface_activate(struct iface *);
+void		 iface_close(struct iface *);
+struct packet	*iface_next(struct iface *);
+int		 iface_transmit(struct packet *);
+int		 packet_analyze(struct packet *);
 
 #endif

@@ -239,7 +239,7 @@ arp_lookup(const ipv4_addr *ipv4, ether_addr *ether)
  * Claim an IP address
  */
 static int
-arp_reply(iface *i, const arp_pkt *iap, struct arpn *an)
+arp_reply(ether_flow *fl, const arp_pkt *iap, struct arpn *an)
 {
 	arp_pkt ap;
 
@@ -250,11 +250,11 @@ arp_reply(iface *i, const arp_pkt *iap, struct arpn *an)
 	ap.hlen = 6;
 	ap.plen = 4;
 	ap.oper = htobe16(arp_oper_is_at);
-	memcpy(&ap.sha, &i->ether, sizeof(ether_addr));
+	memcpy(&ap.sha, &fl->p->i->ether, sizeof(ether_addr));
 	memcpy(&ap.spa, &iap->tpa, sizeof(ipv4_addr));
 	memcpy(&ap.tha, &iap->sha, sizeof(ether_addr));
 	memcpy(&ap.tpa, &iap->spa, sizeof(ipv4_addr));
-	if (ethernet_send(i, ether_type_arp, &ap.tha, &ap, sizeof ap) != 0)
+	if (ethernet_reply(fl, &ap, sizeof ap) != 0)
 		return (-1);
 	return (0);
 }
@@ -279,7 +279,7 @@ arp_reserve(const ipv4_addr *addr)
  * Analyze a captured ARP packet
  */
 int
-packet_analyze_arp(packet *p, const void *data, size_t len)
+packet_analyze_arp(ether_flow *fl, const void *data, size_t len)
 {
 	const arp_pkt *ap;
 	struct arpn *an;
@@ -287,7 +287,7 @@ packet_analyze_arp(packet *p, const void *data, size_t len)
 
 	if (len < sizeof(arp_pkt)) {
 		fc_notice("%d.%03d short ARP packet (%zd < %zd)",
-		    p->ts.tv_sec, p->ts.tv_usec / 1000,
+		    fl->p->ts.tv_sec, fl->p->ts.tv_usec / 1000,
 		    len, sizeof(arp_pkt));
 		return (-1);
 	}
@@ -314,7 +314,7 @@ packet_analyze_arp(packet *p, const void *data, size_t len)
 		fc_notice("%d.%03d unknown ARP operation 0x%04x", be16toh(ap->oper));
 		return (0);
 	}
-	when = p->ts.tv_sec * 1000 + p->ts.tv_usec / 1000;
+	when = fl->p->ts.tv_sec * 1000 + fl->p->ts.tv_usec / 1000;
 	switch (be16toh(ap->oper)) {
 	case arp_oper_who_has:
 		/* ARP request */
@@ -336,7 +336,7 @@ packet_analyze_arp(packet *p, const void *data, size_t len)
 			    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3]);
 			an->nreq = 0;
 			an->last = when;
-			if (arp_reply(p->i, ap, an) != 0)
+			if (arp_reply(fl, ap, an) != 0)
 				return (-1);
 		} else if (an->nreq == 0 || when - an->last >= 30000) {
 			/* new or stale, start over */
@@ -349,7 +349,7 @@ packet_analyze_arp(packet *p, const void *data, size_t len)
 			an->claimed = 1;
 			an->nreq = 0;
 			an->last = when;
-			if (arp_reply(p->i, ap, an) != 0)
+			if (arp_reply(fl, ap, an) != 0)
 				return (-1);
 		} else {
 			an->nreq++;

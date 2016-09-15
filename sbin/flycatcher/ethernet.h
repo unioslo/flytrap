@@ -30,6 +30,9 @@
 #ifndef FLYCATCHER_ETHERNET_H_INCLUDED
 #define FLYCATCHER_ETHERNET_H_INCLUDED
 
+struct iface;
+struct packet;
+
 typedef union { uint8_t o[6]; } __attribute__((__packed__)) ether_addr;
 typedef union { uint8_t o[4]; uint32_t q; } __attribute__((__packed__)) ipv4_addr;
 typedef union { uint8_t o[16]; uint16_t w[8]; } __attribute__((__packed__)) ipv6_addr;
@@ -55,6 +58,14 @@ typedef struct ether_hdr {
 typedef struct ether_ftr {
 	uint32_t	 fcs;
 } __attribute__((__packed__)) ether_ftr;
+
+typedef struct ether_flow {
+	struct packet	*p;
+	ether_addr	 src;
+	ether_addr	 dst;
+	uint16_t	 type;
+	uint16_t	 len;
+} ether_flow;
 
 typedef enum arp_oper {
 	arp_oper_who_has = 1,
@@ -164,7 +175,7 @@ typedef struct udp4_hdr {
 } __attribute__((__packed__)) udp4_hdr;
 
 typedef struct ipv4_flow {
-	struct packet	*p;
+	struct ether_flow	*eth;
 	/* pseudo-header */
 	union {
 		uint8_t		 pseudo[12];
@@ -184,18 +195,21 @@ int	 arp_lookup(const ipv4_addr *, ether_addr *);
 
 uint32_t ether_crc32(const uint8_t *, size_t);
 
+int	 ethernet_send(struct iface *, ether_type, ether_addr *,
+    const void *, size_t);
+int	 ethernet_reply(struct ether_flow *, const void *, size_t);
+
 char	*ipv4_fromstr(const char *, ipv4_addr *);
 uint16_t ip_cksum(uint16_t, const void *, size_t);
-int	 ipv4_reply(const struct ipv4_flow *, ip_proto, const void *, size_t);
+int	 ipv4_reply(ipv4_flow *, ip_proto, const void *, size_t);
 
 
 int	 packet_analyze_ethernet(struct packet *, const void *, size_t);
-int	 packet_analyze_arp(struct packet *, const void *, size_t);
-int	 packet_analyze_ip4(struct packet *, const void *, size_t);
-int	 packet_analyze_icmp4(const ipv4_flow *, const void *, size_t);
-int	 packet_analyze_udp4(const ipv4_flow *, const void *, size_t);
-int	 packet_analyze_tcp4(const ipv4_flow *, const void *, size_t);
-int	 ethernet_send(struct iface *, ether_type, ether_addr *, const void *, size_t);
+int	 packet_analyze_arp(struct ether_flow *, const void *, size_t);
+int	 packet_analyze_ip4(struct ether_flow *, const void *, size_t);
+int	 packet_analyze_icmp4(struct ipv4_flow *, const void *, size_t);
+int	 packet_analyze_udp4(struct ipv4_flow *, const void *, size_t);
+int	 packet_analyze_tcp4(struct ipv4_flow *, const void *, size_t);
 
 int	 log_packet4(const struct timeval *,
     const ipv4_addr *, int, const ipv4_addr *, int,

@@ -30,6 +30,8 @@
 #ifndef FLYCATCHER_PACKET_H_INCLUDED
 #define FLYCATCHER_PACKET_H_INCLUDED
 
+struct iface;
+
 typedef struct packet {
 	struct iface	*i;
 	struct timeval	 ts;

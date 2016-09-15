@@ -48,7 +48,7 @@
  * Analyze a captured UDP packet
  */
 int
-packet_analyze_udp4(const ipv4_flow *fl, const void *data, size_t len)
+packet_analyze_udp4(ipv4_flow *fl, const void *data, size_t len)
 {
 	const udp4_hdr *uh;
 	uint16_t sum;
@@ -56,19 +56,20 @@ packet_analyze_udp4(const ipv4_flow *fl, const void *data, size_t len)
 	uh = data;
 	if (len < sizeof *uh) {
 		fc_notice("%d.%03d short UDP packet (%zd < %zd)",
-		    fl->p->ts.tv_sec, fl->p->ts.tv_usec / 1000,
+		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
 		    len, sizeof *uh);
 		return (-1);
 	}
 	if (uh->sum != 0 &&
 	    (sum = ~ip_cksum(fl->sum, data, len)) != 0) {
 		fc_notice("%d.%03d invalid UDP checksum 0x%04hx",
-		    fl->p->ts.tv_sec, fl->p->ts.tv_usec / 1000, sum);
+		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
+		    sum);
 		return (-1);
 	}
 	data = uh + 1;
 	len -= sizeof *uh;
-	log_packet4(&fl->p->ts, &fl->src, be16toh(uh->sp),
+	log_packet4(&fl->eth->p->ts, &fl->src, be16toh(uh->sp),
 	    &fl->dst, be16toh(uh->dp), "UDP", len, "");
 	return (0);
 }

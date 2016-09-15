@@ -55,7 +55,7 @@
  * Analyze a captured IP packet
  */
 int
-packet_analyze_ip4(packet *p, const void *data, size_t len)
+packet_analyze_ip4(ether_flow *ethfl, const void *data, size_t len)
 {
 	ipv4_flow fl;
 	const ipv4_hdr *ih;
@@ -64,7 +64,7 @@ packet_analyze_ip4(packet *p, const void *data, size_t len)
 
 	if (len < sizeof(ipv4_hdr)) {
 		fc_notice("%d.%03d short IP packet (%zd < %zd)",
-		    p->ts.tv_sec, p->ts.tv_usec / 1000,
+		    ethfl->p->ts.tv_sec, ethfl->p->ts.tv_usec / 1000,
 		    len, sizeof(ipv4_hdr));
 		return (-1);
 	}
@@ -72,7 +72,7 @@ packet_analyze_ip4(packet *p, const void *data, size_t len)
 	ihl = ipv4_hdr_ihl(ih) * 4;
 	if (ihl < 20 || len < ihl || len != be16toh(ih->len)) {
 		fc_notice("%d.%03d malformed IP header (plen %zd len %zd ihl %zd)",
-		    p->ts.tv_sec, p->ts.tv_usec / 1000,
+		    ethfl->p->ts.tv_sec, ethfl->p->ts.tv_usec / 1000,
 		    len, be16toh(ih->len), ihl);
 		return (-1);
 	}
@@ -83,11 +83,16 @@ packet_analyze_ip4(packet *p, const void *data, size_t len)
 	    ih->dstip.o[0], ih->dstip.o[1], ih->dstip.o[2], ih->dstip.o[3]);
 	data = (const uint8_t *)data + ihl;
 	len -= ihl;
-	fl.p = p;
+	fl.eth = ethfl;
 	fl.src = ih->srcip;
 	fl.dst = ih->dstip;
 	fl.proto = htobe16(ih->proto);
 	fl.len = htobe16(len);
+	fc_debug("0x%02x%02x 0x%02x%02x 0x%02x%02x"
+	    " 0x%02x%02x 0x%02x%02x 0x%02x%02x",
+	    fl.pseudo[0], fl.pseudo[1], fl.pseudo[2], fl.pseudo[3],
+	    fl.pseudo[4], fl.pseudo[5], fl.pseudo[6], fl.pseudo[7],
+	    fl.pseudo[8], fl.pseudo[9], fl.pseudo[10], fl.pseudo[11]);
 	fl.sum = ip_cksum(0, &fl.pseudo, sizeof fl.pseudo);
 	switch (ih->proto) {
 	case ip_proto_icmp:
@@ -144,22 +149,16 @@ ip_cksum(uint16_t isum, const void *data, size_t len)
 }
 
 int
-ipv4_reply(const ipv4_flow *fl, ip_proto proto,
+ipv4_reply(ipv4_flow *fl, ip_proto proto,
     const void *data, size_t len)
 {
-	ether_addr ether;
 	ipv4_hdr *ih;
 	size_t iplen;
 	int ret;
 
-	if (arp_lookup(&fl->src, &ether) != 0) {
-		fc_notice("ARP lookup failed: %d.%d.%d.%d",
-		    fl->src.o[0], fl->src.o[1], fl->src.o[2], fl->src.o[3]);
-		return (-1);
-	}
 	fc_debug("ip4 proto %d to %02x:%02x:%02x:%02x:%02x:%02x", proto,
-	    ether.o[0], ether.o[1], ether.o[2],
-	    ether.o[3], ether.o[4], ether.o[5]);
+	    fl->eth->dst.o[0], fl->eth->dst.o[1], fl->eth->dst.o[2],
+	    fl->eth->dst.o[3], fl->eth->dst.o[4], fl->eth->dst.o[5]);
 	iplen = sizeof *ih + len;
 	if ((ih = calloc(1, iplen)) == NULL)
 		return (-1);
@@ -174,8 +173,7 @@ ipv4_reply(const ipv4_flow *fl, ip_proto proto,
 	ih->dstip = fl->src;
 	ih->sum = htobe16(~ip_cksum(0, ih, sizeof *ih));
 	memcpy(ih + 1, data, len);
-	ret = ethernet_send(fl->p->i, ether_type_ip, &ether,
-	    ih, iplen);
+	ret = ethernet_reply(fl->eth, ih, iplen);
 	free(ih);
 	return (ret);
 }
