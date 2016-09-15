@@ -61,7 +61,7 @@ tcp4_go_away(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	/* fill in header */
 	oth.sp = ith->dp;
 	oth.dp = ith->sp;
-	oth.seq = htobe32(FLYCATCHER_TCP4_SEQ);
+	oth.seq = htobe32(FLYTRAP_TCP4_SEQ);
 	oth.ack = ith->seq;
 	oth.off_ns = (sizeof oth / 4U) << 4;
 	oth.fl = TCP4_RST;
@@ -97,7 +97,7 @@ tcp4_hello(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	/* fill in header */
 	oth.sp = ith->dp;
 	oth.dp = ith->sp;
-	oth.seq = htobe32(FLYCATCHER_TCP4_SEQ);
+	oth.seq = htobe32(FLYTRAP_TCP4_SEQ);
 	oth.ack = htobe32(be32toh(ith->seq) + 1);
 	oth.off_ns = (sizeof oth / 4U) << 4;
 	oth.fl = TCP4_SYN | TCP4_ACK;
@@ -134,7 +134,7 @@ tcp4_please_hold(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	/* fill in header */
 	oth.sp = ith->dp;
 	oth.dp = ith->sp;
-	oth.seq = htobe32(FLYCATCHER_TCP4_SEQ);
+	oth.seq = htobe32(FLYTRAP_TCP4_SEQ);
 	oth.ack = ith->seq;
 	oth.off_ns = (sizeof oth / 4U) << 4;
 	oth.fl = (ith->fl & TCP4_SYN) | TCP4_ACK;
@@ -170,7 +170,7 @@ tcp4_goodbye(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	/* fill in packet */
 	oth.sp = ith->dp;
 	oth.dp = ith->sp;
-	oth.seq = htobe32(FLYCATCHER_TCP4_SEQ);
+	oth.seq = htobe32(FLYTRAP_TCP4_SEQ);
 	oth.ack = ith->seq;
 	oth.off_ns = (sizeof oth / 4U) << 4;
 	oth.fl = TCP4_FIN | TCP4_ACK;
@@ -207,20 +207,20 @@ packet_analyze_tcp4(ipv4_flow *fl, const void *data, size_t len)
 	th = data;
 	thlen = len >= sizeof *th ? (tcp4_hdr_off(th) * 4U) : sizeof *th;
 	if (len < thlen) {
-		fc_notice("%d.%03d short TCP packet (%zd < %zd)",
+		ft_notice("%d.%03d short TCP packet (%zd < %zd)",
 		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
 		    len, thlen);
 		return (-1);
 	}
 	if ((sum = ~ip_cksum(fl->sum, data, len)) != 0) {
-		fc_notice("%d.%03d invalid TCP checksum 0x%04hx",
+		ft_notice("%d.%03d invalid TCP checksum 0x%04hx",
 		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
 		    sum);
 		return (-1);
 	}
 	data = (const uint8_t *)data + thlen;
 	len -= thlen;
-	fc_verbose("tcp4 port %hu to %hu seq %lu ack %lu win %hu len %zu",
+	ft_verbose("tcp4 port %hu to %hu seq %lu ack %lu win %hu len %zu",
 	    (unsigned short)be16toh(th->sp), (unsigned short)be16toh(th->dp),
 	    (unsigned long)be32toh(th->seq), (unsigned long)be32toh(th->ack),
 	    (unsigned short)be16toh(th->win), len);

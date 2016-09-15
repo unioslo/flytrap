@@ -44,8 +44,8 @@
 #include "flytrap.h"
 #include "ethernet.h"
 
-static const char *fc_pidfile = "/var/run/flytrap.pid";
-static int fc_foreground = 0;
+static const char *ft_pidfile = "/var/run/flytrap.pid";
+static int ft_foreground = 0;
 
 static int
 exclude(const char *dqs)
@@ -61,21 +61,21 @@ exclude(const char *dqs)
 static void
 daemonize(void)
 {
-	struct fc_pidfh *pidfh;
+	struct ft_pidfh *pidfh;
 	pid_t pid;
 
-	if ((pidfh = fc_pidfile_open(fc_pidfile, 0600, &pid)) == NULL) {
+	if ((pidfh = ft_pidfile_open(ft_pidfile, 0600, &pid)) == NULL) {
 		if (errno == EEXIST) {
-			fc_fatal("already running with PID %lu",
+			ft_fatal("already running with PID %lu",
 			    (unsigned long)pid);
 		} else {
-			fc_fatal("unable to open or create pidfile %s: %s",
-			    fc_pidfile, strerror(errno));
+			ft_fatal("unable to open or create pidfile %s: %s",
+			    ft_pidfile, strerror(errno));
 		}
 	}
 	if (daemon(0, 0) != 0)
-		fc_fatal("unable to daemonize: %s", strerror(errno));
-	fc_pidfile_write(pidfh);
+		ft_fatal("unable to daemonize: %s", strerror(errno));
+	ft_pidfile_write(pidfh);
 }
 
 static void
@@ -93,31 +93,31 @@ main(int argc, char *argv[])
 	int opt, ret;
 
 	ifname = NULL;
-	fc_log_level = FC_LOG_LEVEL_NOTICE;
+	ft_log_level = FT_LOG_LEVEL_NOTICE;
 	while ((opt = getopt(argc, argv, "dfhi:l:nvx:")) != -1) {
 		switch (opt) {
 		case 'd':
-			if (fc_log_level > FC_LOG_LEVEL_DEBUG)
-				fc_log_level = FC_LOG_LEVEL_DEBUG;
+			if (ft_log_level > FT_LOG_LEVEL_DEBUG)
+				ft_log_level = FT_LOG_LEVEL_DEBUG;
 			break;
 		case 'f':
-			fc_foreground = 1;
+			ft_foreground = 1;
 			break;
 		case 'i':
 			ifname = optarg;
 			break;
 		case 'l':
-			fc_logname = optarg;
+			ft_logname = optarg;
 			break;
 		case 'n':
-			fc_dryrun = 1;
+			ft_dryrun = 1;
 			break;
 		case 'p':
-			fc_pidfile = optarg;
+			ft_pidfile = optarg;
 			break;
 		case 'v':
-			if (fc_log_level > FC_LOG_LEVEL_VERBOSE)
-				fc_log_level = FC_LOG_LEVEL_VERBOSE;
+			if (ft_log_level > FT_LOG_LEVEL_VERBOSE)
+				ft_log_level = FT_LOG_LEVEL_VERBOSE;
 			break;
 		case 'x':
 			if (exclude(optarg) != 0)
@@ -136,12 +136,12 @@ main(int argc, char *argv[])
 	if (ifname == NULL)
 		usage();
 
-	if (!fc_foreground)
+	if (!ft_foreground)
 		daemonize();
 
-	fc_log_init("flytrap", NULL);
-	ret = flycatcher(ifname);
-	fc_log_exit();
+	ft_log_init("flytrap", NULL);
+	ret = flytrap(ifname);
+	ft_log_exit();
 
 	exit(ret == 0 ? 0 : 1);
 }

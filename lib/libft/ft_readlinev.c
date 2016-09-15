@@ -45,7 +45,7 @@
  */
 
 char **
-fc_readlinev(FILE *f, int *lineno, int *lenp)
+ft_readlinev(FILE *f, int *lineno, int *lenp)
 {
 	char *word, **wordv, **tmp;
 	size_t wordlen, wordvsize;
@@ -58,7 +58,7 @@ fc_readlinev(FILE *f, int *lineno, int *lenp)
 		return (NULL);
 	}
 	wordv[wordvlen] = NULL;
-	while ((word = fc_readword(f, lineno, &wordlen)) != NULL) {
+	while ((word = ft_readword(f, lineno, &wordlen)) != NULL) {
 		if ((unsigned int)wordvlen + 1 >= wordvsize) {
 			/* need to expand the array */
 			wordvsize *= 2;

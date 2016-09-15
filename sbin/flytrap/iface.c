@@ -56,7 +56,7 @@
 #include "iface.h"
 #include "packet.h"
 
-ether_addr	 flycatcher_ether_addr = { FLYCATCHER_ETHER_ADDR };
+ether_addr	 flytrap_ether_addr = { FLYTRAP_ETHER_ADDR };
 
 /*
  * Prepare to use the named interface, but do not start capturing yet.
@@ -76,7 +76,7 @@ iface_open(const char *name)
 		return (NULL);
 	if (strlcpy(i->name, name, sizeof i->name) >= sizeof i->name)
 		goto fail;
-	memcpy(&i->ether, &flycatcher_ether_addr, sizeof(ether_addr));
+	memcpy(&i->ether, &flytrap_ether_addr, sizeof(ether_addr));
 #if HAVE_PCAP_PCAP_H
 	if ((i->pch = pcap_create(i->name, pceb)) == NULL ||
 	    pcap_set_promisc(i->pch, 1) != 0 ||
@@ -87,11 +87,11 @@ iface_open(const char *name)
 	if ((i->pch = pcap_open_live(i->name, 2048, 1, 100, pceb)) == NULL)
 		goto fail;
 #endif
-	fc_verbose("%s: interface opened", i->name);
+	ft_verbose("%s: interface opened", i->name);
 	return (i);
 fail:
 	if (*pceb)
-		fc_error("failed to open %s: %s", i->name, pceb);
+		ft_error("failed to open %s: %s", i->name, pceb);
 	if (i->pch != NULL)
 		pcap_close(i->pch);
 	free(i);
@@ -108,21 +108,21 @@ iface_activate(iface *i)
 	/* activate interface */
 #if HAVE_PCAP_PCAP_H
 	if (pcap_activate(i->pch) != 0) {
-		fc_error("%s: failed to activate: %s",
+		ft_error("%s: failed to activate: %s",
 		    i->name, pcap_geterr(i->pch));
 		return (-1);
 	}
 #endif
 	if (pcap_setdirection(i->pch, PCAP_D_INOUT) != 0) {
-		fc_error("%s: failed to set direction: %s",
+		ft_error("%s: failed to set direction: %s",
 		    i->name, pcap_geterr(i->pch));
 		return (-1);
 	}
-	fc_verbose("%s: interface activated", i->name);
+	ft_verbose("%s: interface activated", i->name);
 
 	/* we only understand Ethernet */
 	if (pcap_datalink(i->pch) != DLT_EN10MB) {
-		fc_error("%s: not an Ethernet interface", i->name);
+		ft_error("%s: not an Ethernet interface", i->name);
 		return (-1);
 	}
 
@@ -136,20 +136,20 @@ iface_activate(iface *i)
 	    i->ether.o[3], i->ether.o[4], i->ether.o[5]);
 	sbuf_finish(&fsb);
 	if (pcap_compile(i->pch, &fprog, fsz, 1, 0xffffffffU) != 0) {
-		fc_error("%s: failed to compile filter: %s",
+		ft_error("%s: failed to compile filter: %s",
 		    i->name, pcap_geterr(i->pch));
 		return (-1);
 	}
 
 	/* install filter program */
 	if (pcap_setfilter(i->pch, &fprog) != 0) {
-		fc_error("%s: failed to install filter: %s",
+		ft_error("%s: failed to install filter: %s",
 		    i->name, pcap_geterr(i->pch));
 		pcap_freecode(&fprog);
 		return (-1);
 	}
 	pcap_freecode(&fprog);
-	fc_verbose("%s: filter installed: \"%s\"", i->name, fsz);
+	ft_verbose("%s: filter installed: \"%s\"", i->name, fsz);
 
 	/* done */
 	return (0);
@@ -172,7 +172,7 @@ iface_next(iface *i)
 	int pcr;
 
 	if ((pcr = pcap_next_ex(i->pch, &ph, &pd)) < 0) {
-		fc_error("%s: failed to read packet: %s",
+		ft_error("%s: failed to read packet: %s",
 		    i->name, pcap_geterr(i->pch));
 		errno = EIO; /* XXX */
 		return (NULL);
@@ -198,7 +198,7 @@ int
 iface_transmit(packet *p)
 {
 
-	if (!fc_dryrun && pcap_inject(p->i->pch, p->data, p->len) != (int)p->len)
+	if (!ft_dryrun && pcap_inject(p->i->pch, p->data, p->len) != (int)p->len)
 		return (-1);
 	return (0);
 }

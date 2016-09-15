@@ -54,7 +54,7 @@ packet_analyze_ethernet(packet *p, const void *data, size_t len)
 	int ret;
 
 	if (len < sizeof(ether_hdr)) {
-		fc_notice("%d.%03d short Ethernet packet (%zd < %zd)",
+		ft_notice("%d.%03d short Ethernet packet (%zd < %zd)",
 		    p->ts.tv_sec, p->ts.tv_usec / 1000,
 		    len, sizeof(ether_hdr));
 		return (-1);
@@ -62,7 +62,7 @@ packet_analyze_ethernet(packet *p, const void *data, size_t len)
 	eh = data;
 	data = eh + 1;
 	len -= sizeof *eh;
-	fc_debug("%d.%03d recv type %04x packet "
+	ft_debug("%d.%03d recv type %04x packet "
 	    "from %02x:%02x:%02x:%02x:%02x:%02x "
 	    "to %02x:%02x:%02x:%02x:%02x:%02x",
 	    p->ts.tv_sec, p->ts.tv_usec / 1000, be16toh(eh->type),
@@ -106,7 +106,7 @@ ethernet_send(iface *i, ether_type type, ether_addr *dst,
 	eh->type = htobe16(type);
 	memcpy(eh + 1, data, len);
 	gettimeofday(&p.ts, NULL);
-	fc_debug("%d.%03d send type %04x packet "
+	ft_debug("%d.%03d send type %04x packet "
 	    "from %02x:%02x:%02x:%02x:%02x:%02x "
 	    "to %02x:%02x:%02x:%02x:%02x:%02x",
 	    p.ts.tv_sec, p.ts.tv_usec / 1000, be16toh(eh->type),
@@ -117,7 +117,7 @@ ethernet_send(iface *i, ether_type type, ether_addr *dst,
 	ret = iface_transmit(&p);
 	free(eh);
 	if (ret != 0) {
-		fc_warning("failed to send type %04x packet "
+		ft_warning("failed to send type %04x packet "
 		    "to %02x:%02x:%02x:%02x:%02x:%02x",
 		    eh->dst.o[0], eh->dst.o[1], eh->dst.o[2],
 		    eh->dst.o[3], eh->dst.o[4], eh->dst.o[5]);

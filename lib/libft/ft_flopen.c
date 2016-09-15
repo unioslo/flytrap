@@ -44,7 +44,7 @@
 #include "ft/flopen.h"
 
 int
-fc_flopen(const char *path, int flags, ...)
+ft_flopen(const char *path, int flags, ...)
 {
 	int fd, operation, serrno, trunc;
 	struct flock lock;
@@ -119,7 +119,7 @@ fc_flopen(const char *path, int flags, ...)
  * Returns -1 on error (and errno)
  */
 int
-fc_fltest(int fd, pid_t *pid)
+ft_fltest(int fd, pid_t *pid)
 {
 	struct flock lock;
 

@@ -27,33 +27,33 @@
  * SUCH DAMAGE.
  */
 
-#ifndef FC_DICT_H_INCLUDED
-#define FC_DICT_H_INCLUDED
+#ifndef FT_DICT_H_INCLUDED
+#define FT_DICT_H_INCLUDED
 
-struct _fc_dict_ent { const char *key; void *value; };
-struct fc_dict_ent;
-struct fc_dict;
+struct _ft_dict_ent { const char *key; void *value; };
+struct ft_dict_ent;
+struct ft_dict;
 
 static inline const char *
-fc_dict_key(struct fc_dict_ent *e)
+ft_dict_key(struct ft_dict_ent *e)
 {
 
-	return (((struct _fc_dict_ent *)e)->key);
+	return (((struct _ft_dict_ent *)e)->key);
 }
 
 static inline const void *
-fc_dict_value(struct fc_dict_ent *e)
+ft_dict_value(struct ft_dict_ent *e)
 {
 
-	return (((struct _fc_dict_ent *)e)->value);
+	return (((struct _ft_dict_ent *)e)->value);
 }
 
-struct fc_dict *fc_dict_create(void);
-void fc_dict_destroy(struct fc_dict *);
-int fc_dict_insert(struct fc_dict *, const char *, void *);
-int fc_dict_remove(struct fc_dict *, const char *);
-const struct fc_dict_ent *fc_dict_first(const struct fc_dict *);
-const struct fc_dict_ent *fc_dict_next(const struct fc_dict *,
-    const struct fc_dict_ent *);
+struct ft_dict *ft_dict_create(void);
+void ft_dict_destroy(struct ft_dict *);
+int ft_dict_insert(struct ft_dict *, const char *, void *);
+int ft_dict_remove(struct ft_dict *, const char *);
+const struct ft_dict_ent *ft_dict_first(const struct ft_dict *);
+const struct ft_dict_ent *ft_dict_next(const struct ft_dict *,
+    const struct ft_dict_ent *);
 
 #endif

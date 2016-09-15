@@ -29,10 +29,10 @@
  * $FreeBSD: src/lib/libutil/libutil.h,v 1.44 2007/05/10 15:01:42 des Exp $
  */
 
-#ifndef FC_FLOPEN_H_INCLUDED
-#define FC_FLOPEN_H_INCLUDED
+#ifndef FT_FLOPEN_H_INCLUDED
+#define FT_FLOPEN_H_INCLUDED
 
-int fc_flopen(const char *, int, ...);
-int fc_fltest(int fd, pid_t *pid);
+int ft_flopen(const char *, int, ...);
+int ft_fltest(int fd, pid_t *pid);
 
-#endif /* !FC_FLOPEN_H_INCLUDED */
+#endif /* !FT_FLOPEN_H_INCLUDED */

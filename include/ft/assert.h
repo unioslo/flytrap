@@ -27,20 +27,20 @@
  * SUCH DAMAGE.
  */
 
-#ifndef FC_ASSERT_H_INCLUDED
-#define FC_ASSERT_H_INCLUDED
+#ifndef FT_ASSERT_H_INCLUDED
+#define FT_ASSERT_H_INCLUDED
 
-void fc_abort(const char *fmt, ...) __attribute__((__noreturn__));
+void ft_abort(const char *fmt, ...) __attribute__((__noreturn__));
 
-#define fc_assert(cond)							\
+#define ft_assert(cond)							\
 	do {								\
 		if (!(cond))						\
-			fc_abort("%s", #cond);				\
+			ft_abort("%s", #cond);				\
 	} while (0)
-#define fc_assertf(cond, ...)						\
+#define ft_assertf(cond, ...)						\
 	do {								\
 		if (!(cond))						\
-			fc_abort(__VA_ARGS__);				\
+			ft_abort(__VA_ARGS__);				\
 	} while (0)
 
 #endif

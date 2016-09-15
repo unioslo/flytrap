@@ -103,17 +103,17 @@ fly(const char *target, int linger, int timeout)
 	int sd;
 
 	if (parse_ip_port(target, &sin4) != 0) {
-		fc_error("invalid ip[:port] specification");
+		ft_error("invalid ip[:port] specification");
 		return (-1);
 	}
 	if ((sd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-		fc_error("socket(): %s", strerror(errno));
+		ft_error("socket(): %s", strerror(errno));
 		return (-1);
 	}
 	tv.tv_sec = timeout;
 	tv.tv_usec = 0;
 	if (setsockopt(sd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof tv) != 0) {
-		fc_error("setsockopt(SO_SNDTIMEO): %s", strerror(errno));
+		ft_error("setsockopt(SO_SNDTIMEO): %s", strerror(errno));
 		close(sd);
 		return (-1);
 	}
@@ -121,35 +121,35 @@ fly(const char *target, int linger, int timeout)
 		l.l_onoff = 1;
 		l.l_linger = timeout;
 		if (setsockopt(sd, SOL_SOCKET, SO_LINGER, &l, sizeof l) != 0) {
-			fc_error("setsockopt(SO_LINGER): %s", strerror(errno));
+			ft_error("setsockopt(SO_LINGER): %s", strerror(errno));
 			close(sd);
 			return (-1);
 		}
 	}
-	fc_verbose("attempting to connect to %s", target);
+	ft_verbose("attempting to connect to %s", target);
 	if (connect(sd, (struct sockaddr *)&sin4, sizeof sin4) != 0) {
-		fc_error("connect(): %s", strerror(errno));
+		ft_error("connect(): %s", strerror(errno));
 		close(sd);
 		return (-1);
 	}
-	fc_verbose("sending %zu bytes to %s", sizeof data - 1, target);
+	ft_verbose("sending %zu bytes to %s", sizeof data - 1, target);
 	if ((sent = write(sd, data, sizeof data - 1)) < 0) {
 		if (errno == EWOULDBLOCK) {
-			fc_warning("timed out while sending");
+			ft_warning("timed out while sending");
 		} else {
-			fc_error("write(): %s", strerror(errno));
+			ft_error("write(): %s", strerror(errno));
 			close(sd);
 			return (-1);
 		}
 	} else if (sent > 0) {
-		fc_warning("successfully sent %zd bytes", sent);
+		ft_warning("successfully sent %zd bytes", sent);
 	}
-	fc_verbose("closing connection");
+	ft_verbose("closing connection");
 	if (close(sd) != 0) {
-		fc_error("close(): %s", strerror(errno));
+		ft_error("close(): %s", strerror(errno));
 		return (-1);
 	}
-	fc_verbose("connection closed");
+	ft_verbose("connection closed");
 	return (0);
 }
 
@@ -170,15 +170,15 @@ main(int argc, char *argv[])
 	while ((opt = getopt(argc, argv, "dlv")) != -1)
 		switch (opt) {
 		case 'd':
-			if (fc_log_level > FC_LOG_LEVEL_DEBUG)
-				fc_log_level = FC_LOG_LEVEL_DEBUG;
+			if (ft_log_level > FT_LOG_LEVEL_DEBUG)
+				ft_log_level = FT_LOG_LEVEL_DEBUG;
 			break;
 		case 'l':
 			linger = 1;
 			break;
 		case 'v':
-			if (fc_log_level > FC_LOG_LEVEL_VERBOSE)
-				fc_log_level = FC_LOG_LEVEL_VERBOSE;
+			if (ft_log_level > FT_LOG_LEVEL_VERBOSE)
+				ft_log_level = FT_LOG_LEVEL_VERBOSE;
 			break;
 		default:
 			usage();
@@ -190,9 +190,9 @@ main(int argc, char *argv[])
 	if (argc != 1)
 		usage();
 
-	fc_log_init("fly", NULL);
+	ft_log_init("fly", NULL);
 	ret = fly(*argv, linger, timeout);
-	fc_log_exit();
+	ft_log_exit();
 
 	exit(ret == 0 ? 0 : 1);
 }

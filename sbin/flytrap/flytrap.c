@@ -40,8 +40,8 @@
 
 #include "flytrap.h"
 
-int fc_dryrun;
-const char *fc_logname;
+int ft_dryrun;
+const char *ft_logname;
 
 static sig_atomic_t sighup;
 
@@ -57,13 +57,13 @@ signal_handler(int sig)
 }
 
 int
-flycatcher(const char *iname)
+flytrap(const char *iname)
 {
 	struct iface *i;
 	struct packet *p;
 
-	if (log_open(fc_logname) != 0) {
-		fc_error("failed to open log file: %s", strerror(errno));
+	if (log_open(ft_logname) != 0) {
+		ft_error("failed to open log file: %s", strerror(errno));
 		return (-1);
 	}
 	signal(SIGHUP, signal_handler); 
@@ -74,8 +74,8 @@ flycatcher(const char *iname)
 	for (;;) {
 		if (sighup) {
 			sighup--;
-			if (log_open(fc_logname) != 0) {
-				fc_warning("failed to reopen log file: %s",
+			if (log_open(ft_logname) != 0) {
+				ft_warning("failed to reopen log file: %s",
 				    strerror(errno));
 			}
 		}

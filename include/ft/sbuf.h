@@ -27,8 +27,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef FC_SBUF_H_INCLUDED
-#define FC_SBUF_H_INCLUDED
+#ifndef FT_SBUF_H_INCLUDED
+#define FT_SBUF_H_INCLUDED
 
 /*
  * Structure definition

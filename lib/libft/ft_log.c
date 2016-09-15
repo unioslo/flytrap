@@ -38,28 +38,28 @@
 #include <string.h>
 #include <syslog.h>
 
-#define FC_LOGV_REQUIRED
+#define FT_LOGV_REQUIRED
 #include <ft/log.h>
 #include <ft/strutil.h>
 
-static char fc_prog_name[16];
-fc_log_level_t fc_log_level;
+static char ft_prog_name[16];
+ft_log_level_t ft_log_level;
 
 #if 0
 static int
-fc_log_level_to_syslog(fc_log_level_t level)
+ft_log_level_to_syslog(ft_log_level_t level)
 {
 
 	switch (level) {
-	case FC_LOG_LEVEL_DEBUG:
+	case FT_LOG_LEVEL_DEBUG:
 		return (LOG_DEBUG);
-	case FC_LOG_LEVEL_VERBOSE:
+	case FT_LOG_LEVEL_VERBOSE:
 		return (LOG_INFO);
-	case FC_LOG_LEVEL_NOTICE:
+	case FT_LOG_LEVEL_NOTICE:
 		return (LOG_NOTICE);
-	case FC_LOG_LEVEL_WARNING:
+	case FT_LOG_LEVEL_WARNING:
 		return (LOG_WARNING);
-	case FC_LOG_LEVEL_ERROR:
+	case FT_LOG_LEVEL_ERROR:
 		return (LOG_ERR);
 	default:
 		return (LOG_INFO);
@@ -68,19 +68,19 @@ fc_log_level_to_syslog(fc_log_level_t level)
 #endif
 
 static const char *
-fc_log_level_to_string(fc_log_level_t level)
+ft_log_level_to_string(ft_log_level_t level)
 {
 
 	switch (level) {
-	case FC_LOG_LEVEL_DEBUG:
+	case FT_LOG_LEVEL_DEBUG:
 		return ("debug");
-	case FC_LOG_LEVEL_VERBOSE:
+	case FT_LOG_LEVEL_VERBOSE:
 		return ("verbose");
-	case FC_LOG_LEVEL_NOTICE:
+	case FT_LOG_LEVEL_NOTICE:
 		return ("notice");
-	case FC_LOG_LEVEL_WARNING:
+	case FT_LOG_LEVEL_WARNING:
 		return ("warning");
-	case FC_LOG_LEVEL_ERROR:
+	case FT_LOG_LEVEL_ERROR:
 		return ("error");
 	default:
 		return ("unknown");
@@ -88,11 +88,11 @@ fc_log_level_to_string(fc_log_level_t level)
 }
 
 void
-fc_logv(fc_log_level_t level, const char *fmt, va_list ap)
+ft_logv(ft_log_level_t level, const char *fmt, va_list ap)
 {
 
-	fprintf(stderr, "%s: %s: ", fc_prog_name,
-	    fc_log_level_to_string(level));
+	fprintf(stderr, "%s: %s: ", ft_prog_name,
+	    ft_log_level_to_string(level));
 	vfprintf(stderr, fmt, ap);
 	fprintf(stderr, "\n");
 }
@@ -101,27 +101,27 @@ fc_logv(fc_log_level_t level, const char *fmt, va_list ap)
  * Log a message if at or above selected log level.
  */
 void
-fc_log(fc_log_level_t level, const char *fmt, ...)
+ft_log(ft_log_level_t level, const char *fmt, ...)
 {
 	va_list ap;
 	int serrno;
 
 	serrno = errno;
-	if (level >= fc_log_level) {
+	if (level >= ft_log_level) {
 		va_start(ap, fmt);
-		fc_logv(level, fmt, ap);
+		ft_logv(level, fmt, ap);
 		va_end(ap);
 	}
 	errno = serrno;
 }
 
 void
-fc_fatal(const char *fmt, ...)
+ft_fatal(const char *fmt, ...)
 {
 	va_list ap;
 
 	va_start(ap, fmt);
-	fc_logv(FC_LOG_LEVEL_ERROR, fmt, ap);
+	ft_logv(FT_LOG_LEVEL_ERROR, fmt, ap);
 	va_end(ap);
 	exit(1);
 }
@@ -131,10 +131,10 @@ fc_fatal(const char *fmt, ...)
  * string resets the log destination to stderr.
  */
 int
-fc_log_init(const char *ident, const char *logspec)
+ft_log_init(const char *ident, const char *logspec)
 {
 
-	strlcpy(fc_prog_name, ident, sizeof fc_prog_name);
+	strlcpy(ft_prog_name, ident, sizeof ft_prog_name);
 	(void)logspec;
 	return (0);
 }
@@ -143,7 +143,7 @@ fc_log_init(const char *ident, const char *logspec)
  * Close all log destinations
  */
 int
-fc_log_exit(void)
+ft_log_exit(void)
 {
 
 	return (0);

@@ -27,44 +27,44 @@
  * SUCH DAMAGE.
  */
 
-#ifndef FC_LOG_H_INCLUDED
-#define FC_LOG_H_INCLUDED
+#ifndef FT_LOG_H_INCLUDED
+#define FT_LOG_H_INCLUDED
 
 typedef enum {
-	FC_LOG_LEVEL_DEBUG,
-	FC_LOG_LEVEL_VERBOSE,
-	FC_LOG_LEVEL_NOTICE,
-	FC_LOG_LEVEL_WARNING,
-	FC_LOG_LEVEL_ERROR,
-	FC_LOG_LEVEL_MAX
-} fc_log_level_t;
+	FT_LOG_LEVEL_DEBUG,
+	FT_LOG_LEVEL_VERBOSE,
+	FT_LOG_LEVEL_NOTICE,
+	FT_LOG_LEVEL_WARNING,
+	FT_LOG_LEVEL_ERROR,
+	FT_LOG_LEVEL_MAX
+} ft_log_level_t;
 
-#ifdef FC_LOGV_REQUIRED
-void fc_logv(fc_log_level_t, const char *, va_list);
+#ifdef FT_LOGV_REQUIRED
+void ft_logv(ft_log_level_t, const char *, va_list);
 #endif
-void fc_log(fc_log_level_t, const char *, ...);
-void fc_fatal(const char *, ...);
-int fc_log_init(const char *, const char *);
-int fc_log_exit(void);
+void ft_log(ft_log_level_t, const char *, ...);
+void ft_fatal(const char *, ...);
+int ft_log_init(const char *, const char *);
+int ft_log_exit(void);
 
-extern fc_log_level_t fc_log_level;
+extern ft_log_level_t ft_log_level;
 
-#define fc_log_if(level, ...)						\
+#define ft_log_if(level, ...)						\
 	do {								\
-		if (level >= fc_log_level)				\
-			fc_log(level, __VA_ARGS__);			\
+		if (level >= ft_log_level)				\
+			ft_log(level, __VA_ARGS__);			\
 	} while (0)
-#define fc_debug(...)							\
-	fc_log_if(FC_LOG_LEVEL_DEBUG, __VA_ARGS__)
-#define fc_verbose(...)							\
-	fc_log_if(FC_LOG_LEVEL_VERBOSE, __VA_ARGS__)
-#define fc_notice(...)							\
-	fc_log_if(FC_LOG_LEVEL_NOTICE, __VA_ARGS__)
-#define fc_warning(...)							\
-	fc_log_if(FC_LOG_LEVEL_WARNING, __VA_ARGS__)
-#define fc_error(...)							\
-	fc_log_if(FC_LOG_LEVEL_ERROR, __VA_ARGS__)
-#define fc_fatal(...)							\
-	fc_fatal(__VA_ARGS__)
+#define ft_debug(...)							\
+	ft_log_if(FT_LOG_LEVEL_DEBUG, __VA_ARGS__)
+#define ft_verbose(...)							\
+	ft_log_if(FT_LOG_LEVEL_VERBOSE, __VA_ARGS__)
+#define ft_notice(...)							\
+	ft_log_if(FT_LOG_LEVEL_NOTICE, __VA_ARGS__)
+#define ft_warning(...)							\
+	ft_log_if(FT_LOG_LEVEL_WARNING, __VA_ARGS__)
+#define ft_error(...)							\
+	ft_log_if(FT_LOG_LEVEL_ERROR, __VA_ARGS__)
+#define ft_fatal(...)							\
+	ft_fatal(__VA_ARGS__)
 
 #endif

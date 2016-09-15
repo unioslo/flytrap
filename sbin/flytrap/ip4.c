@@ -63,7 +63,7 @@ packet_analyze_ip4(ether_flow *ethfl, const void *data, size_t len)
 	int ret;
 
 	if (len < sizeof(ipv4_hdr)) {
-		fc_notice("%d.%03d short IP packet (%zd < %zd)",
+		ft_notice("%d.%03d short IP packet (%zd < %zd)",
 		    ethfl->p->ts.tv_sec, ethfl->p->ts.tv_usec / 1000,
 		    len, sizeof(ipv4_hdr));
 		return (-1);
@@ -71,12 +71,12 @@ packet_analyze_ip4(ether_flow *ethfl, const void *data, size_t len)
 	ih = data;
 	ihl = ipv4_hdr_ihl(ih) * 4;
 	if (ihl < 20 || len < ihl || len != be16toh(ih->len)) {
-		fc_notice("%d.%03d malformed IP header (plen %zd len %zd ihl %zd)",
+		ft_notice("%d.%03d malformed IP header (plen %zd len %zd ihl %zd)",
 		    ethfl->p->ts.tv_sec, ethfl->p->ts.tv_usec / 1000,
 		    len, be16toh(ih->len), ihl);
 		return (-1);
 	}
-	fc_debug("\tIP version %d proto %d len %zu"
+	ft_debug("\tIP version %d proto %d len %zu"
 	    " from %d.%d.%d.%d to %d.%d.%d.%d",
 	    ipv4_hdr_ver(ih), ih->proto, len,
 	    ih->srcip.o[0], ih->srcip.o[1], ih->srcip.o[2], ih->srcip.o[3],
@@ -88,7 +88,7 @@ packet_analyze_ip4(ether_flow *ethfl, const void *data, size_t len)
 	fl.dst = ih->dstip;
 	fl.proto = htobe16(ih->proto);
 	fl.len = htobe16(len);
-	fc_debug("0x%02x%02x 0x%02x%02x 0x%02x%02x"
+	ft_debug("0x%02x%02x 0x%02x%02x 0x%02x%02x"
 	    " 0x%02x%02x 0x%02x%02x 0x%02x%02x",
 	    fl.pseudo[0], fl.pseudo[1], fl.pseudo[2], fl.pseudo[3],
 	    fl.pseudo[4], fl.pseudo[5], fl.pseudo[6], fl.pseudo[7],
@@ -156,7 +156,7 @@ ipv4_reply(ipv4_flow *fl, ip_proto proto,
 	size_t iplen;
 	int ret;
 
-	fc_debug("ip4 proto %d to %02x:%02x:%02x:%02x:%02x:%02x", proto,
+	ft_debug("ip4 proto %d to %02x:%02x:%02x:%02x:%02x:%02x", proto,
 	    fl->eth->dst.o[0], fl->eth->dst.o[1], fl->eth->dst.o[2],
 	    fl->eth->dst.o[3], fl->eth->dst.o[4], fl->eth->dst.o[5]);
 	iplen = sizeof *ih + len;

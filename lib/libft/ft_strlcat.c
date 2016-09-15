@@ -43,7 +43,7 @@
  */
 
 size_t
-fc_strlcat(char *dst, const char *src, size_t size)
+ft_strlcat(char *dst, const char *src, size_t size)
 {
 	size_t len;
 

@@ -78,7 +78,7 @@ static const uint8_t T[256] = {
 };
 
 uint8_t
-fc_hash(const void *data, size_t len)
+ft_hash(const void *data, size_t len)
 {
 	const uint8_t *p;
 	uint8_t h;
@@ -89,7 +89,7 @@ fc_hash(const void *data, size_t len)
 }
 
 uint8_t
-fc_strhash(const char *str)
+ft_strhash(const char *str)
 {
 	uint8_t h;
 

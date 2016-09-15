@@ -27,10 +27,10 @@
  * SUCH DAMAGE.
  */
 
-#ifndef FC_HASH_H_INCLUDED
-#define FC_HASH_H_INCLUDED
+#ifndef FT_HASH_H_INCLUDED
+#define FT_HASH_H_INCLUDED
 
-uint8_t fc_hash(const void *, size_t);
-uint8_t fc_strhash(const char *);
+uint8_t ft_hash(const void *, size_t);
+uint8_t ft_strhash(const char *);
 
 #endif

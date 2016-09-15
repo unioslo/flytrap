@@ -41,25 +41,25 @@
 #include <ft/dict.h>
 #include <ft/hash.h>
 
-struct fc_dict_ent {
+struct ft_dict_ent {
 	const char		*key;
 	void			*value;
 	unsigned int		 h;
-	struct fc_dict_ent	*next;
+	struct ft_dict_ent	*next;
 };
 
-struct fc_dict {
-	struct fc_dict_ent	*entries[256];
+struct ft_dict {
+	struct ft_dict_ent	*entries[256];
 	unsigned int		 nentries;
 };
 
 /*
  * Create a dictionary
  */
-struct fc_dict *
-fc_dict_create(void)
+struct ft_dict *
+ft_dict_create(void)
 {
-	struct fc_dict *d;
+	struct ft_dict *d;
 
 	/* allocate */
 	if ((d = calloc(1, sizeof *d)) == NULL)
@@ -71,9 +71,9 @@ fc_dict_create(void)
  * Destroy a dictionary
  */
 void
-fc_dict_destroy(struct fc_dict *d)
+ft_dict_destroy(struct ft_dict *d)
 {
-	struct fc_dict_ent *e;
+	struct ft_dict_ent *e;
 	unsigned int h;
 
 	for (h = 0; h < sizeof d->entries / sizeof *d->entries; ++h) {
@@ -90,12 +90,12 @@ fc_dict_destroy(struct fc_dict *d)
  * Add an entry to a dictionary
  */
 int
-fc_dict_insert(struct fc_dict *d, const char *key, void *value)
+ft_dict_insert(struct ft_dict *d, const char *key, void *value)
 {
-	struct fc_dict_ent **epp;
+	struct ft_dict_ent **epp;
 	unsigned int h;
 
-	h = fc_strhash(key);
+	h = ft_strhash(key);
 	assert(h < sizeof d->entries / sizeof *d->entries);
 	for (epp = &d->entries[h]; *epp != NULL; epp = &(*epp)->next) {
 		assert((*epp)->h == h);
@@ -117,12 +117,12 @@ fc_dict_insert(struct fc_dict *d, const char *key, void *value)
  * Remove an entry from a dictionary
  */
 int
-fc_dict_remove(struct fc_dict *d, const char *key)
+ft_dict_remove(struct ft_dict *d, const char *key)
 {
-	struct fc_dict_ent *ep, **epp;
+	struct ft_dict_ent *ep, **epp;
 	unsigned int h;
 
-	h = fc_strhash(key);
+	h = ft_strhash(key);
 	assert(h < sizeof d->entries / sizeof *d->entries);
 	for (epp = &d->entries[h]; *epp != NULL; epp = &(*epp)->next) {
 		assert((*epp)->h == h);
@@ -141,8 +141,8 @@ fc_dict_remove(struct fc_dict *d, const char *key)
 /*
  * Iterate over a dictionary: first entry
  */
-const struct fc_dict_ent *
-fc_dict_first(const struct fc_dict *d)
+const struct ft_dict_ent *
+ft_dict_first(const struct ft_dict *d)
 {
 	unsigned int h;
 
@@ -158,13 +158,13 @@ fc_dict_first(const struct fc_dict *d)
 /*
  * Iterate over a dictionary: next entry
  */
-const struct fc_dict_ent *
-fc_dict_next(const struct fc_dict *d, const struct fc_dict_ent *e)
+const struct ft_dict_ent *
+ft_dict_next(const struct ft_dict *d, const struct ft_dict_ent *e)
 {
 	unsigned int h;
 
 	if (e == NULL)
-		return (fc_dict_first(d));
+		return (ft_dict_first(d));
 	assert(e->h < sizeof d->entries / sizeof *d->entries);
 	if (e->next != NULL)
 		return (e->next);

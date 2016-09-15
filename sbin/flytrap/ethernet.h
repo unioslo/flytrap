@@ -27,8 +27,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef FLYCATCHER_ETHERNET_H_INCLUDED
-#define FLYCATCHER_ETHERNET_H_INCLUDED
+#ifndef FLYTRAP_ETHERNET_H_INCLUDED
+#define FLYTRAP_ETHERNET_H_INCLUDED
 
 struct iface;
 struct packet;
@@ -37,10 +37,10 @@ typedef union { uint8_t o[6]; } __attribute__((__packed__)) ether_addr;
 typedef union { uint8_t o[4]; uint32_t q; } __attribute__((__packed__)) ipv4_addr;
 typedef union { uint8_t o[16]; uint16_t w[8]; } __attribute__((__packed__)) ipv6_addr;
 
-#define FLYCATCHER_ETHER_ADDR { 0x02, 0x00, 0x18, 0x11, 0x09, 0x02 }
-extern ether_addr flycatcher_ether_addr;
+#define FLYTRAP_ETHER_ADDR { 0x02, 0x00, 0x18, 0x11, 0x09, 0x02 }
+extern ether_addr flytrap_ether_addr;
 
-#define FLYCATCHER_TCP4_SEQ 0x18110902U
+#define FLYTRAP_TCP4_SEQ 0x18110902U
 
 typedef enum ether_type {
 	ether_type_ip	 = 0x0800,

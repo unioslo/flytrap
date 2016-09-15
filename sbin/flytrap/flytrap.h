@@ -27,14 +27,14 @@
  * SUCH DAMAGE.
  */
 
-#ifndef FLYCATCHER_H_INCLUDED
-#define FLYCATCHER_H_INCLUDED
+#ifndef FLYTRAP_H_INCLUDED
+#define FLYTRAP_H_INCLUDED
 
-extern int fc_dryrun;
-extern const char *fc_logname;
+extern int ft_dryrun;
+extern const char *ft_logname;
 
 /* main loop */
-int		 flycatcher(const char *);
+int		 flytrap(const char *);
 
 /* log subsystem */
 int		 log_open(const char *);

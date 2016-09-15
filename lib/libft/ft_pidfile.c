@@ -48,17 +48,17 @@
 #include "ft/flopen.h"
 #include "ft/pidfile.h"
 
-struct fc_pidfh {
+struct ft_pidfh {
 	int	pf_fd;
 	char	pf_path[MAXPATHLEN + 1];
 	dev_t	pf_dev;
 	ino_t	pf_ino;
 };
 
-static int _fc_pidfile_remove(struct fc_pidfh *pfh, int freeit);
+static int _ft_pidfile_remove(struct ft_pidfh *pfh, int freeit);
 
 static int
-fc_pidfile_verify(const struct fc_pidfh *pfh)
+ft_pidfile_verify(const struct ft_pidfh *pfh)
 {
 	struct stat sb;
 
@@ -75,7 +75,7 @@ fc_pidfile_verify(const struct fc_pidfh *pfh)
 }
 
 static int
-fc_pidfile_read(const char *path, pid_t *pidptr)
+ft_pidfile_read(const char *path, pid_t *pidptr)
 {
 	char buf[16], *endptr;
 	int error, fd, i;
@@ -98,10 +98,10 @@ fc_pidfile_read(const char *path, pid_t *pidptr)
 	return (0);
 }
 
-struct fc_pidfh *
-fc_pidfile_open(const char *path, mode_t mode, pid_t *pidptr)
+struct ft_pidfh *
+ft_pidfile_open(const char *path, mode_t mode, pid_t *pidptr)
 {
-	struct fc_pidfh *pfh;
+	struct ft_pidfh *pfh;
 	struct stat sb;
 	int error, fd, len;
 
@@ -132,11 +132,11 @@ fc_pidfile_open(const char *path, mode_t mode, pid_t *pidptr)
 	 * PID file will be truncated again in pidfile_write(), so
 	 * pidfile_write() can be called multiple times.
 	 */
-	fd = fc_flopen(pfh->pf_path,
+	fd = ft_flopen(pfh->pf_path,
 	    O_WRONLY | O_CREAT | O_TRUNC | O_NONBLOCK, mode);
 	if (fd == -1) {
 		if (errno == EWOULDBLOCK && pidptr != NULL) {
-			errno = fc_pidfile_read(pfh->pf_path, pidptr);
+			errno = ft_pidfile_read(pfh->pf_path, pidptr);
 			if (errno == 0)
 				errno = EEXIST;
 		}
@@ -144,7 +144,7 @@ fc_pidfile_open(const char *path, mode_t mode, pid_t *pidptr)
 		return (NULL);
 	}
 	/*
-	 * Remember file information, so in fc_pidfile_write() we are sure we write
+	 * Remember file information, so in ft_pidfile_write() we are sure we write
 	 * to the proper descriptor.
 	 */
 	if (fstat(fd, &sb) == -1) {
@@ -164,7 +164,7 @@ fc_pidfile_open(const char *path, mode_t mode, pid_t *pidptr)
 }
 
 int
-fc_pidfile_write(struct fc_pidfh *pfh)
+ft_pidfile_write(struct ft_pidfh *pfh)
 {
 	char pidstr[16];
 	int error, fd;
@@ -173,7 +173,7 @@ fc_pidfile_write(struct fc_pidfh *pfh)
 	 * Check remembered descriptor, so we don't overwrite some other
 	 * file if pidfile was closed and descriptor reused.
 	 */
-	errno = fc_pidfile_verify(pfh);
+	errno = ft_pidfile_verify(pfh);
 	if (errno != 0) {
 		/*
 		 * Don't close descriptor, because we are not sure if it's ours.
@@ -183,11 +183,11 @@ fc_pidfile_write(struct fc_pidfh *pfh)
 	fd = pfh->pf_fd;
 
 	/*
-	 * Truncate PID file, so multiple calls of fc_pidfile_write() are allowed.
+	 * Truncate PID file, so multiple calls of ft_pidfile_write() are allowed.
 	 */
 	if (ftruncate(fd, 0) == -1) {
 		error = errno;
-		(void)_fc_pidfile_remove(pfh, 0);
+		(void)_ft_pidfile_remove(pfh, 0);
 		errno = error;
 		return (-1);
 	}
@@ -196,7 +196,7 @@ fc_pidfile_write(struct fc_pidfh *pfh)
 	assert(error < (int)sizeof(pidstr));
 	if (pwrite(fd, pidstr, strlen(pidstr), 0) != (ssize_t)strlen(pidstr)) {
 		error = errno;
-		(void)_fc_pidfile_remove(pfh, 0);
+		(void)_ft_pidfile_remove(pfh, 0);
 		errno = error;
 		return (-1);
 	}
@@ -205,11 +205,11 @@ fc_pidfile_write(struct fc_pidfh *pfh)
 }
 
 int
-fc_pidfile_close(struct fc_pidfh *pfh)
+ft_pidfile_close(struct ft_pidfh *pfh)
 {
 	int error;
 
-	error = fc_pidfile_verify(pfh);
+	error = ft_pidfile_verify(pfh);
 	if (error != 0) {
 		errno = error;
 		return (-1);
@@ -226,11 +226,11 @@ fc_pidfile_close(struct fc_pidfh *pfh)
 }
 
 static int
-_fc_pidfile_remove(struct fc_pidfh *pfh, int freeit)
+_ft_pidfile_remove(struct ft_pidfh *pfh, int freeit)
 {
 	int error;
 
-	error = fc_pidfile_verify(pfh);
+	error = ft_pidfile_verify(pfh);
 	if (error != 0) {
 		errno = error;
 		return (-1);
@@ -254,8 +254,8 @@ _fc_pidfile_remove(struct fc_pidfh *pfh, int freeit)
 }
 
 int
-fc_pidfile_remove(struct fc_pidfh *pfh)
+ft_pidfile_remove(struct ft_pidfh *pfh)
 {
 
-	return (_fc_pidfile_remove(pfh, 1));
+	return (_ft_pidfile_remove(pfh, 1));
 }

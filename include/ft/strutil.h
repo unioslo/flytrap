@@ -28,25 +28,25 @@
  * SUCH DAMAGE.
  */
 
-#ifndef FC_STRUTIL_H_INCLUDED
-#define FC_STRUTIL_H_INCLUDED
+#ifndef FT_STRUTIL_H_INCLUDED
+#define FT_STRUTIL_H_INCLUDED
 
 #ifndef HAVE_STRLCAT
-size_t fc_strlcat(char *, const char *, size_t);
+size_t ft_strlcat(char *, const char *, size_t);
 #undef strlcat
-#define strlcat(arg, ...) fc_strlcat(arg, __VA_ARGS__)
+#define strlcat(arg, ...) ft_strlcat(arg, __VA_ARGS__)
 #endif
 
 #ifndef HAVE_STRLCPY
-size_t fc_strlcpy(char *, const char *, size_t);
+size_t ft_strlcpy(char *, const char *, size_t);
 #undef strlcpy
-#define strlcpy(arg, ...) fc_strlcpy(arg, __VA_ARGS__)
+#define strlcpy(arg, ...) ft_strlcpy(arg, __VA_ARGS__)
 #endif
 
-int fc_straddch(char **, size_t *, size_t *, int);
+int ft_straddch(char **, size_t *, size_t *, int);
 #ifdef _IOFBF
-char *fc_readword(FILE *, int *, size_t *);
-char **fc_readlinev(FILE *, int *, int *);
+char *ft_readword(FILE *, int *, size_t *);
+char **ft_readlinev(FILE *, int *, int *);
 #endif
 
 #endif

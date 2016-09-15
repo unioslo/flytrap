@@ -46,7 +46,7 @@
  */
 
 char *
-fc_readword(FILE *f, int *lineno, size_t *lenp)
+ft_readword(FILE *f, int *lineno, size_t *lenp)
 {
 	char *word;
 	size_t size, len;
@@ -96,7 +96,7 @@ fc_readword(FILE *f, int *lineno, size_t *lenp)
 			/* begin quote */
 			quote = ch;
 			/* edge case: empty quoted string */
-			if (fc_straddch(&word, &size, &len, 0) != 0)
+			if (ft_straddch(&word, &size, &len, 0) != 0)
 				return (NULL);
 		} else if (ch == quote && !escape) {
 			/* end quote */
@@ -106,12 +106,12 @@ fc_readword(FILE *f, int *lineno, size_t *lenp)
 			escape = 0;
 		} else {
 			if (escape && quote && ch != '\\' && ch != quote &&
-			    fc_straddch(&word, &size, &len, '\\') != 0) {
+			    ft_straddch(&word, &size, &len, '\\') != 0) {
 				free(word);
 				errno = ENOMEM;
 				return (NULL);
 			}
-			if (fc_straddch(&word, &size, &len, ch) != 0) {
+			if (ft_straddch(&word, &size, &len, ch) != 0) {
 				free(word);
 				errno = ENOMEM;
 				return (NULL);

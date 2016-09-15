@@ -27,8 +27,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef FC_CTYPE_H_INCLUDED
-#define FC_CTYPE_H_INCLUDED
+#ifndef FT_CTYPE_H_INCLUDED
+#define FT_CTYPE_H_INCLUDED
 
 /*
  * Evaluates to non-zero if the argument is a digit.

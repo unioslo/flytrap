@@ -28,14 +28,14 @@
  * $FreeBSD: src/lib/libutil/libutil.h,v 1.41 2005/08/24 17:21:38 pjd Exp $
  */
 
-#ifndef FC_PIDFILE_H_INCLUDED
-#define FC_PIDFILE_H_INCLUDED
+#ifndef FT_PIDFILE_H_INCLUDED
+#define FT_PIDFILE_H_INCLUDED
 
-struct fc_pidfh;
+struct ft_pidfh;
 
-struct fc_pidfh *fc_pidfile_open(const char *path, mode_t mode, pid_t *pidptr);
-int fc_pidfile_write(struct fc_pidfh *pfh);
-int fc_pidfile_close(struct fc_pidfh *pfh);
-int fc_pidfile_remove(struct fc_pidfh *pfh);
+struct ft_pidfh *ft_pidfile_open(const char *path, mode_t mode, pid_t *pidptr);
+int ft_pidfile_write(struct ft_pidfh *pfh);
+int ft_pidfile_close(struct ft_pidfh *pfh);
+int ft_pidfile_remove(struct ft_pidfh *pfh);
 
-#endif /* !FC_PIDFILE_H_INCLUDED */
+#endif /* !FT_PIDFILE_H_INCLUDED */

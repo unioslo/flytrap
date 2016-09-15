@@ -35,16 +35,16 @@
 #include <stdlib.h>
 
 #include <ft/assert.h>
-#define FC_LOGV_REQUIRED
+#define FT_LOGV_REQUIRED
 #include <ft/log.h>
 
 void
-fc_abort(const char *fmt, ...)
+ft_abort(const char *fmt, ...)
 {
 	va_list ap;
 
 	va_start(ap, fmt);
-	fc_logv(FC_LOG_LEVEL_ERROR, fmt, ap);
+	ft_logv(FT_LOG_LEVEL_ERROR, fmt, ap);
 	va_end(ap);
 	abort();
 }

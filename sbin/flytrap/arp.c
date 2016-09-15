@@ -120,7 +120,7 @@ arp_expire(struct arpn *n, uint64_t cutoff)
 	unsigned int i;
 
 	if (n->last < cutoff) {
-		fc_verbose("expiring node %08x/%d", n->addr, n->plen);
+		ft_verbose("expiring node %08x/%d", n->addr, n->plen);
 		arp_delete(n);
 	} else if (n->plen < 32) {
 		for (i = 0; i < 16; ++i)
@@ -143,7 +143,7 @@ arp_insert(struct arpn *n, uint32_t addr, uint64_t when)
 	if (n == NULL)
 		n = &arp_root;
 	if (n->plen == 32) {
-		fc_assert(n->addr == addr);
+		ft_assert(n->addr == addr);
 		return (n);
 	}
 	splen = n->plen + 4;
@@ -154,9 +154,9 @@ arp_insert(struct arpn *n, uint32_t addr, uint64_t when)
 		sn->addr = n->addr | (sub << (32 - splen));
 		sn->plen = splen;
 		sn->first = sn->last = when;
-		fc_debug("added node %08x/%d", sn->addr, sn->plen);
+		ft_debug("added node %08x/%d", sn->addr, sn->plen);
 		if (sn->plen == 32) {
-			fc_verbose("arp: inserted %d.%d.%d.%d",
+			ft_verbose("arp: inserted %d.%d.%d.%d",
 			    (addr >> 24) & 0xff, (addr >> 16) & 0xff,
 			    (addr >> 8) & 0xff, addr & 0xff);
 		}
@@ -185,7 +185,7 @@ arp_register(const ipv4_addr *ipv4, const ether_addr *ether, uint64_t when)
 		/* warn if the ipv4_addr moved from one ether_addr to another */
 		if (an->ether.o[0] || an->ether.o[1] || an->ether.o[2] ||
 		    an->ether.o[3] || an->ether.o[4] || an->ether.o[5]) {
-			fc_verbose("%d.%d.%d.%d moved"
+			ft_verbose("%d.%d.%d.%d moved"
 			    " from %02x:%02x:%02x:%02x:%02x:%02x"
 			    " to %02x:%02x:%02x:%02x:%02x:%02x",
 			    ipv4->o[0], ipv4->o[1], ipv4->o[2], ipv4->o[3],
@@ -194,7 +194,7 @@ arp_register(const ipv4_addr *ipv4, const ether_addr *ether, uint64_t when)
 			    ether->o[0], ether->o[1], ether->o[2],
 			    ether->o[3], ether->o[4], ether->o[5]);
 		} else {
-			fc_verbose("%d.%d.%d.%d registered"
+			ft_verbose("%d.%d.%d.%d registered"
 			    " at %02x:%02x:%02x:%02x:%02x:%02x",
 			    ipv4->o[0], ipv4->o[1], ipv4->o[2], ipv4->o[3],
 			    ether->o[0], ether->o[1], ether->o[2],
@@ -214,7 +214,7 @@ arp_lookup(const ipv4_addr *ipv4, ether_addr *ether)
 {
 	struct arpn *an;
 
-	fc_debug("ARP lookup %d.%d.%d.%d",
+	ft_debug("ARP lookup %d.%d.%d.%d",
 	    ipv4->o[0], ipv4->o[1], ipv4->o[2], ipv4->o[3]);
 	an = &arp_root;
 	if ((an = an->sub[ipv4->o[0] / 16]) == NULL ||
@@ -227,7 +227,7 @@ arp_lookup(const ipv4_addr *ipv4, ether_addr *ether)
 	    (an = an->sub[ipv4->o[3] % 16]) == NULL)
 		return (-1);
 	memcpy(ether, &an->ether, sizeof(ether_addr));
-	fc_debug("%d.%d.%d.%d is"
+	ft_debug("%d.%d.%d.%d is"
 	    " at %02x:%02x:%02x:%02x:%02x:%02x",
 	    ipv4->o[0], ipv4->o[1], ipv4->o[2], ipv4->o[3],
 	    ether->o[0], ether->o[1], ether->o[2],
@@ -267,7 +267,7 @@ arp_reserve(const ipv4_addr *addr)
 {
 	struct arpn *an;
 
-	fc_debug("arp: reserving %d.%d.%d.%d",
+	ft_debug("arp: reserving %d.%d.%d.%d",
 	    addr->o[0], addr->o[1], addr->o[2], addr->o[3]);
 	if ((an = arp_insert(NULL, be32toh(addr->q), 0)) == NULL)
 		return (-1);
@@ -286,32 +286,32 @@ packet_analyze_arp(ether_flow *fl, const void *data, size_t len)
 	uint64_t when;
 
 	if (len < sizeof(arp_pkt)) {
-		fc_notice("%d.%03d short ARP packet (%zd < %zd)",
+		ft_notice("%d.%03d short ARP packet (%zd < %zd)",
 		    fl->p->ts.tv_sec, fl->p->ts.tv_usec / 1000,
 		    len, sizeof(arp_pkt));
 		return (-1);
 	}
 	ap = (const arp_pkt *)data;
-	fc_debug("\tARP htype 0x%04hx ptype 0x%04hx hlen %hd plen %hd",
+	ft_debug("\tARP htype 0x%04hx ptype 0x%04hx hlen %hd plen %hd",
 	    be16toh(ap->htype), be16toh(ap->ptype), ap->hlen, ap->plen);
 	if (be16toh(ap->htype) != arp_type_ether || ap->hlen != 6 ||
 	    be16toh(ap->ptype) != arp_type_ipv4 || ap->plen != 4) {
-		fc_debug("\tARP packet ignored");
+		ft_debug("\tARP packet ignored");
 		return (0);
 	}
 	switch (be16toh(ap->oper)) {
 	case arp_oper_who_has:
-		fc_debug("\twho-has %d.%d.%d.%d tell %d.%d.%d.%d",
+		ft_debug("\twho-has %d.%d.%d.%d tell %d.%d.%d.%d",
 		    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3],
 		    ap->spa.o[0], ap->spa.o[1], ap->spa.o[2], ap->spa.o[3]);
 		break;
 	case arp_oper_is_at:
-		fc_debug("\t%d.%d.%d.%d is-at %02x:%02x:%02x:%02x:%02x:%02x",
+		ft_debug("\t%d.%d.%d.%d is-at %02x:%02x:%02x:%02x:%02x:%02x",
 		    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3], ap->tha.o[0],
 		    ap->tha.o[1], ap->tha.o[2], ap->tha.o[3], ap->tha.o[4], ap->tha.o[5]);
 		break;
 	default:
-		fc_notice("%d.%03d unknown ARP operation 0x%04x", be16toh(ap->oper));
+		ft_notice("%d.%03d unknown ARP operation 0x%04x", be16toh(ap->oper));
 		return (0);
 	}
 	when = fl->p->ts.tv_sec * 1000 + fl->p->ts.tv_usec / 1000;
@@ -322,17 +322,17 @@ packet_analyze_arp(ether_flow *fl, const void *data, size_t len)
 		if ((an = arp_insert(NULL, be32toh(ap->tpa.q), when)) == NULL)
 			return (-1);
 		if (an->last != 0) {
-			fc_verbose("%d.%d.%d.%d: last seen %d.%03d",
+			ft_verbose("%d.%d.%d.%d: last seen %d.%03d",
 			    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3],
 			    an->last / 1000, an->last % 1000);
 		}
 		if (an->reserved) {
 			/* ignore */
-			fc_debug("\ttarget address is reserved");
+			ft_debug("\ttarget address is reserved");
 			an->nreq = 0;
 		} else if (an->claimed) {
 			/* already ours, refresh */
-			fc_debug("refreshing %d.%d.%d.%d",
+			ft_debug("refreshing %d.%d.%d.%d",
 			    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3]);
 			an->nreq = 0;
 			an->last = when;
@@ -344,7 +344,7 @@ packet_analyze_arp(ether_flow *fl, const void *data, size_t len)
 			an->first = an->last = when;
 		} else if (an->nreq >= 3 && when - an->first >= 3000) {
 			/* claim new address */
-			fc_verbose("claiming %d.%d.%d.%d nreq = %d", ap->tpa.o[0],
+			ft_verbose("claiming %d.%d.%d.%d nreq = %d", ap->tpa.o[0],
 			    ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3], an->nreq);
 			an->claimed = 1;
 			an->nreq = 0;

@@ -69,7 +69,7 @@ icmp4_reply(ipv4_flow *fl, uint16_t id, uint16_t seq,
 	ih->hdata = htobe32(id << 16 | seq);
 	memcpy(ih->data, payload, payloadlen);
 	ih->sum = htobe16(~ip_cksum(0, ih, len));
-	fc_verbose("echo reply to %d.%d.%d.%d id 0x%04x seq 0x%04x",
+	ft_verbose("echo reply to %d.%d.%d.%d id 0x%04x seq 0x%04x",
 	    fl->src.o[0], fl->src.o[1], fl->src.o[2], fl->src.o[3],
 	    id, seq);
 	ret = ipv4_reply(fl, ip_proto_icmp, ih, len);
@@ -89,13 +89,13 @@ packet_analyze_icmp4(ipv4_flow *fl, const void *data, size_t len)
 
 	ih = data;
 	if (len < sizeof *ih) {
-		fc_notice("%d.%03d short ICMP packet (%zd < %zd)",
+		ft_notice("%d.%03d short ICMP packet (%zd < %zd)",
 		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
 		    len, sizeof *ih);
 		return (-1);
 	}
 	if ((sum = ~ip_cksum(0, data, len)) != 0) {
-		fc_notice("%d.%03d invalid ICMP checksum 0x%04hx",
+		ft_notice("%d.%03d invalid ICMP checksum 0x%04hx",
 		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
 		    sum);
 		return (-1);
@@ -106,7 +106,7 @@ packet_analyze_icmp4(ipv4_flow *fl, const void *data, size_t len)
 	case icmp_type_echo_request:
 		id = be32toh(ih->hdata) >> 16;
 		seq = be32toh(ih->hdata) & 0xffff;
-		fc_verbose("echo request from %d.%d.%d.%d id 0x%04x seq 0x%04x",
+		ft_verbose("echo request from %d.%d.%d.%d id 0x%04x seq 0x%04x",
 		    fl->src.o[0], fl->src.o[1], fl->src.o[2], fl->src.o[3],
 		    id, seq);
 		ret = icmp4_reply(fl, id, seq,
