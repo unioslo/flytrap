@@ -63,7 +63,7 @@ tcp4_go_away(const ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.dp = ith->sp;
 	oth.seq = htobe32(FLYCATCHER_TCP4_SEQ);
 	oth.ack = ith->seq;
-	oth.off_ns = (sizeof oth >> 2) << 4;
+	oth.off_ns = (sizeof oth / 4U) << 4;
 	oth.fl = TCP4_RST;
 	oth.win = htobe16(0);
 	oth.sum = htobe16(0);
@@ -99,7 +99,7 @@ tcp4_hello(const ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.dp = ith->sp;
 	oth.seq = htobe32(FLYCATCHER_TCP4_SEQ);
 	oth.ack = htobe32(be32toh(ith->seq) + 1);
-	oth.off_ns = (sizeof oth >> 2) << 4;
+	oth.off_ns = (sizeof oth / 4U) << 4;
 	oth.fl = TCP4_SYN | TCP4_ACK;
 	oth.win = htobe16(0);
 	oth.sum = htobe16(0);
@@ -136,7 +136,7 @@ tcp4_please_hold(const ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.dp = ith->sp;
 	oth.seq = htobe32(FLYCATCHER_TCP4_SEQ);
 	oth.ack = ith->seq;
-	oth.off_ns = (sizeof oth >> 2) << 4;
+	oth.off_ns = (sizeof oth / 4U) << 4;
 	oth.fl = (ith->fl & TCP4_SYN) | TCP4_ACK;
 	oth.win = htobe16(0);
 	oth.sum = htobe16(0);
@@ -172,7 +172,7 @@ tcp4_goodbye(const ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.dp = ith->sp;
 	oth.seq = htobe32(FLYCATCHER_TCP4_SEQ);
 	oth.ack = ith->seq;
-	oth.off_ns = (sizeof oth >> 2) << 4;
+	oth.off_ns = (sizeof oth / 4U) << 4;
 	oth.fl = TCP4_FIN | TCP4_ACK;
 	oth.win = htobe16(0);
 	oth.sum = htobe16(0);
@@ -205,7 +205,7 @@ packet_analyze_tcp4(const ipv4_flow *fl, const void *data, size_t len)
 	int ret;
 
 	th = data;
-	thlen = len >= sizeof *th ? (tcp4_hdr_off(th) * 4) : sizeof *th;
+	thlen = len >= sizeof *th ? (tcp4_hdr_off(th) * 4U) : sizeof *th;
 	if (len < thlen) {
 		fc_notice("%d.%03d short TCP packet (%zd < %zd)",
 		    fl->p->ts.tv_sec, fl->p->ts.tv_usec / 1000,
