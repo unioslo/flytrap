@@ -77,11 +77,16 @@ iface_open(const char *name)
 	if (strlcpy(i->name, name, sizeof i->name) >= sizeof i->name)
 		goto fail;
 	memcpy(&i->ether, &flycatcher_ether_addr, sizeof(ether_addr));
+#if HAVE_PCAP_PCAP_H
 	if ((i->pch = pcap_create(i->name, pceb)) == NULL ||
 	    pcap_set_promisc(i->pch, 1) != 0 ||
 	    pcap_set_snaplen(i->pch, 2048) != 0 ||
 	    pcap_set_timeout(i->pch, 100) != 0)
 		goto fail;
+#else
+	if ((i->pch = pcap_open_live(i->name, 2048, 1, 100, pceb)) == NULL)
+		goto fail;
+#endif
 	fc_verbose("%s: interface opened", i->name);
 	return (i);
 fail:
@@ -101,12 +106,18 @@ iface_activate(struct iface *i)
 	struct bpf_program fprog;
 
 	/* activate interface */
-	if (pcap_activate(i->pch) != 0 ||
-	    pcap_setdirection(i->pch, PCAP_D_INOUT) != 0) {
+	if (pcap_setdirection(i->pch, PCAP_D_INOUT) != 0) {
+		fc_error("%s: failed to set direction: %s",
+		    i->name, pcap_geterr(i->pch));
+		return (-1);
+	}
+#if HAVE_PCAP_PCAP_H
+	if (pcap_activate(i->pch) != 0) {
 		fc_error("%s: failed to activate: %s",
 		    i->name, pcap_geterr(i->pch));
 		return (-1);
 	}
+#endif
 	fc_verbose("%s: interface activated", i->name);
 
 	/* we only understand Ethernet */
