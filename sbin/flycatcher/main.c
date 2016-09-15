@@ -89,10 +89,10 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
-	const char *iface;
+	const char *ifname;
 	int opt, ret;
 
-	iface = NULL;
+	ifname = NULL;
 	fc_log_level = FC_LOG_LEVEL_NOTICE;
 	while ((opt = getopt(argc, argv, "dfhi:l:nvx:")) != -1) {
 		switch (opt) {
@@ -104,7 +104,7 @@ main(int argc, char *argv[])
 			fc_foreground = 1;
 			break;
 		case 'i':
-			iface = optarg;
+			ifname = optarg;
 			break;
 		case 'l':
 			fc_logname = optarg;
@@ -133,14 +133,14 @@ main(int argc, char *argv[])
 
 	if (argc > 0)
 		usage();
-	if (iface == NULL)
+	if (ifname == NULL)
 		usage();
 
 	if (!fc_foreground)
 		daemonize();
 
 	fc_log_init("flycatcher", NULL);
-	ret = flycatcher(iface);
+	ret = flycatcher(ifname);
 	fc_log_exit();
 
 	exit(ret == 0 ? 0 : 1);
