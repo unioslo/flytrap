@@ -89,6 +89,7 @@ static int
 tcp4_hello(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 {
 	tcp4_hdr oth;
+	uint32_t ack;
 	uint16_t olen, sum;
 	int ret;
 
@@ -98,7 +99,8 @@ tcp4_hello(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.sp = ith->dp;
 	oth.dp = ith->sp;
 	oth.seq = htobe32(FLYTRAP_TCP4_SEQ);
-	oth.ack = htobe32(be32toh(ith->seq) + 1);
+	ack = be32toh(ith->seq) + 1;
+	oth.ack = htobe32(ack);
 	oth.off_ns = (sizeof oth / 4U) << 4;
 	oth.fl = TCP4_SYN | TCP4_ACK;
 	oth.win = htobe16(0);
