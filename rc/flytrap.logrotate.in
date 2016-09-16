@@ -8,6 +8,7 @@
     compress
     compresscmd @Z@
     uncompresscmd @UNZ@
+    compressext @ZEXT@
     
     # signal flytrap(8) after rotating
     sharedscripts

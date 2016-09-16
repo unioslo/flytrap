@@ -26,6 +26,17 @@ AC_PROG_INSTALL
 AC_PROG_RANLIB
 AC_PATH_PROGS([Z], [xz bzip2 gzip])
 AC_PATH_PROGS([UNZ], [unxz bunzip2 gunzip])
+case ${ac_cv_path_Z##*/} in
+xz)
+	AC_SUBST([ZEXT], [.xz])
+	;;
+bzip2)
+	AC_SUBST([ZEXT], [.bz2])
+	;;
+gzip)
+	AC_SUBST([ZEXT], [.gz])
+	;;
+esac
 
 ############################################################################
 #
