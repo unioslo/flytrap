@@ -37,6 +37,7 @@
 #include <netinet/in.h>
 
 #include <errno.h>
+#include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,7 +48,7 @@
 #include <ft/log.h>
 
 #define FLY_DEFAULT_PORT 80
-static const char data[] = "GET / HTTP/0.9\r\n\r\n";
+static const char data[] = "Sed ut perspiciatis, unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque ipsa, quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt, explicabo.  Nemo enim ipsam voluptatem, quia voluptas sit, aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos, qui ratione voluptatem sequi nesciunt, neque porro quisquam est, qui dolorem ipsum, quia dolor sit amet consectetur adipisci velit, sed quia non numquam eius modi tempora incidunt, ut labore et dolore magnam aliquam quaerat voluptatem.  Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit, qui in ea voluptate velit esse, quam nihil molestiae consequatur, vel illum, qui dolorem eum fugiat, quo voluptas nulla pariatur?\nAt vero eos et accusamus et iusto odio dignissimos ducimus, qui blanditiis praesentium voluptatum deleniti atque corrupti, quos dolores et quas molestias excepturi sint, obcaecati cupiditate non provident, similique sunt in culpa, qui officia deserunt mollitia animi, id est laborum et dolorum fuga.  Et harum quidem rerum facilis est et expedita distinctio.  Nam libero tempore, cum soluta nobis est eligendi optio, cumque nihil impedit, quo minus id, quod maxime placeat, facere possimus, omnis voluptas assumenda est, omnis dolor repellendus.  Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet, ut et voluptates repudiandae sint et molestiae non recusandae.  Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat...\n";
 
 /*
  * Parse ip[:port].  This belongs in a library somewhere.
@@ -99,8 +100,9 @@ fly(const char *target, int linger, int timeout)
 	struct sockaddr_in sin4;
 	struct timeval tv;
 	struct linger l;
+	struct pollfd fds;
 	ssize_t sent;
-	int sd;
+	int ret, sd;
 
 	if (parse_ip_port(target, &sin4) != 0) {
 		ft_error("invalid ip[:port] specification");
@@ -143,6 +145,15 @@ fly(const char *target, int linger, int timeout)
 		}
 	} else if (sent > 0) {
 		ft_warning("successfully sent %zd bytes", sent);
+	}
+	fds.fd = sd;
+	fds.events = POLLIN | POLLOUT | POLLHUP;
+	if ((ret = poll(&fds, 1, timeout * 1000)) < 0) {
+		ft_error("poll(): %s", strerror(errno));
+		close(sd);
+		return (-1);
+	} else if (ret > 0) {
+		ft_warning("poll(): 0x%02x", fds.revents);
 	}
 	ft_verbose("closing connection");
 	if (close(sd) != 0) {
