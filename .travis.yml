@@ -1,6 +1,16 @@
 language: c
-before_script: ./autogen.sh
-script: ./configure --enable-developer-warnings --enable-werror && make check
+
 compiler:
   - clang
   - gcc
+
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libpcap-dev
+
+before_script:
+  - ./autogen.sh
+
+script:
+  - ./configure --enable-developer-warnings --enable-werror
+  - make check
