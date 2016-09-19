@@ -1,1 +1,1 @@
-SUBDIRS = fly
+SUBDIRS = fly ft2dshield

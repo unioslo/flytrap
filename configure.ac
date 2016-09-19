@@ -107,6 +107,7 @@ AC_CONFIG_FILES([
     lib/libft/Makefile
     bin/Makefile
     bin/fly/Makefile
+    bin/ft2dshield/Makefile
     sbin/Makefile
     sbin/flytrap/Makefile
     rc/Makefile
