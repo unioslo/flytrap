@@ -122,4 +122,15 @@ char		*ip4_parse(const char *, ip4_addr *);
 int		 ip4_parse_range(const char *, ip4_addr *, ip4_addr *);
 uint16_t	 ip4_cksum(uint16_t, const void *, size_t);
 
+typedef struct ip4a_node ip4a_node;
+
+ip4a_node	*ip4a_new(void);
+void		 ip4a_delete(ip4a_node *);
+int		 ip4a_insert(ip4a_node *, uint32_t, uint32_t);
+int		 ip4a_remove(ip4a_node *, uint32_t, uint32_t);
+int		 ip4a_lookup(ip4a_node *, uint32_t);
+#ifdef BUFSIZ /* proxy for "is <stdio.h> included?" */
+void		 ip4a_fprint(FILE *, ip4a_node *);
+#endif
+
 #endif
