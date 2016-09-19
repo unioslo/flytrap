@@ -27,27 +27,55 @@
  * SUCH DAMAGE.
  */
 
-#if HAVE_CONFIG_H
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+# include "config.h"
 #endif
-
-#include <sys/time.h>
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 
-#include <ft/ethernet.h>
+#include <ft/ctype.h>
+#include <ft/endian.h>
 #include <ft/ip4.h>
 
-#include "flytrap.h"
-#include "ethernet.h"
-#include "packet.h"
-
-int
-packet_analyze(packet *p)
+/*
+ * Convert dotted-quad to IPv4 address
+ */
+char *
+ip4_fromstr(const char *dqs, ip4_addr *addr)
 {
-	int ret;
+	unsigned long ul;
+	const char *s;
+	char *e;
+	int i;
 
-	ret = packet_analyze_ethernet(p, p->data, p->len);
-	return (ret);
+	s = dqs;
+	for (s = dqs, i = 0; i < 4; ++i, s = e) {
+		if ((i > 0 && *s++ != '.') || !is_digit(*s))
+			return (NULL);
+		ul = strtoul(s, &e, 10);
+		if (e == s || ul > 255)
+			return (NULL);
+		addr->o[i] = ul;
+	}
+	return (e);
+}
+
+/*
+ * IPv4 16-bit checksum
+ */
+uint16_t
+ip4_cksum(uint16_t isum, const void *data, size_t len)
+{
+	const uint16_t *w;
+	uint32_t sum;
+
+	for (w = data, sum = isum; len > 1; len -= 2, ++w)
+		sum += be16toh(*w);
+	if (len)
+		sum += *(const uint8_t *)w << 8;
+	while (sum > 0xffff)
+		sum -= 0xffff;
+	return (sum);
 }

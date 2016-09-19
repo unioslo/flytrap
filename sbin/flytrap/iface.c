@@ -47,6 +47,8 @@
 #error pcap library required
 #endif
 
+#include <ft/ethernet.h>
+#include <ft/ip4.h>
 #include <ft/log.h>
 #include <ft/sbuf.h>
 #include <ft/strutil.h>

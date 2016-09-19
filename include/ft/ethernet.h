@@ -27,27 +27,26 @@
  * SUCH DAMAGE.
  */
 
-#if HAVE_CONFIG_H
-#include "config.h"
+#ifndef FT_ETHERNET_H_INCLUDED
+#define FT_ETHERNET_H_INCLUDED
+
+typedef union { uint8_t o[6]; } __attribute__((__packed__)) ether_addr;
+
+typedef enum ether_type {
+	ether_type_ip	 = 0x0800,
+	ether_type_arp	 = 0x0806,
+	ether_type_vlan	 = 0x8100,
+	ether_type_ipv6	 = 0x86dd,
+} ether_type;
+
+typedef struct ether_hdr {
+	ether_addr	 dst;
+	ether_addr	 src;
+	uint16_t	 type;
+} __attribute__((__packed__)) ether_hdr;
+
+typedef struct ether_ftr {
+	uint32_t	 fcs;
+} __attribute__((__packed__)) ether_ftr;
+
 #endif
-
-#include <sys/time.h>
-
-#include <stddef.h>
-#include <stdint.h>
-
-#include <ft/ethernet.h>
-#include <ft/ip4.h>
-
-#include "flytrap.h"
-#include "ethernet.h"
-#include "packet.h"
-
-int
-packet_analyze(packet *p)
-{
-	int ret;
-
-	ret = packet_analyze_ethernet(p, p->data, p->len);
-	return (ret);
-}

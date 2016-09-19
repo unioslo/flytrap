@@ -33,31 +33,10 @@
 struct iface;
 struct packet;
 
-typedef union { uint8_t o[6]; } __attribute__((__packed__)) ether_addr;
-typedef union { uint8_t o[4]; uint32_t q; } __attribute__((__packed__)) ip4_addr;
-typedef union { uint8_t o[16]; uint16_t w[8]; } __attribute__((__packed__)) ipv6_addr;
-
 #define FLYTRAP_ETHER_ADDR { 0x02, 0x00, 0x18, 0x11, 0x09, 0x02 }
 extern ether_addr flytrap_ether_addr;
 
 #define FLYTRAP_TCP4_SEQ 0x18110902U
-
-typedef enum ether_type {
-	ether_type_ip	 = 0x0800,
-	ether_type_arp	 = 0x0806,
-	ether_type_vlan	 = 0x8100,
-	ether_type_ipv6	 = 0x86dd,
-} ether_type;
-
-typedef struct ether_hdr {
-	ether_addr	 dst;
-	ether_addr	 src;
-	uint16_t	 type;
-} __attribute__((__packed__)) ether_hdr;
-
-typedef struct ether_ftr {
-	uint32_t	 fcs;
-} __attribute__((__packed__)) ether_ftr;
 
 typedef struct ether_flow {
 	struct packet	*p;
@@ -66,113 +45,6 @@ typedef struct ether_flow {
 	uint16_t	 type;
 	uint16_t	 len;
 } ether_flow;
-
-typedef enum arp_oper {
-	arp_oper_who_has = 1,
-	arp_oper_is_at	 = 2,
-} arp_oper;
-
-typedef enum arp_type {
-	arp_type_ether	 = 1,
-	arp_type_ip4	 = 0x0800,
-} arp_type;
-
-typedef struct arp_pkt {
-	uint16_t	 htype;
-	uint16_t	 ptype;
-	uint8_t		 hlen;
-	uint8_t		 plen;
-	uint16_t	 oper;
-	ether_addr	 sha;
-	ip4_addr	 spa;
-	ether_addr	 tha;
-	ip4_addr	 tpa;
-} __attribute__((__packed__)) arp_pkt;
-
-typedef enum ip_proto {
-	ip_proto_icmp	 = 0x01,
-	ip_proto_tcp	 = 0x06,
-	ip_proto_udp	 = 0x11,
-} ip_proto;
-
-typedef struct ip4_hdr {
-#define ip4_hdr_ver(ih) ((ih)->ver_ihl >> 4)
-#define ip4_hdr_ihl(ih) ((ih)->ver_ihl & 0xf)
-	uint8_t		 ver_ihl;
-#define ip4_hdr_dscp(ih) ((ih)->dscp_ecn >> 2)
-#define ip4_hdr_ecn(ih) ((ih)->dscp_ecn & 0x3)
-	uint8_t		 dscp_ecn;
-	uint16_t	 len;
-	uint16_t	 id;
-#define ip4_hdr_fl(ih) (be16toh((ih)->fl_off) >> 2)
-#define ip4_hdr_off(ih) (be16toh((ih)->fl_off) & 0x3)
-	uint16_t	 fl_off;
-	uint8_t		 ttl;
-	uint8_t		 proto;
-	uint16_t	 sum;
-	ip4_addr	 srcip;
-	ip4_addr	 dstip;
-	uint8_t		 opt[];
-} __attribute__((__packed__)) ip4_hdr;
-
-typedef enum icmp_type {
-	icmp_type_echo_reply	 = 0x00,
-	icmp_type_echo_request	 = 0x08,
-} icmp_type;
-
-typedef struct icmp_hdr {
-	uint8_t		 type;
-	uint8_t		 code;
-	uint16_t	 sum;
-	uint32_t	 hdata;
-	uint8_t		 data[];
-} __attribute__((__packed__)) icmp_hdr;
-
-typedef struct tcp4_hdr {
-	uint16_t	 sp;
-	uint16_t	 dp;
-	uint32_t	 seq;
-	uint32_t	 ack;
-#define tcp4_hdr_off(th) ((th)->off_ns >> 4)
-#define tcp4_hdr_ns(th)  ((th)->off_ns & 0x01)
-	uint8_t		 off_ns;
-#define TCP4_CWR	 0x80
-#define TCP4_ECE	 0x40
-#define TCP4_URG	 0x20
-#define TCP4_ACK	 0x10
-#define TCP4_PSH	 0x08
-#define TCP4_RST	 0x04
-#define TCP4_SYN	 0x02
-#define TCP4_FIN	 0x01
-#define tcp4_hdr_cwr(th) ((th)->fl & TCP4_CWR)
-#define tcp4_hdr_ece(th) ((th)->fl & TCP4_ECE)
-#define tcp4_hdr_urg(th) ((th)->fl & TCP4_URG)
-#define tcp4_hdr_ack(th) ((th)->fl & TCP4_ACK)
-#define tcp4_hdr_psh(th) ((th)->fl & TCP4_PSH)
-#define tcp4_hdr_rst(th) ((th)->fl & TCP4_RST)
-#define tcp4_hdr_syn(th) ((th)->fl & TCP4_SYN)
-#define tcp4_hdr_fin(th) ((th)->fl & TCP4_FIN)
-	uint8_t		 fl;
-	uint16_t	 win;
-	uint16_t	 sum;
-	uint16_t	 urg;
-#define TCP_OPT_END	 0
-#define TCP_OPT_NOP	 1
-#define TCP_OPT_MSS	 2
-#define TCP_OPT_WS	 3
-#define TCP_OPT_SACKOK	 4
-#define TCP_OPT_SACK	 5
-#define TCP_OPT_TIME	 8
-	uint8_t		 opt[];
-} __attribute__((__packed__)) tcp4_hdr;
-
-typedef struct udp4_hdr {
-	uint16_t	 sp;
-	uint16_t	 dp;
-	uint16_t	 len;
-	uint16_t	 sum;
-	uint8_t		 data[];
-} __attribute__((__packed__)) udp4_hdr;
 
 typedef struct ip4_flow {
 	struct ether_flow	*eth;
@@ -199,8 +71,6 @@ int	 ethernet_send(struct iface *, ether_type, ether_addr *,
     const void *, size_t);
 int	 ethernet_reply(struct ether_flow *, const void *, size_t);
 
-char	*ip4_fromstr(const char *, ip4_addr *);
-uint16_t ip_cksum(uint16_t, const void *, size_t);
 int	 ip4_reply(ip4_flow *, ip_proto, const void *, size_t);
 
 

@@ -39,6 +39,8 @@
 #include <string.h>
 
 #include <ft/endian.h>
+#include <ft/ethernet.h>
+#include <ft/ip4.h>
 #include <ft/log.h>
 
 #include "flytrap.h"

@@ -39,10 +39,9 @@
 #include <time.h>
 #include <unistd.h>
 
-static unsigned long userid;
+#include <ft/ip4.h>
 
-typedef union { uint8_t o[4]; uint32_t q; } __attribute__((__packed__)) ip4_addr;
-typedef enum { icmp, tcp, udp } ip_proto;
+static unsigned long userid;
 
 struct ftlog {
 	struct timeval	 tv;
@@ -112,11 +111,11 @@ ftlogparse(struct ftlog *ftl, const char *s)
 	if ((e = strchr(s, ',')) == NULL)
 		return (-1);
 	if (e - s == 4 && strncmp(s, "ICMP", 4) == 0)
-		ftl->proto = icmp;
+		ftl->proto = ip_proto_icmp;
 	else if (e - s == 3 && strncmp(s, "TCP", 3) == 0)
-		ftl->proto = tcp;
+		ftl->proto = ip_proto_tcp;
 	else if (e - s == 3 && strncmp(s, "UDP", 3) == 0)
-		ftl->proto = udp;
+		ftl->proto = ip_proto_udp;
 	else
 		return (-1);
 	s = e + 1;
@@ -129,7 +128,7 @@ ftlogparse(struct ftlog *ftl, const char *s)
 	s = e + 1;
 
 	/* additional */
-	if (ftl->proto == icmp) {
+	if (ftl->proto == ip_proto_icmp) {
 		/* ICMP: store type in sp, code in dp */
 		l = strtol(s, &e, 10);
 		if (e == s || *e != '.' || l < 0 || l > 255)
@@ -141,7 +140,7 @@ ftlogparse(struct ftlog *ftl, const char *s)
 			return (-1);
 		ftl->dp = l;
 		s = e;
-	} else if (ftl->proto == tcp) {
+	} else if (ftl->proto == ip_proto_tcp) {
 		/* TCP: flags */
 		for (i = 0, f = ftl->flags; i < 9; ++i) {
 			switch (s[i]) {
@@ -161,7 +160,7 @@ ftlogparse(struct ftlog *ftl, const char *s)
 			}
 		}
 		s += i;
-	} else if (ftl->proto == udp) {
+	} else if (ftl->proto == ip_proto_udp) {
 		/* nothing */
 	} else {
 		/* impossiburu */
@@ -185,13 +184,13 @@ ftlogprint(const struct ftlog *ftl)
 	tm = gmtime(&t);
 	strftime(tstr, sizeof tstr, "%Y-%m-%d %H:%M:%S %z", tm);
 	switch (ftl->proto) {
-	case icmp:
+	case ip_proto_icmp:
 		proto = "ICMP";
 		break;
-	case tcp:
+	case ip_proto_tcp:
 		proto = "TCP";
 		break;
-	case udp:
+	case ip_proto_udp:
 		proto = "UDP";
 		break;
 	default:

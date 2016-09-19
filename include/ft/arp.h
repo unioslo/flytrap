@@ -27,27 +27,32 @@
  * SUCH DAMAGE.
  */
 
-#if HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <sys/time.h>
-
-#include <stddef.h>
-#include <stdint.h>
+#ifndef FT_ARP_H_INCLUDED
+#define FT_ARP_H_INCLUDED
 
 #include <ft/ethernet.h>
 #include <ft/ip4.h>
 
-#include "flytrap.h"
-#include "ethernet.h"
-#include "packet.h"
+typedef enum arp_oper {
+	arp_oper_who_has = 1,
+	arp_oper_is_at	 = 2,
+} arp_oper;
 
-int
-packet_analyze(packet *p)
-{
-	int ret;
+typedef enum arp_type {
+	arp_type_ether	 = 1,
+	arp_type_ip4	 = 0x0800,
+} arp_type;
 
-	ret = packet_analyze_ethernet(p, p->data, p->len);
-	return (ret);
-}
+typedef struct arp_pkt {
+	uint16_t	 htype;
+	uint16_t	 ptype;
+	uint8_t		 hlen;
+	uint8_t		 plen;
+	uint16_t	 oper;
+	ether_addr	 sha;
+	ip4_addr	 spa;
+	ether_addr	 tha;
+	ip4_addr	 tpa;
+} __attribute__((__packed__)) arp_pkt;
+
+#endif

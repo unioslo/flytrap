@@ -38,6 +38,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <ft/ethernet.h>
+#include <ft/ip4.h>
 #include <ft/log.h>
 #include <ft/pidfile.h>
 

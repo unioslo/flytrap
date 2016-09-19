@@ -39,6 +39,8 @@
 #include <string.h>
 
 #include <ft/endian.h>
+#include <ft/ethernet.h>
+#include <ft/ip4.h>
 #include <ft/log.h>
 
 #include "flytrap.h"
@@ -70,12 +72,12 @@ tcp4_go_away(ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.urg = htobe16(0);
 
 	/* compute pseudo-header checksum, then packet checksum */
-	sum = ip_cksum(0, &fl->dst, sizeof fl->dst);
-	sum = ip_cksum(sum, &fl->src, sizeof fl->src);
-	sum = ip_cksum(sum, &fl->proto, sizeof fl->proto);
+	sum = ip4_cksum(0, &fl->dst, sizeof fl->dst);
+	sum = ip4_cksum(sum, &fl->src, sizeof fl->src);
+	sum = ip4_cksum(sum, &fl->proto, sizeof fl->proto);
 	olen = htobe16(sizeof oth);
-	sum = ip_cksum(sum, &olen, sizeof olen);
-	oth.sum = htobe16(~ip_cksum(sum, &oth, sizeof oth));
+	sum = ip4_cksum(sum, &olen, sizeof olen);
+	oth.sum = htobe16(~ip4_cksum(sum, &oth, sizeof oth));
 
 	/* send packet */
 	ret = ip4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
@@ -108,12 +110,12 @@ tcp4_hello(ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.urg = htobe16(0);
 
 	/* compute pseudo-header checksum, then packet checksum */
-	sum = ip_cksum(0, &fl->dst, sizeof fl->dst);
-	sum = ip_cksum(sum, &fl->src, sizeof fl->src);
-	sum = ip_cksum(sum, &fl->proto, sizeof fl->proto);
+	sum = ip4_cksum(0, &fl->dst, sizeof fl->dst);
+	sum = ip4_cksum(sum, &fl->src, sizeof fl->src);
+	sum = ip4_cksum(sum, &fl->proto, sizeof fl->proto);
 	olen = htobe16(sizeof oth);
-	sum = ip_cksum(sum, &olen, sizeof olen);
-	oth.sum = htobe16(~ip_cksum(sum, &oth, sizeof oth));
+	sum = ip4_cksum(sum, &olen, sizeof olen);
+	oth.sum = htobe16(~ip4_cksum(sum, &oth, sizeof oth));
 
 	/* send packet */
 	ret = ip4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
@@ -145,12 +147,12 @@ tcp4_please_hold(ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.urg = htobe16(0);
 
 	/* compute pseudo-header checksum, then packet checksum */
-	sum = ip_cksum(0, &fl->dst, sizeof fl->dst);
-	sum = ip_cksum(sum, &fl->src, sizeof fl->src);
-	sum = ip_cksum(sum, &fl->proto, sizeof fl->proto);
+	sum = ip4_cksum(0, &fl->dst, sizeof fl->dst);
+	sum = ip4_cksum(sum, &fl->src, sizeof fl->src);
+	sum = ip4_cksum(sum, &fl->proto, sizeof fl->proto);
 	olen = htobe16(sizeof oth);
-	sum = ip_cksum(sum, &olen, sizeof olen);
-	oth.sum = htobe16(~ip_cksum(sum, &oth, sizeof oth));
+	sum = ip4_cksum(sum, &olen, sizeof olen);
+	oth.sum = htobe16(~ip4_cksum(sum, &oth, sizeof oth));
 
 	/* send packet */
 	ret = ip4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
@@ -181,12 +183,12 @@ tcp4_goodbye(ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.urg = htobe16(0);
 
 	/* compute pseudo-header checksum, then packet checksum */
-	sum = ip_cksum(0, &fl->dst, sizeof fl->dst);
-	sum = ip_cksum(sum, &fl->src, sizeof fl->src);
-	sum = ip_cksum(sum, &fl->proto, sizeof fl->proto);
+	sum = ip4_cksum(0, &fl->dst, sizeof fl->dst);
+	sum = ip4_cksum(sum, &fl->src, sizeof fl->src);
+	sum = ip4_cksum(sum, &fl->proto, sizeof fl->proto);
 	olen = htobe16(sizeof oth);
-	sum = ip_cksum(sum, &olen, sizeof olen);
-	oth.sum = htobe16(~ip_cksum(sum, &oth, sizeof oth));
+	sum = ip4_cksum(sum, &olen, sizeof olen);
+	oth.sum = htobe16(~ip4_cksum(sum, &oth, sizeof oth));
 
 	/* send packet */
 	ret = ip4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
@@ -214,7 +216,7 @@ packet_analyze_tcp4(ip4_flow *fl, const void *data, size_t len)
 		    len, thlen);
 		return (-1);
 	}
-	if ((sum = ~ip_cksum(fl->sum, data, len)) != 0) {
+	if ((sum = ~ip4_cksum(fl->sum, data, len)) != 0) {
 		ft_notice("%d.%03d invalid TCP checksum 0x%04hx",
 		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
 		    sum);

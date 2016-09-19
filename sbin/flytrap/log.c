@@ -38,6 +38,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <ft/ethernet.h>
+#include <ft/ip4.h>
+
 #include "flytrap.h"
 #include "ethernet.h"
 

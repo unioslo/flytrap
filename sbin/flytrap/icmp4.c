@@ -43,6 +43,8 @@
 
 #include <ft/assert.h>
 #include <ft/endian.h>
+#include <ft/ethernet.h>
+#include <ft/ip4.h>
 #include <ft/log.h>
 
 #include "flytrap.h"
@@ -68,7 +70,7 @@ icmp4_reply(ip4_flow *fl, uint16_t id, uint16_t seq,
 	ih->code = htobe16(0);
 	ih->hdata = htobe32(id << 16 | seq);
 	memcpy(ih->data, payload, payloadlen);
-	ih->sum = htobe16(~ip_cksum(0, ih, len));
+	ih->sum = htobe16(~ip4_cksum(0, ih, len));
 	ft_verbose("echo reply to %d.%d.%d.%d id 0x%04x seq 0x%04x",
 	    fl->src.o[0], fl->src.o[1], fl->src.o[2], fl->src.o[3],
 	    id, seq);
@@ -94,7 +96,7 @@ packet_analyze_icmp4(ip4_flow *fl, const void *data, size_t len)
 		    len, sizeof *ih);
 		return (-1);
 	}
-	if ((sum = ~ip_cksum(0, data, len)) != 0) {
+	if ((sum = ~ip4_cksum(0, data, len)) != 0) {
 		ft_notice("%d.%03d invalid ICMP checksum 0x%04hx",
 		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
 		    sum);

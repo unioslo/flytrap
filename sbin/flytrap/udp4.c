@@ -37,6 +37,8 @@
 #include <stdint.h>
 
 #include <ft/endian.h>
+#include <ft/ethernet.h>
+#include <ft/ip4.h>
 #include <ft/log.h>
 
 #include "flytrap.h"
@@ -61,7 +63,7 @@ packet_analyze_udp4(ip4_flow *fl, const void *data, size_t len)
 		return (-1);
 	}
 	if (uh->sum != 0 &&
-	    (sum = ~ip_cksum(fl->sum, data, len)) != 0) {
+	    (sum = ~ip4_cksum(fl->sum, data, len)) != 0) {
 		ft_notice("%d.%03d invalid UDP checksum 0x%04hx",
 		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
 		    sum);

@@ -1,10 +1,13 @@
 noinst_HEADERS =
+noinst_HEADERS += ft/arp.h
 noinst_HEADERS += ft/assert.h
 noinst_HEADERS += ft/ctype.h
 noinst_HEADERS += ft/dict.h
 noinst_HEADERS += ft/endian.h
+noinst_HEADERS += ft/ethernet.h
 noinst_HEADERS += ft/flopen.h
 noinst_HEADERS += ft/hash.h
+noinst_HEADERS += ft/ip4.h
 noinst_HEADERS += ft/log.h
 noinst_HEADERS += ft/pidfile.h
 noinst_HEADERS += ft/sbuf.h

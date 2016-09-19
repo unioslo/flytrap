@@ -44,6 +44,8 @@
 #include <ft/assert.h>
 #include <ft/ctype.h>
 #include <ft/endian.h>
+#include <ft/ethernet.h>
+#include <ft/ip4.h>
 #include <ft/log.h>
 
 #include "flytrap.h"
@@ -93,7 +95,7 @@ packet_analyze_ip4(ether_flow *ethfl, const void *data, size_t len)
 	    fl.pseudo[0], fl.pseudo[1], fl.pseudo[2], fl.pseudo[3],
 	    fl.pseudo[4], fl.pseudo[5], fl.pseudo[6], fl.pseudo[7],
 	    fl.pseudo[8], fl.pseudo[9], fl.pseudo[10], fl.pseudo[11]);
-	fl.sum = ip_cksum(0, &fl.pseudo, sizeof fl.pseudo);
+	fl.sum = ip4_cksum(0, &fl.pseudo, sizeof fl.pseudo);
 	switch (ih->proto) {
 	case ip_proto_icmp:
 		ret = packet_analyze_icmp4(&fl, data, len);
@@ -108,44 +110,6 @@ packet_analyze_ip4(ether_flow *ethfl, const void *data, size_t len)
 		ret = -1;
 	}
 	return (ret);
-}
-
-/*
- * Convert dotted-quad to IPv4 address
- */
-char *
-ip4_fromstr(const char *dqs, ip4_addr *addr)
-{
-	unsigned long ul;
-	const char *s;
-	char *e;
-	int i;
-
-	s = dqs;
-	for (s = dqs, i = 0; i < 4; ++i, s = e) {
-		if ((i > 0 && *s++ != '.') || !is_digit(*s))
-			return (NULL);
-		ul = strtoul(s, &e, 10);
-		if (e == s || ul > 255)
-			return (NULL);
-		addr->o[i] = ul;
-	}
-	return (e);
-}
-
-uint16_t
-ip_cksum(uint16_t isum, const void *data, size_t len)
-{
-	const uint16_t *w;
-	uint32_t sum;
-
-	for (w = data, sum = isum; len > 1; len -= 2, ++w)
-		sum += be16toh(*w);
-	if (len)
-		sum += *(const uint8_t *)w << 8;
-	while (sum > 0xffff)
-		sum -= 0xffff;
-	return (sum);
 }
 
 int
@@ -171,7 +135,7 @@ ip4_reply(ip4_flow *fl, ip_proto proto,
 	ih->proto = proto;
 	ih->srcip = fl->dst;
 	ih->dstip = fl->src;
-	ih->sum = htobe16(~ip_cksum(0, ih, sizeof *ih));
+	ih->sum = htobe16(~ip4_cksum(0, ih, sizeof *ih));
 	memcpy(ih + 1, data, len);
 	ret = ethernet_reply(fl->eth, ih, iplen);
 	free(ih);
