@@ -118,7 +118,8 @@ typedef struct udp4_hdr {
 	uint8_t		 data[];
 } __attribute__((__packed__)) udp4_hdr;
 
-char	*ip4_fromstr(const char *, ip4_addr *);
-uint16_t ip4_cksum(uint16_t, const void *, size_t);
+char		*ip4_parse(const char *, ip4_addr *);
+int		 ip4_parse_range(const char *, ip4_addr *, ip4_addr *);
+uint16_t	 ip4_cksum(uint16_t, const void *, size_t);
 
 #endif

@@ -55,7 +55,7 @@ exclude(const char *dqs)
 	ip4_addr addr;
 	char *e;
 
-	if ((e = ip4_fromstr(dqs, &addr)) == NULL || *e != '\0')
+	if ((e = ip4_parse(dqs, &addr)) == NULL || *e != '\0')
 		return (-1);
 	return (arp_reserve(&addr));
 }

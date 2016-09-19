@@ -43,7 +43,7 @@
  * Convert dotted-quad to IPv4 address
  */
 char *
-ip4_fromstr(const char *dqs, ip4_addr *addr)
+ip4_parse(const char *dqs, ip4_addr *addr)
 {
 	unsigned long ul;
 	const char *s;
@@ -60,6 +60,56 @@ ip4_fromstr(const char *dqs, ip4_addr *addr)
 		addr->o[i] = ul;
 	}
 	return (e);
+}
+
+/*
+ * Parse a string which contains either a single address, a pair of
+ * addresses separated by a hyphen, or a range in CIDR notation.
+ */
+int
+ip4_parse_range(const char *line, ip4_addr *first, ip4_addr *last)
+{
+	ip4_addr mask;
+	const char *p, *q;
+	int plen;
+
+	/* isolate and parse the first address */
+	if ((q = ip4_parse(p = line, first)) == NULL)
+		return (-1);
+	p = q + 1;
+
+	/* one of three syntaxes */
+	if (*q == '\0') {
+		/* single address */
+		*last = *first;
+	} else if (*q == '-') {
+		/* two addresses separated by a hyphen */
+		if ((q = ip4_parse(p, last)) == NULL)
+			return (-1);
+	} else if (*q == '/') {
+		/* subnet in CIDR notation */
+		q = p;
+		if (!is_digit(*q))
+			return (-1);
+		plen = *q++ - '0';
+		if (*q != '\0') {
+			if (!is_digit(*q))
+				return (-1);
+			plen = plen * 10 + *q++ - '0';
+		}
+		if (plen > 32)
+			return (-1);
+		mask.q = htobe32(0xffffffffLU >> plen);
+		if (first->q & mask.q)
+			return (-1);
+		last->q = first->q | mask.q;
+	} else {
+		/* invalid */
+		return (-1);
+	}
+	if (*q != '\0')
+		return (-1);
+	return (0);
 }
 
 /*
