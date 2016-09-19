@@ -50,7 +50,7 @@
  * Reply to a TCP packet with an RST.
  */
 static int
-tcp4_go_away(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
+tcp4_go_away(ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 {
 	tcp4_hdr oth;
 	uint16_t olen, sum;
@@ -78,7 +78,7 @@ tcp4_go_away(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.sum = htobe16(~ip_cksum(sum, &oth, sizeof oth));
 
 	/* send packet */
-	ret = ipv4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
+	ret = ip4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
 	return (ret);
 }
 
@@ -86,7 +86,7 @@ tcp4_go_away(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
  * Reply to a SYN packet with a SYN/ACK with a very small window size.
  */
 static int
-tcp4_hello(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
+tcp4_hello(ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 {
 	tcp4_hdr oth;
 	uint32_t ack;
@@ -116,7 +116,7 @@ tcp4_hello(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.sum = htobe16(~ip_cksum(sum, &oth, sizeof oth));
 
 	/* send packet */
-	ret = ipv4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
+	ret = ip4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
 	return (ret);
 }
 
@@ -125,7 +125,7 @@ tcp4_hello(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
  * informs the peer that we don't have any free buffer space.
  */
 static int
-tcp4_please_hold(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
+tcp4_please_hold(ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 {
 	tcp4_hdr oth;
 	uint16_t olen, sum;
@@ -153,7 +153,7 @@ tcp4_please_hold(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.sum = htobe16(~ip_cksum(sum, &oth, sizeof oth));
 
 	/* send packet */
-	ret = ipv4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
+	ret = ip4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
 	return (ret);
 }
 
@@ -161,7 +161,7 @@ tcp4_please_hold(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
  * Reply to a FIN packet with a FIN/ACK.
  */
 static int
-tcp4_goodbye(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
+tcp4_goodbye(ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 {
 	tcp4_hdr oth;
 	uint16_t olen, sum;
@@ -189,7 +189,7 @@ tcp4_goodbye(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.sum = htobe16(~ip_cksum(sum, &oth, sizeof oth));
 
 	/* send packet */
-	ret = ipv4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
+	ret = ip4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
 	return (ret);
 }
 
@@ -197,7 +197,7 @@ tcp4_goodbye(ipv4_flow *fl, const tcp4_hdr *ith, size_t ilen)
  * Analyze a captured TCP packet
  */
 int
-packet_analyze_tcp4(ipv4_flow *fl, const void *data, size_t len)
+packet_analyze_tcp4(ip4_flow *fl, const void *data, size_t len)
 {
 	char flags[] = "NCEUAPRSF";
 	const tcp4_hdr *th;

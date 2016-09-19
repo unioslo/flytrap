@@ -34,7 +34,7 @@ struct iface;
 struct packet;
 
 typedef union { uint8_t o[6]; } __attribute__((__packed__)) ether_addr;
-typedef union { uint8_t o[4]; uint32_t q; } __attribute__((__packed__)) ipv4_addr;
+typedef union { uint8_t o[4]; uint32_t q; } __attribute__((__packed__)) ip4_addr;
 typedef union { uint8_t o[16]; uint16_t w[8]; } __attribute__((__packed__)) ipv6_addr;
 
 #define FLYTRAP_ETHER_ADDR { 0x02, 0x00, 0x18, 0x11, 0x09, 0x02 }
@@ -74,7 +74,7 @@ typedef enum arp_oper {
 
 typedef enum arp_type {
 	arp_type_ether	 = 1,
-	arp_type_ipv4	 = 0x0800,
+	arp_type_ip4	 = 0x0800,
 } arp_type;
 
 typedef struct arp_pkt {
@@ -84,9 +84,9 @@ typedef struct arp_pkt {
 	uint8_t		 plen;
 	uint16_t	 oper;
 	ether_addr	 sha;
-	ipv4_addr	 spa;
+	ip4_addr	 spa;
 	ether_addr	 tha;
-	ipv4_addr	 tpa;
+	ip4_addr	 tpa;
 } __attribute__((__packed__)) arp_pkt;
 
 typedef enum ip_proto {
@@ -95,25 +95,25 @@ typedef enum ip_proto {
 	ip_proto_udp	 = 0x11,
 } ip_proto;
 
-typedef struct ipv4_hdr {
-#define ipv4_hdr_ver(ih) ((ih)->ver_ihl >> 4)
-#define ipv4_hdr_ihl(ih) ((ih)->ver_ihl & 0xf)
+typedef struct ip4_hdr {
+#define ip4_hdr_ver(ih) ((ih)->ver_ihl >> 4)
+#define ip4_hdr_ihl(ih) ((ih)->ver_ihl & 0xf)
 	uint8_t		 ver_ihl;
-#define ipv4_hdr_dscp(ih) ((ih)->dscp_ecn >> 2)
-#define ipv4_hdr_ecn(ih) ((ih)->dscp_ecn & 0x3)
+#define ip4_hdr_dscp(ih) ((ih)->dscp_ecn >> 2)
+#define ip4_hdr_ecn(ih) ((ih)->dscp_ecn & 0x3)
 	uint8_t		 dscp_ecn;
 	uint16_t	 len;
 	uint16_t	 id;
-#define ipv4_hdr_fl(ih) (be16toh((ih)->fl_off) >> 2)
-#define ipv4_hdr_off(ih) (be16toh((ih)->fl_off) & 0x3)
+#define ip4_hdr_fl(ih) (be16toh((ih)->fl_off) >> 2)
+#define ip4_hdr_off(ih) (be16toh((ih)->fl_off) & 0x3)
 	uint16_t	 fl_off;
 	uint8_t		 ttl;
 	uint8_t		 proto;
 	uint16_t	 sum;
-	ipv4_addr	 srcip;
-	ipv4_addr	 dstip;
+	ip4_addr	 srcip;
+	ip4_addr	 dstip;
 	uint8_t		 opt[];
-} __attribute__((__packed__)) ipv4_hdr;
+} __attribute__((__packed__)) ip4_hdr;
 
 typedef enum icmp_type {
 	icmp_type_echo_reply	 = 0x00,
@@ -174,24 +174,24 @@ typedef struct udp4_hdr {
 	uint8_t		 data[];
 } __attribute__((__packed__)) udp4_hdr;
 
-typedef struct ipv4_flow {
+typedef struct ip4_flow {
 	struct ether_flow	*eth;
 	/* pseudo-header */
 	union {
 		uint8_t		 pseudo[12];
 		struct {
-			ipv4_addr	 src;
-			ipv4_addr	 dst;
+			ip4_addr	 src;
+			ip4_addr	 dst;
 			uint16_t	 proto;
 			uint16_t	 len;
 		} __attribute__((__packed__));
 	};
 	uint16_t	 sum;
-} ipv4_flow;
+} ip4_flow;
 
-int	 arp_reserve(const ipv4_addr *);
-int	 arp_register(const ipv4_addr *, const ether_addr *, uint64_t);
-int	 arp_lookup(const ipv4_addr *, ether_addr *);
+int	 arp_reserve(const ip4_addr *);
+int	 arp_register(const ip4_addr *, const ether_addr *, uint64_t);
+int	 arp_lookup(const ip4_addr *, ether_addr *);
 
 uint32_t ether_crc32(const uint8_t *, size_t);
 
@@ -199,20 +199,20 @@ int	 ethernet_send(struct iface *, ether_type, ether_addr *,
     const void *, size_t);
 int	 ethernet_reply(struct ether_flow *, const void *, size_t);
 
-char	*ipv4_fromstr(const char *, ipv4_addr *);
+char	*ip4_fromstr(const char *, ip4_addr *);
 uint16_t ip_cksum(uint16_t, const void *, size_t);
-int	 ipv4_reply(ipv4_flow *, ip_proto, const void *, size_t);
+int	 ip4_reply(ip4_flow *, ip_proto, const void *, size_t);
 
 
 int	 packet_analyze_ethernet(struct packet *, const void *, size_t);
 int	 packet_analyze_arp(struct ether_flow *, const void *, size_t);
 int	 packet_analyze_ip4(struct ether_flow *, const void *, size_t);
-int	 packet_analyze_icmp4(struct ipv4_flow *, const void *, size_t);
-int	 packet_analyze_udp4(struct ipv4_flow *, const void *, size_t);
-int	 packet_analyze_tcp4(struct ipv4_flow *, const void *, size_t);
+int	 packet_analyze_icmp4(struct ip4_flow *, const void *, size_t);
+int	 packet_analyze_udp4(struct ip4_flow *, const void *, size_t);
+int	 packet_analyze_tcp4(struct ip4_flow *, const void *, size_t);
 
 int	 log_packet4(const struct timeval *,
-    const ipv4_addr *, int, const ipv4_addr *, int,
+    const ip4_addr *, int, const ip4_addr *, int,
     const char *, size_t, const char *, ...);
 
 #endif

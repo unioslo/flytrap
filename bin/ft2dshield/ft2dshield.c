@@ -41,14 +41,14 @@
 
 static unsigned long userid;
 
-typedef union { uint8_t o[4]; uint32_t q; } __attribute__((__packed__)) ipv4_addr;
+typedef union { uint8_t o[4]; uint32_t q; } __attribute__((__packed__)) ip4_addr;
 typedef enum { icmp, tcp, udp } ip_proto;
 
 struct ftlog {
 	struct timeval	 tv;
-	ipv4_addr	 sa;
+	ip4_addr	 sa;
 	uint16_t	 sp;
-	ipv4_addr	 da;
+	ip4_addr	 da;
 	uint16_t	 dp;
 	ip_proto	 proto;
 	size_t		 len;

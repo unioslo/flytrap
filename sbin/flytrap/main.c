@@ -50,10 +50,10 @@ static int ft_foreground = 0;
 static int
 exclude(const char *dqs)
 {
-	ipv4_addr addr;
+	ip4_addr addr;
 	char *e;
 
-	if ((e = ipv4_fromstr(dqs, &addr)) == NULL || *e != '\0')
+	if ((e = ip4_fromstr(dqs, &addr)) == NULL || *e != '\0')
 		return (-1);
 	return (arp_reserve(&addr));
 }

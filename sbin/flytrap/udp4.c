@@ -48,7 +48,7 @@
  * Analyze a captured UDP packet
  */
 int
-packet_analyze_udp4(ipv4_flow *fl, const void *data, size_t len)
+packet_analyze_udp4(ip4_flow *fl, const void *data, size_t len)
 {
 	const udp4_hdr *uh;
 	uint16_t sum;

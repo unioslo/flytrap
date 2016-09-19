@@ -45,8 +45,8 @@ static FILE *logfile;
 
 int
 log_packet4(const struct timeval *tv,
-    const ipv4_addr *sa, int sp,
-    const ipv4_addr *da, int dp,
+    const ip4_addr *sa, int sp,
+    const ip4_addr *da, int dp,
     const char *proto, size_t len, const char *fmt, ...)
 {
 	va_list ap;

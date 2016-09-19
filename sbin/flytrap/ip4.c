@@ -57,19 +57,19 @@
 int
 packet_analyze_ip4(ether_flow *ethfl, const void *data, size_t len)
 {
-	ipv4_flow fl;
-	const ipv4_hdr *ih;
+	ip4_flow fl;
+	const ip4_hdr *ih;
 	size_t ihl;
 	int ret;
 
-	if (len < sizeof(ipv4_hdr)) {
+	if (len < sizeof(ip4_hdr)) {
 		ft_notice("%d.%03d short IP packet (%zd < %zd)",
 		    ethfl->p->ts.tv_sec, ethfl->p->ts.tv_usec / 1000,
-		    len, sizeof(ipv4_hdr));
+		    len, sizeof(ip4_hdr));
 		return (-1);
 	}
 	ih = data;
-	ihl = ipv4_hdr_ihl(ih) * 4;
+	ihl = ip4_hdr_ihl(ih) * 4;
 	if (ihl < 20 || len < ihl || len != be16toh(ih->len)) {
 		ft_notice("%d.%03d malformed IP header (plen %zd len %zd ihl %zd)",
 		    ethfl->p->ts.tv_sec, ethfl->p->ts.tv_usec / 1000,
@@ -78,7 +78,7 @@ packet_analyze_ip4(ether_flow *ethfl, const void *data, size_t len)
 	}
 	ft_debug("\tIP version %d proto %d len %zu"
 	    " from %d.%d.%d.%d to %d.%d.%d.%d",
-	    ipv4_hdr_ver(ih), ih->proto, len,
+	    ip4_hdr_ver(ih), ih->proto, len,
 	    ih->srcip.o[0], ih->srcip.o[1], ih->srcip.o[2], ih->srcip.o[3],
 	    ih->dstip.o[0], ih->dstip.o[1], ih->dstip.o[2], ih->dstip.o[3]);
 	data = (const uint8_t *)data + ihl;
@@ -114,7 +114,7 @@ packet_analyze_ip4(ether_flow *ethfl, const void *data, size_t len)
  * Convert dotted-quad to IPv4 address
  */
 char *
-ipv4_fromstr(const char *dqs, ipv4_addr *addr)
+ip4_fromstr(const char *dqs, ip4_addr *addr)
 {
 	unsigned long ul;
 	const char *s;
@@ -149,10 +149,10 @@ ip_cksum(uint16_t isum, const void *data, size_t len)
 }
 
 int
-ipv4_reply(ipv4_flow *fl, ip_proto proto,
+ip4_reply(ip4_flow *fl, ip_proto proto,
     const void *data, size_t len)
 {
-	ipv4_hdr *ih;
+	ip4_hdr *ih;
 	size_t iplen;
 	int ret;
 

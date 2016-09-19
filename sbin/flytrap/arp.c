@@ -175,20 +175,20 @@ arp_insert(struct arpn *n, uint32_t addr, uint64_t when)
  * ARP registration
  */
 int
-arp_register(const ipv4_addr *ipv4, const ether_addr *ether, uint64_t when)
+arp_register(const ip4_addr *ip4, const ether_addr *ether, uint64_t when)
 {
 	struct arpn *an;
 
-	if ((an = arp_insert(NULL, be32toh(ipv4->q), when)) == NULL)
+	if ((an = arp_insert(NULL, be32toh(ip4->q), when)) == NULL)
 		return (-1);
 	if (memcmp(&an->ether, ether, sizeof an->ether) != 0) {
-		/* warn if the ipv4_addr moved from one ether_addr to another */
+		/* warn if the ip4_addr moved from one ether_addr to another */
 		if (an->ether.o[0] || an->ether.o[1] || an->ether.o[2] ||
 		    an->ether.o[3] || an->ether.o[4] || an->ether.o[5]) {
 			ft_verbose("%d.%d.%d.%d moved"
 			    " from %02x:%02x:%02x:%02x:%02x:%02x"
 			    " to %02x:%02x:%02x:%02x:%02x:%02x",
-			    ipv4->o[0], ipv4->o[1], ipv4->o[2], ipv4->o[3],
+			    ip4->o[0], ip4->o[1], ip4->o[2], ip4->o[3],
 			    an->ether.o[0], an->ether.o[1], an->ether.o[2],
 			    an->ether.o[3], an->ether.o[4], an->ether.o[5],
 			    ether->o[0], ether->o[1], ether->o[2],
@@ -196,7 +196,7 @@ arp_register(const ipv4_addr *ipv4, const ether_addr *ether, uint64_t when)
 		} else {
 			ft_verbose("%d.%d.%d.%d registered"
 			    " at %02x:%02x:%02x:%02x:%02x:%02x",
-			    ipv4->o[0], ipv4->o[1], ipv4->o[2], ipv4->o[3],
+			    ip4->o[0], ip4->o[1], ip4->o[2], ip4->o[3],
 			    ether->o[0], ether->o[1], ether->o[2],
 			    ether->o[3], ether->o[4], ether->o[5]);
 		}
@@ -210,26 +210,26 @@ arp_register(const ipv4_addr *ipv4, const ether_addr *ether, uint64_t when)
  * ARP lookup
  */
 int
-arp_lookup(const ipv4_addr *ipv4, ether_addr *ether)
+arp_lookup(const ip4_addr *ip4, ether_addr *ether)
 {
 	struct arpn *an;
 
 	ft_debug("ARP lookup %d.%d.%d.%d",
-	    ipv4->o[0], ipv4->o[1], ipv4->o[2], ipv4->o[3]);
+	    ip4->o[0], ip4->o[1], ip4->o[2], ip4->o[3]);
 	an = &arp_root;
-	if ((an = an->sub[ipv4->o[0] / 16]) == NULL ||
-	    (an = an->sub[ipv4->o[0] % 16]) == NULL ||
-	    (an = an->sub[ipv4->o[1] / 16]) == NULL ||
-	    (an = an->sub[ipv4->o[1] % 16]) == NULL ||
-	    (an = an->sub[ipv4->o[2] / 16]) == NULL ||
-	    (an = an->sub[ipv4->o[2] % 16]) == NULL ||
-	    (an = an->sub[ipv4->o[3] / 16]) == NULL ||
-	    (an = an->sub[ipv4->o[3] % 16]) == NULL)
+	if ((an = an->sub[ip4->o[0] / 16]) == NULL ||
+	    (an = an->sub[ip4->o[0] % 16]) == NULL ||
+	    (an = an->sub[ip4->o[1] / 16]) == NULL ||
+	    (an = an->sub[ip4->o[1] % 16]) == NULL ||
+	    (an = an->sub[ip4->o[2] / 16]) == NULL ||
+	    (an = an->sub[ip4->o[2] % 16]) == NULL ||
+	    (an = an->sub[ip4->o[3] / 16]) == NULL ||
+	    (an = an->sub[ip4->o[3] % 16]) == NULL)
 		return (-1);
 	memcpy(ether, &an->ether, sizeof(ether_addr));
 	ft_debug("%d.%d.%d.%d is"
 	    " at %02x:%02x:%02x:%02x:%02x:%02x",
-	    ipv4->o[0], ipv4->o[1], ipv4->o[2], ipv4->o[3],
+	    ip4->o[0], ip4->o[1], ip4->o[2], ip4->o[3],
 	    ether->o[0], ether->o[1], ether->o[2],
 	    ether->o[3], ether->o[4], ether->o[5]);
 	return (0);
@@ -246,14 +246,14 @@ arp_reply(ether_flow *fl, const arp_pkt *iap, struct arpn *an)
 	(void)an;
 
 	ap.htype = htobe16(arp_type_ether);
-	ap.ptype = htobe16(arp_type_ipv4);
+	ap.ptype = htobe16(arp_type_ip4);
 	ap.hlen = 6;
 	ap.plen = 4;
 	ap.oper = htobe16(arp_oper_is_at);
 	memcpy(&ap.sha, &fl->p->i->ether, sizeof(ether_addr));
-	memcpy(&ap.spa, &iap->tpa, sizeof(ipv4_addr));
+	memcpy(&ap.spa, &iap->tpa, sizeof(ip4_addr));
 	memcpy(&ap.tha, &iap->sha, sizeof(ether_addr));
-	memcpy(&ap.tpa, &iap->spa, sizeof(ipv4_addr));
+	memcpy(&ap.tpa, &iap->spa, sizeof(ip4_addr));
 	if (ethernet_reply(fl, &ap, sizeof ap) != 0)
 		return (-1);
 	return (0);
@@ -263,7 +263,7 @@ arp_reply(ether_flow *fl, const arp_pkt *iap, struct arpn *an)
  * Register a reserved address
  */
 int
-arp_reserve(const ipv4_addr *addr)
+arp_reserve(const ip4_addr *addr)
 {
 	struct arpn *an;
 
@@ -295,7 +295,7 @@ packet_analyze_arp(ether_flow *fl, const void *data, size_t len)
 	ft_debug("\tARP htype 0x%04hx ptype 0x%04hx hlen %hd plen %hd",
 	    be16toh(ap->htype), be16toh(ap->ptype), ap->hlen, ap->plen);
 	if (be16toh(ap->htype) != arp_type_ether || ap->hlen != 6 ||
-	    be16toh(ap->ptype) != arp_type_ipv4 || ap->plen != 4) {
+	    be16toh(ap->ptype) != arp_type_ip4 || ap->plen != 4) {
 		ft_debug("\tARP packet ignored");
 		return (0);
 	}
