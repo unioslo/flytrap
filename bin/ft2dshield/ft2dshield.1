@@ -36,6 +36,7 @@
 .Nm
 .Op Fl o Ar output
 .Op Fl u Ar userid
+.Op Fl x Ar addr Ns | Ns Ar range Ns | Ns Ar subnet
 .Op Ar file ...
 .Sh DESCRIPTION
 The
@@ -51,6 +52,15 @@ Write to the specified file instead of
 .Va stdout .
 .It Fl u Ar userid
 Use the specified DShield user ID instead of 0.
+.It Fl x Ar a.b.c.d
+Exclude log entries for traffic originating from the specified IPv4
+address.
+.It Fl x Ar a.b.c.d-e.f.g.h
+Exclude log entries for traffic originating from the specified range
+of IPv4 addresses.
+.It Fl x Ar a.b.c.d/p
+Exclude log entries for traffic originating from the specified IPv4
+subnet.
 .El
 .Pp
 If no files were specified on the command line, the

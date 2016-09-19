@@ -39,9 +39,11 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <ft/endian.h>
 #include <ft/ip4.h>
 
 static unsigned long userid;
+static ip4a_node *excluded;
 
 struct ftlog {
 	struct timeval	 tv;
@@ -239,6 +241,9 @@ ft2dshield(const char *fn)
 			warnx("%s:%d: unparseable log entry", fn, lno);
 			continue;
 		}
+		if (excluded != NULL &&
+		    ip4a_lookup(excluded, be32toh(logent.sa.q)))
+			continue;
 		if (ftlogprint(&logent) < 0) {
 			warnx("%s:%d: failed to print entry", fn, lno);
 			continue;
@@ -257,11 +262,24 @@ ft2dshield(const char *fn)
 }
 
 static void
+exclude_range(const char *range)
+{
+	ip4_addr first, last;
+
+	if (excluded == NULL && (excluded = ip4a_new()) == NULL)
+		err(1, "ip4a_new()");
+	if (ip4_parse_range(range, &first, &last) != 0)
+		errx(1, "invalid address or range: %s", range);
+	if (ip4a_insert(excluded, be32toh(first.q), be32toh(last.q)) != 0)
+		err(1, "ip4a_insert()");
+}
+
+static void
 usage(void)
 {
 
-	fprintf(stderr,
-	    "usage: ft2dshield [-o output] [-u userid] [file ...]\n");
+	fprintf(stderr, "usage: ft2dshield "
+	    "[-o output] [-u userid] [-x addr|range|subnet] [file ...]\n");
 	exit(1);
 }
 
@@ -271,7 +289,7 @@ main(int argc, char *argv[])
 	char *e;
 	int i, opt;
 
-	while ((opt = getopt(argc, argv, "o:u:")) != -1)
+	while ((opt = getopt(argc, argv, "o:u:x:")) != -1)
 		switch (opt) {
 		case 'o':
 			if ((freopen(optarg, "a", stdout)) == NULL)
@@ -281,6 +299,9 @@ main(int argc, char *argv[])
 			userid = strtoul(optarg, &e, 10);
 			if (e == optarg || *e != '\0')
 				usage();
+			break;
+		case 'x':
+			exclude_range(optarg);
 			break;
 		default:
 			usage();
