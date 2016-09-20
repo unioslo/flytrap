@@ -128,9 +128,9 @@ ip4a_node	*ip4a_new(void);
 void		 ip4a_delete(ip4a_node *);
 int		 ip4a_insert(ip4a_node *, uint32_t, uint32_t);
 int		 ip4a_remove(ip4a_node *, uint32_t, uint32_t);
-int		 ip4a_lookup(ip4a_node *, uint32_t);
+int		 ip4a_lookup(const ip4a_node *, uint32_t);
 #ifdef BUFSIZ /* proxy for "is <stdio.h> included?" */
-void		 ip4a_fprint(FILE *, ip4a_node *);
+void		 ip4a_fprint(FILE *, const ip4a_node *);
 #endif
 
 #endif

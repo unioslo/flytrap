@@ -71,7 +71,7 @@ struct ip4a_node {
  * Print the leaf nodes of a tree in order.
  */
 void
-ip4a_fprint(FILE *f, ip4a_node *n)
+ip4a_fprint(FILE *f, const ip4a_node *n)
 {
 	unsigned int i;
 
@@ -230,7 +230,7 @@ ip4a_remove(ip4a_node *n, uint32_t first, uint32_t last)
  * Look up an address in a tree.
  */
 int
-ip4a_lookup(ip4a_node *n, uint32_t addr)
+ip4a_lookup(const ip4a_node *n, uint32_t addr)
 {
 	uint32_t mask, sub;
 
