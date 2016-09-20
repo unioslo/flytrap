@@ -246,7 +246,7 @@ ip4a_lookup(const ip4a_node *n, uint32_t addr)
 	/* within our subtree? */
 	if (addr >= n->addr && addr <= (n->addr | mask)) {
 		/* fully covered? */
-		if (n->plen != 0 && n->coverage == mask + 1LU)
+		if (n->coverage == mask + 1LU)
 			return (1);
 		/* descend */
 		sub = (addr >> (32 - n->plen - ip4a_bits)) % (1U << ip4a_bits);
