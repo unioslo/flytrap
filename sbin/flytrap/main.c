@@ -53,7 +53,7 @@ static int
 exclude(const char *dqs)
 {
 	ip4_addr addr;
-	char *e;
+	const char *e;
 
 	if ((e = ip4_parse(dqs, &addr)) == NULL || *e != '\0')
 		return (-1);

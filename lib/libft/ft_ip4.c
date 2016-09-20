@@ -42,31 +42,37 @@
 /*
  * Convert dotted-quad to IPv4 address
  */
-char *
+const char *
 ip4_parse(const char *dqs, ip4_addr *addr)
 {
-	unsigned long ul;
 	const char *s;
-	char *e;
-	int i;
+	int i, o;
 
 	s = dqs;
-	for (s = dqs, i = 0; i < 4; ++i, s = e) {
+	if (!is_digit(*s))
+		return (s);
+	for (i = 0; i < 4; ++i) {
 		if ((i > 0 && *s++ != '.') || !is_digit(*s))
 			return (NULL);
-		ul = strtoul(s, &e, 10);
-		if (e == s || ul > 255)
+		o = *s++ - '0';
+		if (is_digit(*s))
+			o = o * 10 + *s++ - '0';
+		if (is_digit(*s))
+			o = o * 10 + *s++ - '0';
+		if (is_digit(*s))
 			return (NULL);
-		addr->o[i] = ul;
+		if (o > 255)
+			return (NULL);
+		addr->o[i] = o;
 	}
-	return (e);
+	return (s);
 }
 
 /*
  * Parse a string which contains either a single address, a pair of
  * addresses separated by a hyphen, or a range in CIDR notation.
  */
-int
+const char *
 ip4_parse_range(const char *line, ip4_addr *first, ip4_addr *last)
 {
 	ip4_addr mask;
@@ -75,41 +81,38 @@ ip4_parse_range(const char *line, ip4_addr *first, ip4_addr *last)
 
 	/* isolate and parse the first address */
 	if ((q = ip4_parse(p = line, first)) == NULL)
-		return (-1);
+		return (NULL);
 	p = q + 1;
 
 	/* one of three syntaxes */
-	if (*q == '\0') {
-		/* single address */
-		*last = *first;
-	} else if (*q == '-') {
+	if (*q == '-') {
 		/* two addresses separated by a hyphen */
 		if ((q = ip4_parse(p, last)) == NULL)
-			return (-1);
+			return (NULL);
 	} else if (*q == '/') {
 		/* subnet in CIDR notation */
 		q = p;
+		/* first (obligatory) digit */
 		if (!is_digit(*q))
-			return (-1);
+			return (NULL);
 		plen = *q++ - '0';
-		if (*q != '\0') {
-			if (!is_digit(*q))
-				return (-1);
+		/* second (optional) digit */
+		if (is_digit(*q))
 			plen = plen * 10 + *q++ - '0';
-		}
+		/* no more digits */
+		if (is_digit(*q))
+			return (NULL);
 		if (plen > 32)
-			return (-1);
+			return (NULL);
 		mask.q = htobe32(0xffffffffLU >> plen);
 		if (first->q & mask.q)
-			return (-1);
+			return (NULL);
 		last->q = first->q | mask.q;
 	} else {
-		/* invalid */
-		return (-1);
+		/* single address */
+		*last = *first;
 	}
-	if (*q != '\0')
-		return (-1);
-	return (0);
+	return (q);
 }
 
 /*

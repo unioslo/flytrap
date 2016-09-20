@@ -268,7 +268,7 @@ exclude_range(const char *range)
 
 	if (excluded == NULL && (excluded = ip4a_new()) == NULL)
 		err(1, "ip4a_new()");
-	if (ip4_parse_range(range, &first, &last) != 0)
+	if (ip4_parse_range(range, &first, &last) == NULL)
 		errx(1, "invalid address or range: %s", range);
 	if (ip4a_insert(excluded, be32toh(first.q), be32toh(last.q)) != 0)
 		err(1, "ip4a_insert()");
