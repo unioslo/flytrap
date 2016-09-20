@@ -43,18 +43,8 @@
  * How many bits to process at a time.  Lower values improve aggregation
  * but can greatly increase the memory footprint.
  */
-static unsigned int ip4a_bits = 4;
-
-/*
- * Minimum prefix length, to split large ranges into smaller ones.
- */
-static unsigned int ip4a_minplen = 8;
-
-/*
- * Maximum prefix length.  Ranges smaller than this will be rounded up.
- * Smaller values reduce fragmentation and memory usage.
- */
-static unsigned int ip4a_maxplen = 32;
+#define IP4A_BITS	 4
+#define IP4A_SUBS	 (1U << IP4A_BITS)
 
 /*
  * A node in the tree.
@@ -64,7 +54,7 @@ struct ip4a_node {
 	uint8_t		 plen;		/* prefix length */
 	int		 leaf:1;	/* leaf node flag */
 	unsigned long	 coverage;	/* addresses in subtree */
-	ip4a_node	*sub[16];	/* children */
+	ip4a_node	*sub[IP4A_SUBS];/* subtrees */
 };
 
 /*
@@ -85,7 +75,7 @@ ip4a_fprint(FILE *f, const ip4a_node *n)
 			fprintf(f, "/%u", n->plen);
 		fprintf(f, "\n");
 	} else {
-		for (i = 0; i < (1U << ip4a_bits); ++i)
+		for (i = 0; i < IP4A_SUBS; ++i)
 			if (n->sub[i] != NULL)
 				ip4a_fprint(f, n->sub[i]);
 	}
@@ -113,7 +103,7 @@ ip4a_delete(ip4a_node *n)
 {
 	unsigned int i;
 
-	for (i = 0; i < (1U << ip4a_bits); ++i) {
+	for (i = 0; i < IP4A_SUBS; ++i) {
 		if (n->sub[i] != NULL) {
 			ip4a_delete(n->sub[i]);
 			free(n->sub[i]);
@@ -140,7 +130,7 @@ int
 ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
 {
 	ip4a_node *sn;
-	uint32_t mask, fsub, lsub, mincov;
+	uint32_t mask, fsub, lsub;
 	unsigned int i, splen;
 	int ret;
 
@@ -160,12 +150,9 @@ ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
 		last = n->addr | mask;
 
 	/*
-	 * Either the new range covers the entire subnet or we reached the
-	 * maximum prefix length.
+	 * Shortcut: the inserted range covers the entire subnet.
 	 */
-	if (n->plen >= ip4a_minplen &&
-	    ((first == n->addr && last == (n->addr | mask)) ||
-	     n->plen + ip4a_bits > ip4a_maxplen)) {
+	if (first == n->addr && last == (n->addr | mask)) {
 		ip4a_delete(n);
 		n->leaf = 1;
 		n->coverage = mask + 1LU; /* equivalent to size of subnet */
@@ -176,9 +163,9 @@ ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
 	 * Compute the prefix length for the next recursion level and find
 	 * out which child node(s) we will have to descend into.
 	 */
-	splen = n->plen + ip4a_bits;
-	fsub = (first >> (32 - splen)) % (1U << ip4a_bits);
-	lsub = (last >> (32 - splen)) % (1U << ip4a_bits);
+	splen = n->plen + IP4A_BITS;
+	fsub = (first >> (32 - splen)) % IP4A_SUBS;
+	lsub = (last >> (32 - splen)) % IP4A_SUBS;
 
 	/*
 	 * Descend into each covered child.
@@ -206,16 +193,11 @@ ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
 	}
 
 	/*
-	 * Perform aggregation, unless we are at the root.  Aggregation
-	 * into the root node takes a bit more work (due to integer
-	 * overflow) and is not likely to be needed.
+	 * Perform aggregation
 	 */
-	mincov = mask + 1LU;
-	if (n->plen >= ip4a_minplen &&
-	    mincov > 0 && n->coverage >= mincov) {
+	if (n->coverage == mask + 1LU) {
 		ip4a_delete(n);
 		n->leaf = 1;
-		n->coverage = mask + 1LU;
 	}
 
 	return (0);
@@ -250,7 +232,7 @@ ip4a_lookup(const ip4a_node *n, uint32_t addr)
 		if (n->coverage == mask + 1LU)
 			return (1);
 		/* descend */
-		sub = (addr >> (32 - n->plen - ip4a_bits)) % (1U << ip4a_bits);
+		sub = (addr >> (32 - n->plen - IP4A_BITS)) % IP4A_SUBS;
 		if (n->sub[sub] != NULL)
 			return (ip4a_lookup(n->sub[sub], addr));
 	}
