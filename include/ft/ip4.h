@@ -125,7 +125,7 @@ uint16_t	 ip4_cksum(uint16_t, const void *, size_t);
 typedef struct ip4a_node ip4a_node;
 
 ip4a_node	*ip4a_new(void);
-void		 ip4a_delete(ip4a_node *);
+void		 ip4a_destroy(ip4a_node *);
 int		 ip4a_insert(ip4a_node *, uint32_t, uint32_t);
 int		 ip4a_remove(ip4a_node *, uint32_t, uint32_t);
 int		 ip4a_lookup(const ip4a_node *, uint32_t);

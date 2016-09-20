@@ -102,9 +102,9 @@ ip4a_new(void)
 }
 
 /*
- * Delete all children of a given node in a tree.
+ * Delete all children of a node.
  */
-void
+static void
 ip4a_delete(ip4a_node *n)
 {
 	unsigned int i;
@@ -116,6 +116,17 @@ ip4a_delete(ip4a_node *n)
 			n->sub[i] = NULL;
 		}
 	}
+}
+
+/*
+ * Destroy a tree.
+ */
+void
+ip4a_destroy(ip4a_node *n)
+{
+
+	ip4a_delete(n);
+	free(n);
 }
 
 /*
