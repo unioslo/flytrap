@@ -141,6 +141,12 @@ ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
 	mask = 0xffffffffLU >> n->plen;
 
 	/*
+	 * Shortcut: already full!
+	 */
+	if (n->coverage == mask + 1LU)
+		return (0);
+
+	/*
 	 * Clip the range to our subnet so the caller doesn't have to (see
 	 * loop below).
 	 */
