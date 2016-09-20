@@ -92,13 +92,17 @@ ip4a_fprint(FILE *f, const ip4a_node *n)
 }
 
 /*
- * Allocate a new root node
+ * Allocate a new, empty tree.
  */
 ip4a_node *
 ip4a_new(void)
 {
+	ip4a_node *n;
 
-	return (calloc(1, sizeof(ip4a_node)));
+	if ((n = calloc(1, sizeof(ip4a_node))) == NULL)
+		return (NULL);
+	n->leaf = 1;
+	return (n);
 }
 
 /*
@@ -140,13 +144,6 @@ ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
 	unsigned int i;
 	int ret;
 	uint8_t splen;
-
-	/*
-	 * This is either a duplicate or a subset of a previously inserted
-	 * range.
-	 */
-	if (n->leaf)
-		return (0);
 
 	/*
 	 * Compute the host mask for this subnet.  This is the inverse of
@@ -196,6 +193,7 @@ ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
 				return (-1);
 			sn->addr = n->addr | (i << (32 - splen));
 			sn->plen = splen;
+			sn->leaf = 1;
 			n->sub[i] = sn;
 		}
 		/*
