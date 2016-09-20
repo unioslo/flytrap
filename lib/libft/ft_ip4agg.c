@@ -63,7 +63,7 @@ struct ip4a_node {
 	uint32_t	 addr;		/* network address */
 	uint8_t		 plen;		/* prefix length */
 	int		 leaf:1;	/* leaf node flag */
-	uint32_t	 coverage;	/* how full the subtree is */
+	unsigned long	 coverage;	/* addresses in subtree */
 	ip4a_node	*sub[16];	/* children */
 };
 
@@ -258,4 +258,14 @@ ip4a_lookup(const ip4a_node *n, uint32_t addr)
 			return (ip4a_lookup(n->sub[sub], addr));
 	}
 	return (0);
+}
+
+/*
+ * Return the number of addresses in a tree.
+ */
+unsigned long
+ip4a_count(const ip4a_node *n)
+{
+
+	return (n->coverage);
 }
