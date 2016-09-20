@@ -194,6 +194,7 @@ ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
 			sn->plen = splen;
 			sn->leaf = 1;
 			n->sub[i] = sn;
+			n->leaf = 0;
 		}
 		/*
 		 * Insert into subnet and adjust our coverage number.
