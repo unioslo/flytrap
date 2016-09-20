@@ -215,11 +215,88 @@ ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
 int
 ip4a_remove(ip4a_node *n, uint32_t first, uint32_t last)
 {
+	ip4a_node *sn;
+	uint32_t fsub, lsub, mask, smask;
+	unsigned int i, splen;
 
-	(void)n;
-	(void)first;
-	(void)last;
-	return (-1);
+	/*
+	 * Shortcut: already empty!
+	 */
+	if (n->coverage == 0)
+		return (0);
+
+	/*
+	 * Compute the host mask for this subnet.  This is the inverse of
+	 * the netmask.
+	 */
+	mask = 0xffffffffLU >> n->plen;
+
+	/*
+	 * Clip the range to our subnet so the caller doesn't have to (see
+	 * loop below).
+	 */
+	if (first < n->addr)
+		first = n->addr;
+	if (last > (n->addr | mask))
+		last = n->addr | mask;
+
+	/*
+	 * Shortcut: the removed range covers the entire subnet.  It is up
+	 * to our parent (if any) to delete us.
+	 */
+	if (first == n->addr && last == (n->addr | mask)) {
+		ip4a_delete(n);
+		n->leaf = 1;
+		n->coverage = 0;
+		return (0);
+	}
+
+	/*
+	 * Compute the prefix length for the next recursion level and find
+	 * out which child node(s) we will have to descend into.
+	 */
+	splen = n->plen + IP4A_BITS;
+	smask = mask >> IP4A_BITS;
+	fsub = (first >> (32 - splen)) % IP4A_SUBS;
+	lsub = (last >> (32 - splen)) % IP4A_SUBS;
+
+	/*
+	 * If we are a full leaf, we have to create child nodes for the
+	 * subtrees we aren't removing.
+	 */
+	if (n->coverage == mask + 1LU) {
+		n->coverage = 0;
+		n->leaf = 0;
+		for (i = 0; i < IP4A_SUBS; ++i) {
+			if (i < fsub || i > lsub) {
+				if ((sn = calloc(1, sizeof *sn)) == NULL)
+					return (-1);
+				sn->addr = n->addr | (i << (32 - splen));
+				sn->plen = splen;
+				sn->leaf = 1;
+				sn->coverage = smask + 1LU;
+				n->sub[i] = sn;
+				n->coverage += sn->coverage;
+			}
+		}
+	}
+
+	/*
+	 * Either completely remove or descend into covered children.
+	 */
+	for (i = fsub; i <= lsub; ++i) {
+		if ((sn = n->sub[i]) != NULL) {
+			n->coverage -= sn->coverage;
+			ip4a_remove(sn, first, last);
+			n->coverage += sn->coverage;
+			if (sn->coverage == 0) {
+				free(sn);
+				n->sub[i] = NULL;
+			}
+		}
+	}
+
+	return (0);
 }
 
 /*
