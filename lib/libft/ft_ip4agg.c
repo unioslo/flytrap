@@ -141,9 +141,8 @@ ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
 {
 	ip4a_node *sn;
 	uint32_t mask, fsub, lsub, mincov;
-	unsigned int i;
+	unsigned int i, splen;
 	int ret;
-	uint8_t splen;
 
 	/*
 	 * Compute the host mask for this subnet.  This is the inverse of
@@ -199,7 +198,6 @@ ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
 		/*
 		 * Insert into subnet and adjust our coverage number.
 		 */
-		n->coverage -= sn->coverage;
 		ret = ip4a_insert(sn, first, last);
 		n->coverage += sn->coverage;
 		if (ret != 0)
