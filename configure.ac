@@ -88,6 +88,14 @@ LIBPCAP="${LIBS}"
 LIBS="${save_LIBS}"
 AC_SUBST(LIBPCAP)
 
+save_LIBS="${LIBS}"
+LIBS=""
+AC_CHECK_LIB([cryb-test], [t_add_tests])
+LIBCRYB_TEST="${LIBS}"
+LIBS="${save_LIBS}"
+AC_SUBST(LIBCRYB_TEST)
+AM_CONDITIONAL([WITH_TESTS], [test x"LIBCRYB_TEST" != x""])
+
 # options
 AC_ARG_ENABLE([developer-warnings],
     AS_HELP_STRING([--enable-developer-warnings], [enable strict warnings (default is NO)]),
