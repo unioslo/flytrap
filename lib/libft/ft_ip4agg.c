@@ -168,7 +168,7 @@ ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
 	     n->plen + ip4a_bits > ip4a_maxplen)) {
 		ip4a_delete(n);
 		n->leaf = 1;
-		n->coverage = mask + 1; /* equivalent to size of subnet */
+		n->coverage = mask + 1LU; /* equivalent to size of subnet */
 		return (0);
 	}
 
@@ -209,12 +209,12 @@ ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
 	 * into the root node takes a bit more work (due to integer
 	 * overflow) and is not likely to be needed.
 	 */
-	mincov = mask + 1;
+	mincov = mask + 1LU;
 	if (n->plen >= ip4a_minplen &&
 	    mincov > 0 && n->coverage >= mincov) {
 		ip4a_delete(n);
 		n->leaf = 1;
-		n->coverage = mask + 1;
+		n->coverage = mask + 1LU;
 	}
 
 	return (0);
@@ -246,7 +246,7 @@ ip4a_lookup(const ip4a_node *n, uint32_t addr)
 	/* within our subtree? */
 	if (addr >= n->addr && addr <= (n->addr | mask)) {
 		/* fully covered? */
-		if (n->plen != 0 && n->coverage == mask + 1)
+		if (n->plen != 0 && n->coverage == mask + 1LU)
 			return (1);
 		/* descend */
 		sub = (addr >> (32 - n->plen - ip4a_bits)) % (1U << ip4a_bits);
