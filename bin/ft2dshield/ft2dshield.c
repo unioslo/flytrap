@@ -48,7 +48,7 @@ static const char *sender;
 static const char *recipient;
 
 static unsigned long userid;
-static ip4a_node *excluded;
+static ip4a_node *included;
 
 struct ftlog {
 	struct timeval	 tv;
@@ -266,8 +266,8 @@ ft2dshield(const char *fn)
 			warnx("%s:%d: unparseable log entry", fn, lno);
 			continue;
 		}
-		if (excluded != NULL &&
-		    ip4a_lookup(excluded, be32toh(logent.sa.q)))
+		if (included != NULL &&
+		    !ip4a_lookup(included, be32toh(logent.sa.q)))
 			continue;
 		if (ftlogprint(&logent) < 0) {
 			warnx("%s:%d: failed to print entry", fn, lno);
@@ -287,16 +287,35 @@ ft2dshield(const char *fn)
 }
 
 static void
+include_range(const char *range)
+{
+	ip4_addr first, last;
+
+	if (ip4_parse_range(range, &first, &last) == NULL)
+		errx(1, "invalid address or range: %s", range);
+	if (included == NULL) {
+		if ((included = ip4a_new()) == NULL)
+			err(1, "ip4a_new()");
+	}
+	if (ip4a_insert(included, be32toh(first.q), be32toh(last.q)) != 0)
+		err(1, "ip4a_insert()");
+}
+
+static void
 exclude_range(const char *range)
 {
 	ip4_addr first, last;
 
-	if (excluded == NULL && (excluded = ip4a_new()) == NULL)
-		err(1, "ip4a_new()");
 	if (ip4_parse_range(range, &first, &last) == NULL)
 		errx(1, "invalid address or range: %s", range);
-	if (ip4a_insert(excluded, be32toh(first.q), be32toh(last.q)) != 0)
-		err(1, "ip4a_insert()");
+	if (included == NULL) {
+		if ((included = ip4a_new()) == NULL)
+			err(1, "ip4a_new()");
+		if (ip4a_insert(included, 0U, ~0U) != 0)
+			err(1, "ip4a_insert()");
+	}
+	if (ip4a_remove(included, be32toh(first.q), be32toh(last.q)) != 0)
+		err(1, "ip4a_remove()");
 }
 
 static void
@@ -304,7 +323,8 @@ usage(void)
 {
 
 	fprintf(stderr, "usage: ft2dshield "
-	    "[-h] [-o output] [-r recipient] [-s sender] [-u userid] [-x addr|range|subnet] [file ...]\n");
+	    "[-h] [-i addr|range|subnet] [-o output] [-r recipient] "
+	    "[-s sender] [-u userid] [-x addr|range|subnet] [file ...]\n");
 	exit(1);
 }
 
@@ -314,8 +334,11 @@ main(int argc, char *argv[])
 	char *e;
 	int i, opt;
 
-	while ((opt = getopt(argc, argv, "ho:r:s:u:x:")) != -1)
+	while ((opt = getopt(argc, argv, "hi:o:r:s:u:x:")) != -1)
 		switch (opt) {
+		case 'i':
+			include_range(optarg);
+			break;
 		case 'o':
 			if ((freopen(optarg, "a", stdout)) == NULL)
 				err(1, "%s", optarg);

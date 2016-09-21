@@ -35,6 +35,7 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl h
+.Op Fl i Ar addr Ns | Ns Ar range Ns | Ns Ar subnet
 .Op Fl o Ar output
 .Op Fl r Ar recipient
 .Op Fl s Ar sender
@@ -52,6 +53,15 @@ The following options are available:
 .Bl -tag -width Fl
 .It Fl h
 Print a usage message and exit.
+.It Fl i Ar a.b.c.d
+Include log entries for traffic originating from the specified IPv4
+address.
+.It Fl i Ar a.b.c.d-e.f.g.h
+Include log entries for traffic originating from the specified range
+of IPv4 addresses.
+.It Fl i Ar a.b.c.d/p
+Include log entries for traffic originating from the specified IPv4
+subnet.
 .It Fl o Ar output
 Write to the specified file instead of
 .Va stdout .
@@ -65,11 +75,11 @@ option.
 Print an email header before the log data, so the output can be passed
 directly to an email submission client such as
 .Xr mailx 1 .
-Only valid in conjunction with the
-.Fl u
-option.
 .It Fl u Ar userid
 Use the specified DShield user ID instead of 0.
+This option is required if the
+.Fl s
+option is used.
 .It Fl x Ar a.b.c.d
 Exclude log entries for traffic originating from the specified IPv4
 address.
@@ -81,12 +91,20 @@ Exclude log entries for traffic originating from the specified IPv4
 subnet.
 .El
 .Pp
+Inclusion and exclusion rules are processed left to right.
+If the first rule is an inclusion rule, it is interpreted as
+.Dq only this range ,
+while an initial exclusion rule is interpreted as
+.Dq everything except this range .
+Subsequent rules are applied to the result of the preceding ones.
+.Pp
 If no files were specified on the command line, the
 .Nm
 utility will read data from
 .Va stdin
 instead.
 .Sh SEE ALSO
+.Xr mailx 1 ,
 .Xr flytrap 8
 .Sh AUTHORS
 The
