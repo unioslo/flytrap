@@ -42,6 +42,11 @@
 #include <ft/endian.h>
 #include <ft/ip4.h>
 
+#define DSHIELD_RECIPIENT "reports@dshield.org"
+
+static const char *sender;
+static const char *recipient;
+
 static unsigned long userid;
 static ip4a_node *excluded;
 
@@ -207,6 +212,26 @@ ftlogprint(const struct ftlog *ftl)
 	return (ret);
 }
 
+static void
+ft2header(void)
+{
+	char tstr[64];
+	char *zstr;
+	struct tm *tm;
+	time_t t;
+
+	time(&t);
+	tm = gmtime(&t);
+	strftime(tstr, sizeof tstr, "%d %b %Y %H:%M:%S %z", tm);
+	zstr = strrchr(tstr, ' ') + 1;
+	printf("Date: %s\n", tstr);
+	printf("From: %s\n", sender);
+	printf("To: %s\n", recipient);
+	printf("Subject: FORMAT DSHIELD USERID %lu TZ %s %s %s\n",
+	    userid, zstr, PACKAGE_NAME, PACKAGE_VERSION);
+	printf("\n");
+}
+
 static int
 ft2dshield(const char *fn)
 {
@@ -279,7 +304,7 @@ usage(void)
 {
 
 	fprintf(stderr, "usage: ft2dshield "
-	    "[-o output] [-u userid] [-x addr|range|subnet] [file ...]\n");
+	    "[-h] [-o output] [-r recipient] [-s sender] [-u userid] [-x addr|range|subnet] [file ...]\n");
 	exit(1);
 }
 
@@ -289,11 +314,17 @@ main(int argc, char *argv[])
 	char *e;
 	int i, opt;
 
-	while ((opt = getopt(argc, argv, "o:u:x:")) != -1)
+	while ((opt = getopt(argc, argv, "ho:r:s:u:x:")) != -1)
 		switch (opt) {
 		case 'o':
 			if ((freopen(optarg, "a", stdout)) == NULL)
 				err(1, "%s", optarg);
+			break;
+		case 'r':
+			recipient = optarg;
+			break;
+		case 's':
+			sender = optarg;
 			break;
 		case 'u':
 			userid = strtoul(optarg, &e, 10);
@@ -309,6 +340,19 @@ main(int argc, char *argv[])
 
 	argc -= optind;
 	argv += optind;
+
+	/* check email-related options */
+	if (recipient != NULL && sender == NULL)
+		usage();
+	if (sender != NULL && userid == 0)
+		usage();
+
+	/* print email header if requested */
+	if (sender != NULL) {
+		if (recipient == NULL)
+			recipient = DSHIELD_RECIPIENT;
+		ft2header();
+	}
 
 	/* iterate over input files */
 	if (argc == 0)
