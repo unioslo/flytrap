@@ -125,9 +125,6 @@ t_ip4a(char **desc CRYB_UNUSED, void *arg)
 			ret = 0;
 		}
 	}
-	fflush(NULL);
-	ip4a_fprint(stderr, n);
-	fflush(NULL);
 	ip4a_destroy(n);
 	return (ret);
 }
