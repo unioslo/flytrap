@@ -46,6 +46,8 @@ typedef struct ether_flow {
 	uint16_t	 len;
 } ether_flow;
 
+extern ip4a_node *included;
+
 typedef struct ip4_flow {
 	struct ether_flow	*eth;
 	/* pseudo-header */
@@ -61,7 +63,6 @@ typedef struct ip4_flow {
 	uint16_t	 sum;
 } ip4_flow;
 
-int	 arp_reserve(const ip4_addr *);
 int	 arp_register(const ip4_addr *, const ether_addr *, uint64_t);
 int	 arp_lookup(const ip4_addr *, ether_addr *);
 

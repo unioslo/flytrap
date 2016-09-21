@@ -321,6 +321,10 @@ packet_analyze_arp(ether_flow *fl, const void *data, size_t len)
 	switch (be16toh(ap->oper)) {
 	case arp_oper_who_has:
 		/* ARP request */
+		if (included && !ip4a_lookup(included, be32toh(ap->tpa.q))) {
+			ft_debug("\ttarget address is out of bounds");
+			break;
+		}
 		arp_register(&ap->spa, &ap->sha, when);
 		if ((an = arp_insert(NULL, be32toh(ap->tpa.q), when)) == NULL)
 			return (-1);

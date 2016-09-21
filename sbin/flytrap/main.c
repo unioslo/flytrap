@@ -38,6 +38,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <ft/endian.h>
 #include <ft/ethernet.h>
 #include <ft/ip4.h>
 #include <ft/log.h>
@@ -49,15 +50,43 @@
 static const char *ft_pidfile = "/var/run/flytrap.pid";
 static int ft_foreground = 0;
 
-static int
-exclude(const char *dqs)
-{
-	ip4_addr addr;
-	const char *e;
+ip4a_node *included;
 
-	if ((e = ip4_parse(dqs, &addr)) == NULL || *e != '\0')
+static int
+include_range(const char *range)
+{
+	ip4_addr first, last;
+
+	if (ip4_parse_range(range, &first, &last) == NULL)
 		return (-1);
-	return (arp_reserve(&addr));
+	fprintf(stderr, "include %u.%u.%u.%u - %u.%u.%u.%u\n",
+	    first.o[0], first.o[1], first.o[2], first.o[3],
+	    last.o[0], last.o[1], last.o[2], last.o[3]);
+	if (included == NULL)
+		if ((included = ip4a_new()) == NULL)
+			return (-1);
+	if (ip4a_insert(included, be32toh(first.q), be32toh(last.q)) != 0)
+		return (-1);
+	return (0);
+}
+
+static int
+exclude_range(const char *range)
+{
+	ip4_addr first, last;
+
+	if (ip4_parse_range(range, &first, &last) == NULL)
+		return (-1);
+	fprintf(stderr, "exclude %u.%u.%u.%u - %u.%u.%u.%u\n",
+	    first.o[0], first.o[1], first.o[2], first.o[3],
+	    last.o[0], last.o[1], last.o[2], last.o[3]);
+	if (included == NULL)
+		if ((included = ip4a_new()) == NULL ||
+		    ip4a_insert(included, 0U, ~0U) != 0)
+			return (-1);
+	if (ip4a_remove(included, be32toh(first.q), be32toh(last.q)) != 0)
+		return (-1);
+	return (0);
 }
 
 static void
@@ -84,7 +113,7 @@ static void
 usage(void)
 {
 
-	fprintf(stderr, "usage: flytrap [-dfnv] [-p pidfile] [-x addr] -i interface\n");
+	fprintf(stderr, "usage: flytrap [-dfnv] [-p pidfile] [-x addr] interface\n");
 	exit(1);
 }
 
@@ -106,7 +135,8 @@ main(int argc, char *argv[])
 			ft_foreground = 1;
 			break;
 		case 'i':
-			ifname = optarg;
+			if (include_range(optarg) != 0)
+				usage();
 			break;
 		case 'l':
 			ft_logname = optarg;
@@ -122,7 +152,7 @@ main(int argc, char *argv[])
 				ft_log_level = FT_LOG_LEVEL_VERBOSE;
 			break;
 		case 'x':
-			if (exclude(optarg) != 0)
+			if (exclude_range(optarg) != 0)
 				usage();
 			break;
 		default:
@@ -133,10 +163,9 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
-	if (argc > 0)
+	if (argc != 1)
 		usage();
-	if (ifname == NULL)
-		usage();
+	ifname = *argv;
 
 	if (!ft_foreground)
 		daemonize();
