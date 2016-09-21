@@ -216,7 +216,7 @@ int
 ip4a_remove(ip4a_node *n, uint32_t first, uint32_t last)
 {
 	ip4a_node *sn;
-	uint32_t fsub, lsub, mask, smask;
+	uint32_t addr, fsub, lsub, mask, smask;
 	unsigned int i, splen;
 
 	/*
@@ -264,14 +264,15 @@ ip4a_remove(ip4a_node *n, uint32_t first, uint32_t last)
 	 * If we are a full leaf, we have to create child nodes for the
 	 * subtrees we aren't removing.
 	 */
-	if (n->coverage == mask + 1LU) {
+	if (n->leaf && n->coverage == mask + 1LU) {
 		n->coverage = 0;
 		n->leaf = 0;
 		for (i = 0; i < IP4A_SUBS; ++i) {
-			if (i < fsub || i > lsub) {
+			addr = n->addr | (i << (32 - splen));
+			if (!(first <= addr && last >= (addr | smask))) {
 				if ((sn = calloc(1, sizeof *sn)) == NULL)
 					return (-1);
-				sn->addr = n->addr | (i << (32 - splen));
+				sn->addr = addr;
 				sn->plen = splen;
 				sn->leaf = 1;
 				sn->coverage = smask + 1LU;
