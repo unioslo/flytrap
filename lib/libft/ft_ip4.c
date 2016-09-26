@@ -87,7 +87,7 @@ ip4_parse_range(const char *line, ip4_addr *first, ip4_addr *last)
 	/* one of three syntaxes */
 	if (*q == '-') {
 		/* two addresses separated by a hyphen */
-		if ((q = ip4_parse(p, last)) == NULL)
+		if ((q = ip4_parse(p, last)) == NULL || q == p)
 			return (NULL);
 	} else if (*q == '/') {
 		/* subnet in CIDR notation */
