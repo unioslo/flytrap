@@ -89,6 +89,8 @@ ip4_parse_range(const char *line, ip4_addr *first, ip4_addr *last)
 		/* two addresses separated by a hyphen */
 		if ((q = ip4_parse(p, last)) == NULL || q == p)
 			return (NULL);
+		if (be32toh(first->q) > be32toh(last->q))
+			return (NULL);
 	} else if (*q == '/') {
 		/* subnet in CIDR notation */
 		q = p;
