@@ -40,7 +40,7 @@
 #include <ft/ip4.h>
 
 static inline int
-t_compare_ip4(const ip4_addr *e, const ip4_addr *r)
+t_compare_ip4_addr(const ip4_addr *e, const ip4_addr *r)
 {
 
 	if (e->q != r->q) {
@@ -63,11 +63,13 @@ static struct t_ip4p_case {
 		.desc	 = "empty",
 		.str	 = "",
 		.len	 = 0,
+		.addr	 = { .o = { 165, 165, 165, 165 } },
 	},
 	{
 		.desc	 = "comma",
 		.str	 = ",",
 		.len	 = 0,
+		.addr	 = { .o = { 165, 165, 165, 165 } },
 	},
 	{
 		.desc	 = "zero",
@@ -82,10 +84,10 @@ static struct t_ip4p_case {
 		.addr	 = { .o = { 0, 0, 0, 0 } },
 	},
 	{
-		.desc	 = "one",
-		.str	 = "1.1.1.1",
-		.len	 = 7,
-		.addr	 = { .o = { 1, 1, 1, 1 } },
+		.desc	 = "valid",
+		.str	 = "172.16.32.64",
+		.len	 = 12,
+		.addr	 = { .o = { 172, 16, 32, 64 } },
 	},
 	{
 		.desc	 = "broadcast",
@@ -94,29 +96,70 @@ static struct t_ip4p_case {
 		.addr	 = { .o = { 255, 255, 255, 255 } },
 	},
 	{
-		.desc	 = "bad octet 1",
-		.str	 = "256.0.0.0",
-		.len	 = ~0U,
+		.desc	 = "leading zeroes 1",
+		.str	 = "0172.016.032.064",
+		.len	 = 16,
+		.addr	 = { .o = { 172, 16, 32, 64 } },
 	},
 	{
-		.desc	 = "bad octet 2",
-		.str	 = "0.256.0.0",
-		.len	 = ~0U,
+		.desc	 = "leading zeroes 2",
+		.str	 = "00172.0016.0032.0064",
+		.len	 = 20,
+		.addr	 = { .o = { 172, 16, 32, 64 } },
 	},
 	{
-		.desc	 = "bad octet 3",
-		.str	 = "0.0.256.0",
-		.len	 = ~0U,
+		.desc	 = "leading zeroes 3",
+		.str	 = "000172.00016.00032.00064",
+		.len	 = 24,
+		.addr	 = { .o = { 172, 16, 32, 64 } },
 	},
 	{
-		.desc	 = "bad octet 4",
-		.str	 = "0.0.0.256",
+		.desc	 = "octet overflow 1",
+		.str	 = "1720.16.32.64",
 		.len	 = ~0U,
+		.addr	 = { .o = { 165, 165, 165, 165 } },
+	},
+	{
+		.desc	 = "octet overflow 2",
+		.str	 = "172.1600.32.64",
+		.len	 = ~0U,
+		.addr	 = { .o = { 172, 165, 165, 165 } },
+	},
+	{
+		.desc	 = "octet overflow 3",
+		.str	 = "172.16.320.64",
+		.len	 = ~0U,
+		.addr	 = { .o = { 172, 16, 165, 165 } },
+	},
+	{
+		.desc	 = "octet overflow 4",
+		.str	 = "172.16.32.640",
+		.len	 = ~0U,
+		.addr	 = { .o = { 172, 16, 32, 165 } },
+	},
+	{
+		.desc	 = "bad separator 1",
+		.str	 = "172-16.32.64",
+		.len	 = ~0U,
+		.addr	 = { .o = { 172, 165, 165, 165 } },
+	},
+	{
+		.desc	 = "bad separator 2",
+		.str	 = "172.16-32.64",
+		.len	 = ~0U,
+		.addr	 = { .o = { 172, 16, 165, 165 } },
+	},
+	{
+		.desc	 = "bad separator 3",
+		.str	 = "172.16.32-64",
+		.len	 = ~0U,
+		.addr	 = { .o = { 172, 16, 32, 165 } },
 	},
 	{
 		.desc	 = "mangled",
-		.str	 = "192.0.a.b",
+		.str	 = "172.16.32.sixty-four",
 		.len	 = ~0U,
+		.addr	 = { .o = { 172, 16, 32, 165 } },
 	},
 };
 
@@ -128,16 +171,16 @@ t_ip4p(char **desc CRYB_UNUSED, void *arg)
 	const char *e;
 	int ret;
 
+	addr.q = 0xa5a5a5a5U;
 	e = ip4_parse(t->str, &addr);
 	if (t->len == ~0U) {
 		ret = t_is_null(e);
 	} else {
 		ret = t_is_not_null(e);
-		if (t->len > 0) {
+		if (t->len > 0)
 			ret &= t_compare_ptr(t->str + t->len, e);
-			ret &= t_compare_ip4(&t->addr, &addr);
-		}
 	}
+	ret &= t_compare_ip4_addr(&t->addr, &addr);
 	return (ret);
 }
 
