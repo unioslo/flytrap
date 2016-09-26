@@ -54,15 +54,11 @@ ip4_parse(const char *dqs, ip4_addr *addr)
 	for (i = 0; i < 4; ++i) {
 		if ((i > 0 && *s++ != '.') || !is_digit(*s))
 			return (NULL);
-		o = *s++ - '0';
-		if (is_digit(*s))
-			o = o * 10 + *s++ - '0';
-		if (is_digit(*s))
-			o = o * 10 + *s++ - '0';
-		if (is_digit(*s))
-			return (NULL);
-		if (o > 255)
-			return (NULL);
+		for (o = 0; is_digit(*s); s++) {
+			o = o * 10 + *s - '0';
+			if (o > 255)
+				return (NULL);
+		}
 		addr->o[i] = o;
 	}
 	return (s);
@@ -93,19 +89,11 @@ ip4_parse_range(const char *line, ip4_addr *first, ip4_addr *last)
 			return (NULL);
 	} else if (*q == '/') {
 		/* subnet in CIDR notation */
-		q = p;
-		/* first (obligatory) digit */
-		if (!is_digit(*q))
-			return (NULL);
-		plen = *q++ - '0';
-		/* second (optional) digit */
-		if (is_digit(*q))
-			plen = plen * 10 + *q++ - '0';
-		/* no more digits */
-		if (is_digit(*q))
-			return (NULL);
-		if (plen > 32)
-			return (NULL);
+		for (plen = 0, q = p; is_digit(*q); q++) {
+			plen = plen * 10 + *q - '0';
+			if (plen > 32)
+				return (NULL);
+		}
 		mask.q = htobe32(0xffffffffLU >> plen);
 		if (first->q & mask.q)
 			return (NULL);
