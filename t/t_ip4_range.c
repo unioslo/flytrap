@@ -36,22 +36,7 @@
 
 #include <cryb/test.h>
 
-#include <ft/endian.h>
-#include <ft/ip4.h>
-
-static inline int
-t_compare_ip4_addr(const ip4_addr *e, const ip4_addr *r)
-{
-
-	if (e->q != r->q) {
-		t_verbose("expected %d.%d.%d.%d\n"
-		    "received %d.%d.%d.%d\n",
-		    e->o[0], e->o[1], e->o[2], e->o[3],
-		    r->o[0], r->o[1], r->o[2], r->o[3]);
-		return (0);
-	}
-	return (1);
-}
+#include "t_ip4.h"
 
 static struct t_ip4r_case {
 	const char		*desc;

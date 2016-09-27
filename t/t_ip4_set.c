@@ -37,8 +37,8 @@
 #include <cryb/test.h>
 
 #include <ft/assert.h>
-#include <ft/endian.h>
-#include <ft/ip4.h>
+
+#include "t_ip4.h"
 
 static struct t_ip4s_case {
 	const char		*desc;

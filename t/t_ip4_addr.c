@@ -36,29 +36,14 @@
 
 #include <cryb/test.h>
 
-#include <ft/endian.h>
-#include <ft/ip4.h>
+#include "t_ip4.h"
 
-static inline int
-t_compare_ip4_addr(const ip4_addr *e, const ip4_addr *r)
-{
-
-	if (e->q != r->q) {
-		t_verbose("expected %d.%d.%d.%d\n"
-		    "received %d.%d.%d.%d\n",
-		    e->o[0], e->o[1], e->o[2], e->o[3],
-		    r->o[0], r->o[1], r->o[2], r->o[3]);
-		return (0);
-	}
-	return (1);
-}
-
-static struct t_ip4p_case {
+static struct t_ip4a_case {
 	const char		*desc;
 	const char		*str;
 	size_t			 len;
 	ip4_addr		 addr;
-} t_ip4p_cases[] = {
+} t_ip4a_cases[] = {
 	{
 		.desc	 = "empty",
 		.str	 = "",
@@ -164,9 +149,9 @@ static struct t_ip4p_case {
 };
 
 static int
-t_ip4p(char **desc CRYB_UNUSED, void *arg)
+t_ip4a(char **desc CRYB_UNUSED, void *arg)
 {
-	struct t_ip4p_case *t = arg;
+	struct t_ip4a_case *t = arg;
 	ip4_addr addr;
 	const char *e;
 	int ret;
@@ -189,9 +174,9 @@ t_prepare(int argc CRYB_UNUSED, char *argv[] CRYB_UNUSED)
 {
 	unsigned int i;
 
-	for (i = 0; i < sizeof t_ip4p_cases / sizeof t_ip4p_cases[0]; ++i)
-		t_add_test(t_ip4p, &t_ip4p_cases[i], t_ip4p_cases[i].desc ?
-		    t_ip4p_cases[i].desc : t_ip4p_cases[i].str);
+	for (i = 0; i < sizeof t_ip4a_cases / sizeof t_ip4a_cases[0]; ++i)
+		t_add_test(t_ip4a, &t_ip4a_cases[i], t_ip4a_cases[i].desc ?
+		    t_ip4a_cases[i].desc : t_ip4a_cases[i].str);
 	return (0);
 }
 
