@@ -43,25 +43,25 @@
  * How many bits to process at a time.  Lower values improve aggregation
  * but can greatly increase the memory footprint.
  */
-#define IP4A_BITS	 4
-#define IP4A_SUBS	 (1U << IP4A_BITS)
+#define IP4S_BITS	 4
+#define IP4S_SUBS	 (1U << IP4S_BITS)
 
 /*
  * A node in the tree.
  */
-struct ip4a_node {
+struct ip4s_node {
 	uint32_t	 addr;		/* network address */
 	uint8_t		 plen;		/* prefix length */
 	int		 leaf:1;	/* leaf node flag */
 	unsigned long	 coverage;	/* addresses in subtree */
-	ip4a_node	*sub[IP4A_SUBS];/* subtrees */
+	ip4s_node	*sub[IP4S_SUBS];/* subtrees */
 };
 
 /*
  * Print the leaf nodes of a tree in order.
  */
 void
-ip4a_fprint(FILE *f, const ip4a_node *n)
+ip4s_fprint(FILE *f, const ip4s_node *n)
 {
 	unsigned int i;
 
@@ -75,21 +75,21 @@ ip4a_fprint(FILE *f, const ip4a_node *n)
 			fprintf(f, "/%u", n->plen);
 		fprintf(f, "\n");
 	} else {
-		for (i = 0; i < IP4A_SUBS; ++i)
+		for (i = 0; i < IP4S_SUBS; ++i)
 			if (n->sub[i] != NULL)
-				ip4a_fprint(f, n->sub[i]);
+				ip4s_fprint(f, n->sub[i]);
 	}
 }
 
 /*
  * Allocate a new, empty tree.
  */
-ip4a_node *
-ip4a_new(void)
+ip4s_node *
+ip4s_new(void)
 {
-	ip4a_node *n;
+	ip4s_node *n;
 
-	if ((n = calloc(1, sizeof(ip4a_node))) == NULL)
+	if ((n = calloc(1, sizeof(ip4s_node))) == NULL)
 		return (NULL);
 	n->leaf = 1;
 	return (n);
@@ -99,13 +99,13 @@ ip4a_new(void)
  * Delete all children of a node.
  */
 static void
-ip4a_delete(ip4a_node *n)
+ip4s_delete(ip4s_node *n)
 {
 	unsigned int i;
 
-	for (i = 0; i < IP4A_SUBS; ++i) {
+	for (i = 0; i < IP4S_SUBS; ++i) {
 		if (n->sub[i] != NULL) {
-			ip4a_delete(n->sub[i]);
+			ip4s_delete(n->sub[i]);
 			free(n->sub[i]);
 			n->sub[i] = NULL;
 		}
@@ -116,10 +116,10 @@ ip4a_delete(ip4a_node *n)
  * Destroy a tree.
  */
 void
-ip4a_destroy(ip4a_node *n)
+ip4s_destroy(ip4s_node *n)
 {
 
-	ip4a_delete(n);
+	ip4s_delete(n);
 	free(n);
 }
 
@@ -127,9 +127,9 @@ ip4a_destroy(ip4a_node *n)
  * Insert a range of addresses (specified as first and last) into a tree.
  */
 int
-ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
+ip4s_insert(ip4s_node *n, uint32_t first, uint32_t last)
 {
-	ip4a_node *sn;
+	ip4s_node *sn;
 	uint32_t mask, fsub, lsub;
 	unsigned int i, splen;
 	int ret;
@@ -159,7 +159,7 @@ ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
 	 * Shortcut: the inserted range covers the entire subnet.
 	 */
 	if (first == n->addr && last == (n->addr | mask)) {
-		ip4a_delete(n);
+		ip4s_delete(n);
 		n->leaf = 1;
 		n->coverage = mask + 1LU; /* equivalent to size of subnet */
 		return (0);
@@ -169,9 +169,9 @@ ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
 	 * Compute the prefix length for the next recursion level and find
 	 * out which child node(s) we will have to descend into.
 	 */
-	splen = n->plen + IP4A_BITS;
-	fsub = (first >> (32 - splen)) % IP4A_SUBS;
-	lsub = (last >> (32 - splen)) % IP4A_SUBS;
+	splen = n->plen + IP4S_BITS;
+	fsub = (first >> (32 - splen)) % IP4S_SUBS;
+	lsub = (last >> (32 - splen)) % IP4S_SUBS;
 
 	/*
 	 * Descend into each covered child.
@@ -192,7 +192,7 @@ ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
 		/*
 		 * Insert into subnet and adjust our coverage number.
 		 */
-		ret = ip4a_insert(sn, first, last);
+		ret = ip4s_insert(sn, first, last);
 		n->coverage += sn->coverage;
 		if (ret != 0)
 			return (ret);
@@ -202,7 +202,7 @@ ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
 	 * Perform aggregation
 	 */
 	if (n->coverage == mask + 1LU) {
-		ip4a_delete(n);
+		ip4s_delete(n);
 		n->leaf = 1;
 	}
 
@@ -213,9 +213,9 @@ ip4a_insert(ip4a_node *n, uint32_t first, uint32_t last)
  * Remove a range of addresses (specified as first and last) from a tree.
  */
 int
-ip4a_remove(ip4a_node *n, uint32_t first, uint32_t last)
+ip4s_remove(ip4s_node *n, uint32_t first, uint32_t last)
 {
-	ip4a_node *sn;
+	ip4s_node *sn;
 	uint32_t addr, fsub, lsub, mask, smask;
 	unsigned int i, splen;
 
@@ -245,7 +245,7 @@ ip4a_remove(ip4a_node *n, uint32_t first, uint32_t last)
 	 * to our parent (if any) to delete us.
 	 */
 	if (first == n->addr && last == (n->addr | mask)) {
-		ip4a_delete(n);
+		ip4s_delete(n);
 		n->leaf = 1;
 		n->coverage = 0;
 		return (0);
@@ -255,10 +255,10 @@ ip4a_remove(ip4a_node *n, uint32_t first, uint32_t last)
 	 * Compute the prefix length for the next recursion level and find
 	 * out which child node(s) we will have to descend into.
 	 */
-	splen = n->plen + IP4A_BITS;
-	smask = mask >> IP4A_BITS;
-	fsub = (first >> (32 - splen)) % IP4A_SUBS;
-	lsub = (last >> (32 - splen)) % IP4A_SUBS;
+	splen = n->plen + IP4S_BITS;
+	smask = mask >> IP4S_BITS;
+	fsub = (first >> (32 - splen)) % IP4S_SUBS;
+	lsub = (last >> (32 - splen)) % IP4S_SUBS;
 
 	/*
 	 * If we are a full leaf, we have to create child nodes for the
@@ -267,7 +267,7 @@ ip4a_remove(ip4a_node *n, uint32_t first, uint32_t last)
 	if (n->leaf && n->coverage == mask + 1LU) {
 		n->coverage = 0;
 		n->leaf = 0;
-		for (i = 0; i < IP4A_SUBS; ++i) {
+		for (i = 0; i < IP4S_SUBS; ++i) {
 			addr = n->addr | (i << (32 - splen));
 			if (!(first <= addr && last >= (addr | smask))) {
 				if ((sn = calloc(1, sizeof *sn)) == NULL)
@@ -288,7 +288,7 @@ ip4a_remove(ip4a_node *n, uint32_t first, uint32_t last)
 	for (i = fsub; i <= lsub; ++i) {
 		if ((sn = n->sub[i]) != NULL) {
 			n->coverage -= sn->coverage;
-			ip4a_remove(sn, first, last);
+			ip4s_remove(sn, first, last);
 			n->coverage += sn->coverage;
 			if (sn->coverage == 0) {
 				free(sn);
@@ -304,7 +304,7 @@ ip4a_remove(ip4a_node *n, uint32_t first, uint32_t last)
  * Look up an address in a tree.
  */
 int
-ip4a_lookup(const ip4a_node *n, uint32_t addr)
+ip4s_lookup(const ip4s_node *n, uint32_t addr)
 {
 	uint32_t mask, sub;
 
@@ -316,9 +316,9 @@ ip4a_lookup(const ip4a_node *n, uint32_t addr)
 		if (n->coverage == mask + 1LU)
 			return (1);
 		/* descend */
-		sub = (addr >> (32 - n->plen - IP4A_BITS)) % IP4A_SUBS;
+		sub = (addr >> (32 - n->plen - IP4S_BITS)) % IP4S_SUBS;
 		if (n->sub[sub] != NULL)
-			return (ip4a_lookup(n->sub[sub], addr));
+			return (ip4s_lookup(n->sub[sub], addr));
 	}
 	return (0);
 }
@@ -327,7 +327,7 @@ ip4a_lookup(const ip4a_node *n, uint32_t addr)
  * Return the number of addresses in a tree.
  */
 unsigned long
-ip4a_count(const ip4a_node *n)
+ip4s_count(const ip4s_node *n)
 {
 
 	return (n->coverage);

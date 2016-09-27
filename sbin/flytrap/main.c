@@ -50,7 +50,7 @@
 static const char *ft_pidfile = "/var/run/flytrap.pid";
 static int ft_foreground = 0;
 
-ip4a_node *included;
+ip4s_node *included;
 
 static int
 include_range(const char *range)
@@ -63,9 +63,9 @@ include_range(const char *range)
 	    first.o[0], first.o[1], first.o[2], first.o[3],
 	    last.o[0], last.o[1], last.o[2], last.o[3]);
 	if (included == NULL)
-		if ((included = ip4a_new()) == NULL)
+		if ((included = ip4s_new()) == NULL)
 			return (-1);
-	if (ip4a_insert(included, be32toh(first.q), be32toh(last.q)) != 0)
+	if (ip4s_insert(included, be32toh(first.q), be32toh(last.q)) != 0)
 		return (-1);
 	return (0);
 }
@@ -81,10 +81,10 @@ exclude_range(const char *range)
 	    first.o[0], first.o[1], first.o[2], first.o[3],
 	    last.o[0], last.o[1], last.o[2], last.o[3]);
 	if (included == NULL)
-		if ((included = ip4a_new()) == NULL ||
-		    ip4a_insert(included, 0U, ~0U) != 0)
+		if ((included = ip4s_new()) == NULL ||
+		    ip4s_insert(included, 0U, ~0U) != 0)
 			return (-1);
-	if (ip4a_remove(included, be32toh(first.q), be32toh(last.q)) != 0)
+	if (ip4s_remove(included, be32toh(first.q), be32toh(last.q)) != 0)
 		return (-1);
 	return (0);
 }

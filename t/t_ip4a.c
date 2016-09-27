@@ -40,14 +40,14 @@
 #include <ft/endian.h>
 #include <ft/ip4.h>
 
-static struct t_ip4a_case {
+static struct t_ip4s_case {
 	const char		*desc;
 	const char		*insert;
 	const char		*remove;
 	unsigned long		 count;
 	const char		*present;
 	const char		*absent;
-} t_ip4a_cases[] = {
+} t_ip4s_cases[] = {
 	{
 		.desc		 = "empty",
 		.count		 = 0,
@@ -108,32 +108,32 @@ static struct t_ip4a_case {
 static int
 t_ip4a(char **desc CRYB_UNUSED, void *arg)
 {
-	struct t_ip4a_case *t = arg;
+	struct t_ip4s_case *t = arg;
 	ip4_addr addr, first, last;
 	const char *p, *q;
-	ip4a_node *n;
+	ip4s_node *n;
 	int ret;
 
-	n = ip4a_new();
+	n = ip4s_new();
 	if (!t_is_not_null(n))
 		return (0);
 	for (p = q = t->insert; q != NULL && *q != '\0'; p = q + 1) {
 		q = ip4_parse_range(p, &first, &last);
 		ft_assert(q != NULL && (*q == '\0' || *q == ','));
-		if (ip4a_insert(n, be32toh(first.q), be32toh(last.q)) != 0)
+		if (ip4s_insert(n, be32toh(first.q), be32toh(last.q)) != 0)
 			return (-1);
 	}
 	for (p = q = t->remove; q != NULL && *q != '\0'; p = q + 1) {
 		q = ip4_parse_range(p, &first, &last);
 		ft_assert(q != NULL && (*q == '\0' || *q == ','));
-		if (ip4a_remove(n, be32toh(first.q), be32toh(last.q)) != 0)
+		if (ip4s_remove(n, be32toh(first.q), be32toh(last.q)) != 0)
 			return (-1);
 	}
-	ret = t_compare_ul(t->count, ip4a_count(n));
+	ret = t_compare_ul(t->count, ip4s_count(n));
 	for (p = q = t->present; q != NULL && *q != '\0'; p = q + 1) {
 		q = ip4_parse(p, &addr);
 		ft_assert(q != NULL && (*q == '\0' || *q == ','));
-		if (ip4a_lookup(n, be32toh(addr.q)) != 1) {
+		if (ip4s_lookup(n, be32toh(addr.q)) != 1) {
 			t_verbose("expected %d.%d.%d.%d present\n",
 			    addr.o[0], addr.o[1], addr.o[2], addr.o[3]);
 			ret = 0;
@@ -142,13 +142,13 @@ t_ip4a(char **desc CRYB_UNUSED, void *arg)
 	for (p = q = t->absent; q != NULL && *q != '\0'; p = q + 1) {
 		q = ip4_parse(p, &addr);
 		ft_assert(q != NULL && (*q == '\0' || *q == ','));
-		if (ip4a_lookup(n, be32toh(addr.q)) != 0) {
+		if (ip4s_lookup(n, be32toh(addr.q)) != 0) {
 			t_verbose("expected %d.%d.%d.%d absent\n",
 			    addr.o[0], addr.o[1], addr.o[2], addr.o[3]);
 			ret = 0;
 		}
 	}
-	ip4a_destroy(n);
+	ip4s_destroy(n);
 	return (ret);
 }
 
@@ -157,8 +157,8 @@ t_prepare(int argc CRYB_UNUSED, char *argv[] CRYB_UNUSED)
 {
 	unsigned int i;
 
-	for (i = 0; i < sizeof t_ip4a_cases / sizeof t_ip4a_cases[0]; ++i)
-		t_add_test(t_ip4a, &t_ip4a_cases[i], t_ip4a_cases[i].desc);
+	for (i = 0; i < sizeof t_ip4s_cases / sizeof t_ip4s_cases[0]; ++i)
+		t_add_test(t_ip4a, &t_ip4s_cases[i], t_ip4s_cases[i].desc);
 	return (0);
 }
 

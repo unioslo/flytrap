@@ -48,7 +48,7 @@ static const char *sender;
 static const char *recipient;
 
 static unsigned long userid;
-static ip4a_node *included;
+static ip4s_node *included;
 
 struct ftlog {
 	struct timeval	 tv;
@@ -267,7 +267,7 @@ ft2dshield(const char *fn)
 			continue;
 		}
 		if (included != NULL &&
-		    !ip4a_lookup(included, be32toh(logent.sa.q)))
+		    !ip4s_lookup(included, be32toh(logent.sa.q)))
 			continue;
 		if (ftlogprint(&logent) < 0) {
 			warnx("%s:%d: failed to print entry", fn, lno);
@@ -294,11 +294,11 @@ include_range(const char *range)
 	if (ip4_parse_range(range, &first, &last) == NULL)
 		errx(1, "invalid address or range: %s", range);
 	if (included == NULL) {
-		if ((included = ip4a_new()) == NULL)
-			err(1, "ip4a_new()");
+		if ((included = ip4s_new()) == NULL)
+			err(1, "ip4s_new()");
 	}
-	if (ip4a_insert(included, be32toh(first.q), be32toh(last.q)) != 0)
-		err(1, "ip4a_insert()");
+	if (ip4s_insert(included, be32toh(first.q), be32toh(last.q)) != 0)
+		err(1, "ip4s_insert()");
 }
 
 static void
@@ -309,13 +309,13 @@ exclude_range(const char *range)
 	if (ip4_parse_range(range, &first, &last) == NULL)
 		errx(1, "invalid address or range: %s", range);
 	if (included == NULL) {
-		if ((included = ip4a_new()) == NULL)
-			err(1, "ip4a_new()");
-		if (ip4a_insert(included, 0U, ~0U) != 0)
-			err(1, "ip4a_insert()");
+		if ((included = ip4s_new()) == NULL)
+			err(1, "ip4s_new()");
+		if (ip4s_insert(included, 0U, ~0U) != 0)
+			err(1, "ip4s_insert()");
 	}
-	if (ip4a_remove(included, be32toh(first.q), be32toh(last.q)) != 0)
-		err(1, "ip4a_remove()");
+	if (ip4s_remove(included, be32toh(first.q), be32toh(last.q)) != 0)
+		err(1, "ip4s_remove()");
 }
 
 static void
