@@ -1,5 +1,5 @@
 AC_PREREQ([2.59])
-AC_INIT([Flytrap], [0.20160921], [d.e.smorgrav@usit.uio.no],
+AC_INIT([Flytrap], [0.20161027], [d.e.smorgrav@usit.uio.no],
     [flytrap], [https://www.github.com/unioslo/flytrap])
 AC_CONFIG_SRCDIR([sbin/flytrap/flytrap.c])
 AC_CONFIG_MACRO_DIR([m4])
