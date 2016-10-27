@@ -13,5 +13,6 @@ libft_a_SOURCES		+= ft_pidfile.c
 libft_a_SOURCES		+= ft_readlinev.c
 libft_a_SOURCES		+= ft_readword.c
 libft_a_SOURCES		+= ft_sbuf.c
+libft_a_SOURCES		+= ft_straddch.c
 libft_a_SOURCES		+= ft_strlcat.c
 libft_a_SOURCES		+= ft_strlcpy.c

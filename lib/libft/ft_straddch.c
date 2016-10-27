@@ -1,6 +1,6 @@
 /*-
- * Copyright (c) 2011-2012 Dag-Erling Smørgrav
- * Copyright (c) 2013-2014 The University of Oslo
+ * Copyright (c) 2012 Dag-Erling Smørgrav
+ * Copyright (c) 2016 Universitetet i Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,28 +28,51 @@
  * SUCH DAMAGE.
  */
 
-#ifndef FT_STRUTIL_H_INCLUDED
-#define FT_STRUTIL_H_INCLUDED
-
-#ifndef HAVE_STRLCAT
-size_t ft_strlcat(char *, const char *, size_t);
-#undef strlcat
-#define strlcat(arg, ...) ft_strlcat(arg, __VA_ARGS__)
+#ifdef HAVE_CONFIG_H
+# include "config.h"
 #endif
 
-#ifndef HAVE_STRLCPY
-size_t ft_strlcpy(char *, const char *, size_t);
-#undef strlcpy
-#define strlcpy(arg, ...) ft_strlcpy(arg, __VA_ARGS__)
-#endif
+#include <errno.h>
+#include <stdlib.h>
 
-int ft_straddch(char **, size_t *, size_t *, int);
-#define straddch(arg, ...) ft_straddch(arg, __VA_ARGS__)
-#ifdef _IOFBF
-char *ft_readword(FILE *, int *, size_t *);
-#define readword(arg, ...) ft_readword(arg, __VA_ARGS__)
-char **ft_readlinev(FILE *, int *, int *);
-#define readlinev(arg, ...) ft_readlinev(arg, __VA_ARGS__)
-#endif
+#include <ft/strutil.h>
 
-#endif
+#define MIN_STR_SIZE	32
+
+/*
+ * Add a character to a string, expanding the buffer if needed.
+ */
+
+int
+ft_straddch(char **str, size_t *size, size_t *len, int ch)
+{
+	size_t tmpsize;
+	char *tmpstr;
+
+	if (*str == NULL) {
+		/* initial allocation */
+		tmpsize = MIN_STR_SIZE;
+		if ((tmpstr = malloc(tmpsize)) == NULL) {
+			errno = ENOMEM;
+			return (-1);
+		}
+		*str = tmpstr;
+		*size = tmpsize;
+		*len = 0;
+	} else if (ch != 0 && *len + 1 >= *size) {
+		/* additional space required */
+		tmpsize = *size * 2;
+		if ((tmpstr = realloc(*str, tmpsize)) == NULL) {
+			errno = ENOMEM;
+			return (-1);
+		}
+		*size = tmpsize;
+		*str = tmpstr;
+	}
+	if (ch != 0) {
+		(*str)[*len] = ch;
+		++*len;
+	}
+	(*str)[*len] = '\0';
+	return (0);
+}
