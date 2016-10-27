@@ -72,12 +72,13 @@ packet_analyze_ip4(ether_flow *ethfl, const void *data, size_t len)
 	}
 	ih = data;
 	ihl = ip4_hdr_ihl(ih) * 4;
-	if (ihl < 20 || len < ihl || len != be16toh(ih->len)) {
+	if (ihl < 20 || len < ihl || len < be16toh(ih->len)) {
 		ft_notice("%d.%03d malformed IP header (plen %zd len %zd ihl %zd)",
 		    ethfl->p->ts.tv_sec, ethfl->p->ts.tv_usec / 1000,
 		    len, be16toh(ih->len), ihl);
 		return (-1);
 	}
+	len = be16toh(ih->len);
 	ft_debug("\tIP version %d proto %d len %zu"
 	    " from %d.%d.%d.%d to %d.%d.%d.%d",
 	    ip4_hdr_ver(ih), ih->proto, len,
