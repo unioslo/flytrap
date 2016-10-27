@@ -46,7 +46,8 @@ typedef struct ether_flow {
 	uint16_t	 len;
 } ether_flow;
 
-extern ip4s_node *included;
+extern ip4s_node *src_set;
+extern ip4s_node *dst_set;
 
 typedef struct ip4_flow {
 	struct ether_flow	*eth;

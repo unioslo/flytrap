@@ -50,10 +50,11 @@
 static const char *ft_pidfile = "/var/run/flytrap.pid";
 static int ft_foreground = 0;
 
-ip4s_node *included;
+ip4s_node *src_set;
+ip4s_node *dst_set;
 
 static int
-include_range(const char *range)
+include_range(ip4s_node **set, const char *range)
 {
 	ip4_addr first, last;
 
@@ -62,16 +63,16 @@ include_range(const char *range)
 	fprintf(stderr, "include %u.%u.%u.%u - %u.%u.%u.%u\n",
 	    first.o[0], first.o[1], first.o[2], first.o[3],
 	    last.o[0], last.o[1], last.o[2], last.o[3]);
-	if (included == NULL)
-		if ((included = ip4s_new()) == NULL)
+	if (*set == NULL)
+		if ((*set = ip4s_new()) == NULL)
 			return (-1);
-	if (ip4s_insert(included, be32toh(first.q), be32toh(last.q)) != 0)
+	if (ip4s_insert(*set, be32toh(first.q), be32toh(last.q)) != 0)
 		return (-1);
 	return (0);
 }
 
 static int
-exclude_range(const char *range)
+exclude_range(ip4s_node **set, const char *range)
 {
 	ip4_addr first, last;
 
@@ -80,11 +81,11 @@ exclude_range(const char *range)
 	fprintf(stderr, "exclude %u.%u.%u.%u - %u.%u.%u.%u\n",
 	    first.o[0], first.o[1], first.o[2], first.o[3],
 	    last.o[0], last.o[1], last.o[2], last.o[3]);
-	if (included == NULL)
-		if ((included = ip4s_new()) == NULL ||
-		    ip4s_insert(included, 0U, ~0U) != 0)
+	if (*set == NULL)
+		if ((*set = ip4s_new()) == NULL ||
+		    ip4s_insert(*set, 0U, ~0U) != 0)
 			return (-1);
-	if (ip4s_remove(included, be32toh(first.q), be32toh(last.q)) != 0)
+	if (ip4s_remove(*set, be32toh(first.q), be32toh(last.q)) != 0)
 		return (-1);
 	return (0);
 }
@@ -113,7 +114,8 @@ static void
 usage(void)
 {
 
-	fprintf(stderr, "usage: flytrap [-dfnv] [-p pidfile] [-x addr] interface\n");
+	fprintf(stderr, "usage: "
+	    "flytrap [-dfnv] [-p pidfile] [-Ii addr] [-Xx addr] interface\n");
 	exit(1);
 }
 
@@ -125,7 +127,7 @@ main(int argc, char *argv[])
 
 	ifname = NULL;
 	ft_log_level = FT_LOG_LEVEL_NOTICE;
-	while ((opt = getopt(argc, argv, "dfhi:l:nvx:")) != -1) {
+	while ((opt = getopt(argc, argv, "dfhI:i:l:nvX:x:")) != -1) {
 		switch (opt) {
 		case 'd':
 			if (ft_log_level > FT_LOG_LEVEL_DEBUG)
@@ -134,8 +136,12 @@ main(int argc, char *argv[])
 		case 'f':
 			ft_foreground = 1;
 			break;
+		case 'I':
+			if (include_range(&src_set, optarg) != 0)
+				usage();
+			break;
 		case 'i':
-			if (include_range(optarg) != 0)
+			if (include_range(&dst_set, optarg) != 0)
 				usage();
 			break;
 		case 'l':
@@ -151,8 +157,12 @@ main(int argc, char *argv[])
 			if (ft_log_level > FT_LOG_LEVEL_VERBOSE)
 				ft_log_level = FT_LOG_LEVEL_VERBOSE;
 			break;
+		case 'X':
+			if (exclude_range(&src_set, optarg) != 0)
+				usage();
+			break;
 		case 'x':
-			if (exclude_range(optarg) != 0)
+			if (exclude_range(&dst_set, optarg) != 0)
 				usage();
 			break;
 		default:

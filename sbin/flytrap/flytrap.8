@@ -26,7 +26,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd September 21, 2016
+.Dd October 27, 2016
 .Dt FLYTRAP 8
 .Os
 .Sh NAME
@@ -35,9 +35,11 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl dfnv
+.Op Fl I Ar addr Ns | Ns Ar range Ns | Ns Ar subnet
 .Op Fl i Ar addr Ns | Ns Ar range Ns | Ns Ar subnet
 .Op Fl l Ar logfile
 .Op Fl p Ar pidfile
+.Op Fl X Ar addr Ns | Ns Ar range Ns | Ns Ar subnet
 .Op Fl x Ar addr Ns | Ns Ar range Ns | Ns Ar subnet
 .Ar interface
 .Pp
@@ -55,14 +57,16 @@ The following options are available:
 Enable log messages at debug level or higher.
 .It Fl f
 Foreground mode: do not daemonize and do not create a pidfile.
+.It Fl I Ar a.b.c.d
+.It Fl I Ar a.b.c.d-e.f.g.h
+.It Fl I Ar a.b.c.d/p
+Process and respond to packets sent from the specified IPv4 address,
+range or subnet.
 .It Fl i Ar a.b.c.d
-Process and respond to packets addressed to the specified IPv4
-address.
 .It Fl i Ar a.b.c.d-e.f.g.h
-Process and respond to packets addressed to the specified range of of
-IPv4 addresses.
 .It Fl i Ar a.b.c.d/p
-Process and respond to packets addressed to the specified IPv4 subnet.
+Process and respond to packets addressed to the specified IPv4
+address, range or subnet.
 .It Fl n
 Dry-run mode.
 Does everything except inject packets into the network.
@@ -75,12 +79,15 @@ Write the daemon's PID to the specified file instead of
 .Pa /var/run/flytrap.pid .
 .It Fl v
 Enable log messages at verbose level or higher.
+.It Fl X Ar a.b.c.d
+.It Fl X Ar a.b.c.d-e.f.g.h
+.It Fl X Ar a.b.c.d/p
+Ignore packets sent from the specified IPv4 address, range or subnet.
 .It Fl x Ar a.b.c.d
-Ignore packets addressed to the specified IPv4 address.
 .It Fl x Ar a.b.c.d-e.f.g.h
-Ignore packets addressed to the specified range of of IPv4 addresses.
 .It Fl x Ar a.b.c.d/p
-Ignore packets addressed to the specified IPv4 subnet.
+Ignore packets addressed to the specified IPv4 address, range or
+subnet.
 .El
 .Pp
 The final argument is the name of the network interface on which

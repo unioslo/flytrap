@@ -84,7 +84,11 @@ packet_analyze_ip4(ether_flow *ethfl, const void *data, size_t len)
 	    ip4_hdr_ver(ih), ih->proto, len,
 	    ih->srcip.o[0], ih->srcip.o[1], ih->srcip.o[2], ih->srcip.o[3],
 	    ih->dstip.o[0], ih->dstip.o[1], ih->dstip.o[2], ih->dstip.o[3]);
-	if (included && !ip4s_lookup(included, be32toh(ih->dstip.q))) {
+	if (src_set != NULL && !ip4s_lookup(src_set, be32toh(ih->srcip.q))) {
+		ft_debug("\tsource address is out of bounds");
+		return (0);
+	}
+	if (dst_set != NULL && !ip4s_lookup(dst_set, be32toh(ih->dstip.q))) {
 		ft_debug("\tdestination address is out of bounds");
 		return (0);
 	}
