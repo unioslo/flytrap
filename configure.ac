@@ -96,7 +96,10 @@ LIBS="${save_LIBS}"
 AC_SUBST(LIBCRYB_TEST)
 AM_CONDITIONAL([WITH_TESTS], [test x"${LIBCRYB_TEST}" != x""])
 
-# options
+############################################################################
+#
+# Options
+#
 AC_ARG_ENABLE([developer-warnings],
     AS_HELP_STRING([--enable-developer-warnings], [enable strict warnings (default is NO)]),
     [CFLAGS="${CFLAGS} -Wall -Wextra -Wcast-qual -Wshadow"])
@@ -107,7 +110,10 @@ AC_ARG_ENABLE([werror],
     AS_HELP_STRING([--enable-werror], [use -Werror (default is NO)]),
     [CFLAGS="${CFLAGS} -Werror"])
 
-# output
+############################################################################
+#
+# Output
+#
 AC_CONFIG_FILES([
     Makefile
     include/Makefile
