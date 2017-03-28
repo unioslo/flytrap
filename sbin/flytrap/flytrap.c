@@ -41,7 +41,12 @@
 #include "flytrap.h"
 
 int ft_dryrun;
-const char *ft_logname;
+
+#ifndef FT_LOGFILE
+#define FT_LOGFILE "/var/log/flytrap.log"
+#endif
+
+const char *ft_logname = FT_LOGFILE;
 
 static sig_atomic_t sighup;
 

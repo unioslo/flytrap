@@ -100,6 +100,21 @@ AM_CONDITIONAL([WITH_TESTS], [test x"${LIBCRYB_TEST}" != x""])
 #
 # Options
 #
+
+ft_default_logfile="/var/log/flytrap.log"
+AC_ARG_WITH([logfile],
+    AS_HELP_STRING([--with-logfile],
+        [use specified log file (default is $default_logfile)]),
+    [ft_logfile="${withval:-${ft_default_logfile}}"],
+    [ft_logfile="${ft_default_logfile}"])
+AS_IF([test x"$ft_logfile" = x""], [
+  AC_MSG_ERROR([--with-logfile was given without an argument])
+], [
+  AC_MSG_NOTICE([will log to $ft_logfile by default])
+])
+AC_DEFINE_UNQUOTED([FT_LOGFILE], ["$ft_logfile"], [Default log file])
+AC_SUBST([FT_LOGFILE], [$ft_logfile])
+
 AC_ARG_ENABLE([developer-warnings],
     AS_HELP_STRING([--enable-developer-warnings], [enable strict warnings (default is NO)]),
     [CFLAGS="${CFLAGS} -Wall -Wextra -Wcast-qual -Wshadow"])
@@ -124,6 +139,7 @@ AC_CONFIG_FILES([
     bin/ft2dshield/Makefile
     sbin/Makefile
     sbin/flytrap/Makefile
+    sbin/flytrap/flytrap.8.in
     rc/Makefile
     rc/flytrap.logrotate
     rc/flytrap.systemd

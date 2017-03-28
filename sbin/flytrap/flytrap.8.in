@@ -73,7 +73,7 @@ Does everything except inject packets into the network.
 .It Fl l Ar logfile
 Log information about received packets in CSV format to the specified
 file instead of
-.Va stdout .
+.Pa @FT_LOGFILE@ .
 .It Fl p Ar pidfile
 Write the daemon's PID to the specified file instead of
 .Pa /var/run/flytrap.pid .
