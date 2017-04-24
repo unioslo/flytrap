@@ -182,7 +182,7 @@ main(int argc, char *argv[])
 		daemonize();
 
 	/* ft_log is used for error messages, not traffic logs! */
-	ft_log_init("flytrap", NULL);
+	ft_log_init("flytrap", ft_foreground ? NULL : "syslog:");
 	ret = flytrap(ifname);
 	ft_log_exit();
 

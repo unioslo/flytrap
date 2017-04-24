@@ -111,6 +111,11 @@ If the first rule is an inclusion rule, it is interpreted as
 while an initial exclusion rule is interpreted as
 .Dq everything except this range .
 Subsequent rules are applied to the result of the preceding ones.
+.Pp
+Log messages are written to the standard error stream when running
+in the foreground
+.Pq Fl f
+and the system log otherwise.
 .Sh SEE ALSO
 .Xr fly 1 ,
 .Xr ft2dshield 1 ,

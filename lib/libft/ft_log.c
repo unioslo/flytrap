@@ -31,6 +31,8 @@
 # include "config.h"
 #endif
 
+#define _BSD_SOURCE
+
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -43,9 +45,9 @@
 #include <ft/strutil.h>
 
 static char ft_prog_name[16];
+static FILE *ft_logfile;
 ft_log_level_t ft_log_level;
 
-#if 0
 static int
 ft_log_level_to_syslog(ft_log_level_t level)
 {
@@ -65,7 +67,6 @@ ft_log_level_to_syslog(ft_log_level_t level)
 		return (LOG_INFO);
 	}
 }
-#endif
 
 static const char *
 ft_log_level_to_string(ft_log_level_t level)
@@ -91,10 +92,14 @@ void
 ft_logv(ft_log_level_t level, const char *fmt, va_list ap)
 {
 
-	fprintf(stderr, "%s: %s: ", ft_prog_name,
-	    ft_log_level_to_string(level));
-	vfprintf(stderr, fmt, ap);
-	fprintf(stderr, "\n");
+	if (ft_logfile != NULL) {
+		fprintf(ft_logfile, "%s: %s: ", ft_prog_name,
+		    ft_log_level_to_string(level));
+		vfprintf(ft_logfile, fmt, ap);
+		fprintf(ft_logfile, "\n");
+	} else {
+		vsyslog(ft_log_level_to_syslog(level), fmt, ap);
+	}
 }
 
 /*
@@ -128,14 +133,30 @@ ft_fatal(const char *fmt, ...)
 
 /*
  * Specify a destination for log messages.  Passing NULL or an empty
- * string resets the log destination to stderr.
+ * string resets the log destination to stderr.  Passing "syslog:" causes
+ * logs to be sent to syslog with the LOG_DAEMON facility and the
+ * specified identifier.
  */
 int
 ft_log_init(const char *ident, const char *logspec)
 {
+	FILE *f;
 
 	strlcpy(ft_prog_name, ident, sizeof ft_prog_name);
-	(void)logspec;
+	if (logspec == NULL) {
+		f = stderr;
+	} else if (strcmp(logspec, "syslog:") == 0) {
+		openlog(ft_prog_name, LOG_NDELAY|LOG_PID, LOG_DAEMON);
+		f = NULL;
+	} else if ((f = fopen(logspec, "a")) == NULL) {
+		ft_error("unable to open log file %s: %s",
+		    logspec, strerror(errno));
+		return (-1);
+	}
+	if (ft_logfile != NULL && ft_logfile != stderr)
+		fclose(ft_logfile);
+	if ((ft_logfile = f) != NULL)
+		setlinebuf(ft_logfile);
 	return (0);
 }
 
@@ -146,5 +167,8 @@ int
 ft_log_exit(void)
 {
 
+	if (ft_logfile != NULL && ft_logfile != stderr)
+		fclose(ft_logfile);
+	ft_logfile = NULL;
 	return (0);
 }
