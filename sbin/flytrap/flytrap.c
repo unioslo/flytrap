@@ -42,11 +42,11 @@
 
 int ft_dryrun;
 
-#ifndef FT_LOGFILE
-#define FT_LOGFILE "/var/log/flytrap.log"
+#ifndef FT_CSVFILE
+#define FT_CSVFILE "/var/log/flytrap.csv"
 #endif
 
-const char *ft_logname = FT_LOGFILE;
+const char *ft_csvfile = FT_CSVFILE;
 
 static sig_atomic_t sighup;
 
@@ -67,7 +67,7 @@ flytrap(const char *iname)
 	struct iface *i;
 	struct packet *p;
 
-	if (log_open(ft_logname) != 0) {
+	if (log_open(ft_csvfile) != 0) {
 		ft_error("failed to open log file: %s", strerror(errno));
 		return (-1);
 	}
@@ -79,7 +79,7 @@ flytrap(const char *iname)
 	for (;;) {
 		if (sighup) {
 			sighup--;
-			if (log_open(ft_logname) != 0) {
+			if (log_open(ft_csvfile) != 0) {
 				ft_warning("failed to reopen log file: %s",
 				    strerror(errno));
 			}

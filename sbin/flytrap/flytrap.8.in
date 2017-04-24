@@ -37,8 +37,8 @@
 .Op Fl dfnv
 .Op Fl I Ar addr Ns | Ns Ar range Ns | Ns Ar subnet
 .Op Fl i Ar addr Ns | Ns Ar range Ns | Ns Ar subnet
-.Op Fl l Ar logfile
 .Op Fl p Ar pidfile
+.Op Fl t Ar csvfile
 .Op Fl X Ar addr Ns | Ns Ar range Ns | Ns Ar subnet
 .Op Fl x Ar addr Ns | Ns Ar range Ns | Ns Ar subnet
 .Ar interface
@@ -70,13 +70,13 @@ address, range or subnet.
 .It Fl n
 Dry-run mode.
 Does everything except inject packets into the network.
-.It Fl l Ar logfile
-Log information about received packets in CSV format to the specified
-file instead of
-.Pa @FT_LOGFILE@ .
 .It Fl p Ar pidfile
 Write the daemon's PID to the specified file instead of
 .Pa /var/run/flytrap.pid .
+.It Fl t Ar csvfile
+Write information about received traffic in CSV format to the specified
+file instead of
+.Pa @FT_CSVFILE@ .
 .It Fl v
 Enable log messages at verbose level or higher.
 .It Fl X Ar a.b.c.d

@@ -115,7 +115,8 @@ usage(void)
 {
 
 	fprintf(stderr, "usage: "
-	    "flytrap [-dfnv] [-p pidfile] [-Ii addr] [-Xx addr] interface\n");
+	    "flytrap [-dfnv] [-p pidfile] [-t csvfile] [-Ii addr] [-Xx addr] "
+	    "iface\n");
 	exit(1);
 }
 
@@ -127,7 +128,7 @@ main(int argc, char *argv[])
 
 	ifname = NULL;
 	ft_log_level = FT_LOG_LEVEL_NOTICE;
-	while ((opt = getopt(argc, argv, "dfhI:i:l:nvX:x:")) != -1) {
+	while ((opt = getopt(argc, argv, "dfhI:i:np:t:vX:x:")) != -1) {
 		switch (opt) {
 		case 'd':
 			if (ft_log_level > FT_LOG_LEVEL_DEBUG)
@@ -144,14 +145,14 @@ main(int argc, char *argv[])
 			if (include_range(&dst_set, optarg) != 0)
 				usage();
 			break;
-		case 'l':
-			ft_logname = optarg;
-			break;
 		case 'n':
 			ft_dryrun = 1;
 			break;
 		case 'p':
 			ft_pidfile = optarg;
+			break;
+		case 't':
+			ft_csvfile = optarg;
 			break;
 		case 'v':
 			if (ft_log_level > FT_LOG_LEVEL_VERBOSE)
@@ -180,6 +181,7 @@ main(int argc, char *argv[])
 	if (!ft_foreground)
 		daemonize();
 
+	/* ft_log is used for error messages, not traffic logs! */
 	ft_log_init("flytrap", NULL);
 	ret = flytrap(ifname);
 	ft_log_exit();

@@ -1,6 +1,6 @@
 # Install as /etc/logrotate.d/flytrap to enable log rotation
 
-/var/log/flytrap.log {
+@FT_CSVFILE@ {
     # Rotate daily, keep four weeks
     daily
     rotate 28

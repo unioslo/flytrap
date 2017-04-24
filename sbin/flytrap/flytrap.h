@@ -31,7 +31,7 @@
 #define FLYTRAP_H_INCLUDED
 
 extern int ft_dryrun;
-extern const char *ft_logname;
+extern const char *ft_csvfile;
 
 /* main loop */
 int		 flytrap(const char *);
