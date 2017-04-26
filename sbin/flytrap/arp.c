@@ -51,6 +51,21 @@
 #include "iface.h"
 #include "packet.h"
 
+/* magic value for "never seen" */
+#define ARP_NEVER	UINT64_MAX
+
+/* min unanswered ARP requests before we claim an address */
+#define ARP_MINREQ	    3
+
+/* how long to wait (in ms) before claiming an address */
+#define ARP_TIMEOUT	 3000
+
+/* age (in ms) of an entry before it is considered stale */
+#define ARP_STALE	30000
+
+/* age (in ms) of an entry before it is removed from the tree */
+#define ARP_EXPIRE	60000
+
 /*
  * A node in the tree.
  */
@@ -59,8 +74,8 @@ struct arpn {
 	uint8_t		 plen;		/* prefix length */
 	uint8_t		 claimed:1;	/* claimed by us */
 	uint8_t		 reserved:1;	/* reserved address */
-	uint64_t	 first;		/* first seen */
-	uint64_t	 last;		/* last seen */
+	uint64_t	 first;		/* first seen (ms since epoch) */
+	uint64_t	 last;		/* last seen (ms since epoch) */
 	union {
 		struct arpn *sub[16];	/* children */
 		struct {
@@ -70,12 +85,13 @@ struct arpn {
 	};
 };
 
-struct arpn arp_root;
+struct arpn arp_root = { .first = ARP_NEVER };
 
+#if 0
 /*
  * Print the leaf nodes of a tree in order.
  */
-void
+static void
 arp_print_tree(FILE *f, struct arpn *n)
 {
 	unsigned int i;
@@ -95,43 +111,93 @@ arp_print_tree(FILE *f, struct arpn *n)
 				arp_print_tree(f, n->sub[i]);
 	}
 }
+#endif
+
+/*
+ * Create a node for the subnet of the specified prefix length which
+ * contains the specified address.
+ */
+static struct arpn *
+arp_new(uint32_t addr, uint8_t plen)
+{
+	struct arpn *n;
+
+	if ((n = calloc(1, sizeof *n)) == NULL)
+		return (NULL);
+	n->addr = addr & -(1 << (32 - plen));
+	n->plen = plen;
+	n->first = ARP_NEVER;
+	n->last = 0;
+	ft_debug("added node %08x/%d", n->addr, n->plen);
+	return (n);
+}
 
 /*
  * Delete all children of a given node in a tree.
  */
-void
+static void
 arp_delete(struct arpn *n)
 {
 	unsigned int i;
 
-	for (i = 0; i < 16; ++i) {
-		if (n->sub[i] != NULL) {
-			arp_delete(n->sub[i]);
-			free(n->sub[i]);
-			n->sub[i] = NULL;
-		}
-	}
+	if (n == NULL)
+		return;
+	if (n->plen != 32)
+		for (i = 0; i < 16; ++i)
+			if (n->sub[i] != NULL)
+				arp_delete(n->sub[i]);
+	ft_debug("deleted node %08x/%d", n->addr, n->plen);
+	free(n);
 }
 
-#if 0
 /*
  * Expire
  */
-void
+static void
 arp_expire(struct arpn *n, uint64_t cutoff)
 {
 	unsigned int i;
 
-	if (n->last < cutoff) {
-		ft_verbose("expiring node %08x/%d", n->addr, n->plen);
-		arp_delete(n);
-	} else if (n->plen < 32) {
-		for (i = 0; i < 16; ++i)
-			if (n->sub[i] != NULL)
+	if (n == NULL)
+		n = &arp_root;
+	/* reset fences */
+	n->first = ARP_NEVER;
+	n->last = 0;
+	/* iterate over children */
+	for (i = 0; i < 16; ++i) {
+		if (n->sub[i] == NULL)
+			continue;
+		if (n->sub[i]->plen < 32) {
+			/* check descendants first */
+			if (n->sub[i]->first < cutoff)
 				arp_expire(n->sub[i], cutoff);
+		}
+		if (n->sub[i]->last < cutoff) {
+			/* expired or empty */
+			arp_delete(n->sub[i]);
+			n->sub[i] = NULL;
+		}
+		if (n->sub[i] != NULL) {
+			/* update our fences */
+			if (n->sub[i]->last < n->first)
+				n->first = n->sub[i]->last;
+			if (n->sub[i]->last > n->last)
+				n->last = n->sub[i]->last;
+		}
 	}
 }
-#endif
+
+/*
+ * Periodic maintenance
+ */
+void
+arp_periodic(struct timeval *tv)
+{
+	uint64_t now;
+
+	now = tv->tv_sec * 1000;
+	arp_expire(NULL, now - ARP_EXPIRE);
+}
 
 /*
  * Insert an address into a tree.
@@ -147,17 +213,17 @@ arp_insert(struct arpn *n, uint32_t addr, uint64_t when)
 		n = &arp_root;
 	if (n->plen == 32) {
 		ft_assert(n->addr == addr);
+		if (when < n->first)
+			n->first = when;
+		if (when > n->last)
+			n->last = when;
 		return (n);
 	}
 	splen = n->plen + 4;
 	sub = (addr >> (32 - splen)) % 16;
 	if ((sn = n->sub[sub]) == NULL) {
-		if ((sn = calloc(1, sizeof *sn)) == NULL)
+		if ((sn = arp_new(addr, splen)) == NULL)
 			return (NULL);
-		sn->addr = n->addr | (sub << (32 - splen));
-		sn->plen = splen;
-		sn->first = sn->last = when;
-		ft_debug("added node %08x/%d", sn->addr, sn->plen);
 		if (sn->plen == 32) {
 			ft_verbose("arp: inserted %d.%d.%d.%d",
 			    (addr >> 24) & 0xff, (addr >> 16) & 0xff,
@@ -167,10 +233,11 @@ arp_insert(struct arpn *n, uint32_t addr, uint64_t when)
 	}
 	if ((rn = arp_insert(sn, addr, when)) == NULL)
 		return (NULL);
-#if 0
+	/* for non-leaf nodes, first / last means oldest / newest */
+	if (sn->last < n->first)
+		n->first = sn->last;
 	if (sn->last > n->last)
 		n->last = sn->last;
-#endif
 	return (rn);
 }
 
@@ -325,10 +392,19 @@ packet_analyze_arp(ether_flow *fl, const void *data, size_t len)
 			ft_debug("\ttarget address is out of bounds");
 			break;
 		}
+		/* register sender */
 		arp_register(&ap->spa, &ap->sha, when);
+		/*
+		 * Note that arp_insert() sets an->last = when so we don't
+		 * have to, but leaves an->first untouched.  For new
+		 * nodes, this is the magic value ARP_NEVER.
+		 */
 		if ((an = arp_insert(NULL, be32toh(ap->tpa.q), when)) == NULL)
 			return (-1);
-		if (an->last != 0) {
+		if (an->first == ARP_NEVER) {
+			/* new entry */
+			an->first = when;
+		} else {
 			ft_verbose("%d.%d.%d.%d: last seen %d.%03d",
 			    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3],
 			    an->last / 1000, an->last % 1000);
@@ -342,20 +418,19 @@ packet_analyze_arp(ether_flow *fl, const void *data, size_t len)
 			ft_debug("refreshing %d.%d.%d.%d",
 			    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3]);
 			an->nreq = 0;
-			an->last = when;
 			if (arp_reply(fl, ap, an) != 0)
 				return (-1);
-		} else if (an->nreq == 0 || when - an->last >= 30000) {
+		} else if (an->nreq == 0 || when - an->last >= ARP_STALE) {
 			/* new or stale, start over */
 			an->nreq = 1;
-			an->first = an->last = when;
-		} else if (an->nreq >= 3 && when - an->first >= 3000) {
+			an->first = when;
+		} else if (an->nreq >= ARP_MINREQ &&
+		    when - an->first >= ARP_TIMEOUT) {
 			/* claim new address */
 			ft_verbose("claiming %d.%d.%d.%d nreq = %d", ap->tpa.o[0],
 			    ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3], an->nreq);
 			an->claimed = 1;
 			an->nreq = 0;
-			an->last = when;
 			if (arp_reply(fl, ap, an) != 0)
 				return (-1);
 		} else {
@@ -369,5 +444,7 @@ packet_analyze_arp(ether_flow *fl, const void *data, size_t len)
 		arp_register(&ap->tpa, &ap->tha, when);
 		break;
 	}
+	/* run expiry, assume packet time is <= current time */
+	arp_expire(&arp_root, when - ARP_EXPIRE);
 	return (0);
 }
