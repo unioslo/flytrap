@@ -35,6 +35,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include <ft/ethernet.h>
 #include <ft/ip4.h>
@@ -50,4 +51,11 @@ packet_analyze(packet *p)
 
 	ret = packet_analyze_ethernet(p, p->data, p->len);
 	return (ret);
+}
+
+void
+packet_drop(packet *p)
+{
+
+	free(p);
 }

@@ -90,6 +90,7 @@ flytrap(const char *iname)
 			goto fail;
 		}
 		packet_analyze(p);
+		packet_drop(p);
 	}
 	signal(SIGHUP, SIG_DFL);
 	return (0);

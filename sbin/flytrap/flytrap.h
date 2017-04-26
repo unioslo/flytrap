@@ -46,5 +46,6 @@ void		 iface_close(struct iface *);
 struct packet	*iface_next(struct iface *);
 int		 iface_transmit(struct packet *);
 int		 packet_analyze(struct packet *);
+void		 packet_drop(struct packet *);
 
 #endif
