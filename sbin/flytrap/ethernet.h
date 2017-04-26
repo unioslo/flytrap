@@ -32,6 +32,7 @@
 
 struct iface;
 struct packet;
+struct timeval;
 
 #define FLYTRAP_ETHER_ADDR { 0x02, 0x00, 0x18, 0x11, 0x09, 0x02 }
 extern ether_addr flytrap_ether_addr;

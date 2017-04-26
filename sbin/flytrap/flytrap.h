@@ -30,6 +30,9 @@
 #ifndef FLYTRAP_H_INCLUDED
 #define FLYTRAP_H_INCLUDED
 
+struct iface;
+struct packet;
+
 extern int ft_dryrun;
 extern const char *ft_csvfile;
 
