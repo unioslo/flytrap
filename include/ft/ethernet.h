@@ -49,4 +49,6 @@ typedef struct ether_ftr {
 	uint32_t	 fcs;
 } __attribute__((__packed__)) ether_ftr;
 
+uint32_t ether_crc32(const uint8_t *, size_t);
+
 #endif

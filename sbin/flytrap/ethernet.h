@@ -67,8 +67,6 @@ typedef struct ip4_flow {
 int	 arp_register(const ip4_addr *, const ether_addr *, uint64_t);
 int	 arp_lookup(const ip4_addr *, ether_addr *);
 
-uint32_t ether_crc32(const uint8_t *, size_t);
-
 int	 ethernet_send(struct iface *, ether_type, ether_addr *,
     const void *, size_t);
 int	 ethernet_reply(struct ether_flow *, const void *, size_t);

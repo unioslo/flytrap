@@ -4,6 +4,7 @@ noinst_LIBRARIES	 = libft.a
 libft_a_SOURCES		 =
 libft_a_SOURCES		+= ft_assert.c
 libft_a_SOURCES		+= ft_dict.c
+libft_a_SOURCES		+= ft_ether.c
 libft_a_SOURCES		+= ft_flopen.c
 libft_a_SOURCES		+= ft_hash.c
 libft_a_SOURCES		+= ft_ip4.c
