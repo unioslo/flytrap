@@ -60,7 +60,7 @@ include_range(ip4s_node **set, const char *range)
 
 	if (ip4_parse_range(range, &first, &last) == NULL)
 		return (-1);
-	fprintf(stderr, "include %u.%u.%u.%u - %u.%u.%u.%u\n",
+	ft_verbose("include %u.%u.%u.%u - %u.%u.%u.%u",
 	    first.o[0], first.o[1], first.o[2], first.o[3],
 	    last.o[0], last.o[1], last.o[2], last.o[3]);
 	if (*set == NULL)
@@ -78,7 +78,7 @@ exclude_range(ip4s_node **set, const char *range)
 
 	if (ip4_parse_range(range, &first, &last) == NULL)
 		return (-1);
-	fprintf(stderr, "exclude %u.%u.%u.%u - %u.%u.%u.%u\n",
+	ft_verbose("exclude %u.%u.%u.%u - %u.%u.%u.%u",
 	    first.o[0], first.o[1], first.o[2], first.o[3],
 	    last.o[0], last.o[1], last.o[2], last.o[3]);
 	if (*set == NULL)
