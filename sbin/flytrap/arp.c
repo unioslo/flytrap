@@ -469,7 +469,9 @@ packet_analyze_arp(ether_flow *fl, const void *data, size_t len)
 		break;
 	}
 	/* run expiry, assume packet time is <= current time */
-	arp_expire(&arp_root, when - ARP_EXPIRE);
-	ft_debug("%u nodes / %u leaves in tree", narpn, nleaves);
+	if (arp_root.oldest < when - ARP_EXPIRE) {
+		arp_expire(&arp_root, when - ARP_EXPIRE);
+		ft_debug("%u nodes / %u leaves in tree", narpn, nleaves);
+	}
 	return (0);
 }
