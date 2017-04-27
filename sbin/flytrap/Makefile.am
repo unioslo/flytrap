@@ -4,8 +4,8 @@ sbin_PROGRAMS		 = flytrap
 
 flytrap_SOURCES		 =
 flytrap_SOURCES		+= arp.c
+flytrap_SOURCES		+= csv.c
 flytrap_SOURCES		+= flytrap.c
-flytrap_SOURCES		+= log.c
 flytrap_SOURCES		+= main.c
 
 # Interface

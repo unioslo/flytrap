@@ -233,7 +233,7 @@ packet_analyze_tcp4(ip4_flow *fl, const void *data, size_t len)
 	for (bit = 1, mask = 0x80; mask > 0; ++bit, mask >>= 1)
 		if (!(th->fl & mask))
 			flags[bit] = '-';
-	log_packet4(&fl->eth->p->ts, &fl->src, be16toh(th->sp),
+	csv_packet4(&fl->eth->p->ts, &fl->src, be16toh(th->sp),
 	    &fl->dst, be16toh(th->dp), "TCP", len, flags);
 	if (th->fl & TCP4_SYN) {
 		if (th->fl & TCP4_ACK)

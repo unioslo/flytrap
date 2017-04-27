@@ -117,7 +117,7 @@ packet_analyze_icmp4(ip4_flow *fl, const void *data, size_t len)
 	default:
 		ret = 0;
 	}
-	log_packet4(&fl->eth->p->ts, &fl->src, 0, &fl->dst, 0,
+	csv_packet4(&fl->eth->p->ts, &fl->src, 0, &fl->dst, 0,
 	    "ICMP", len, "%u.%u", ih->type, ih->code);
 	return (ret);
 }

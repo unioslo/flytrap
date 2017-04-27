@@ -39,8 +39,8 @@ extern const char *ft_csvfile;
 /* main loop */
 int		 flytrap(const char *);
 
-/* log subsystem */
-int		 log_open(const char *);
+/* traffic logging */
+int		 csv_open(const char *);
 
 /* interfaces and packets */
 struct iface	*iface_open(const char *);

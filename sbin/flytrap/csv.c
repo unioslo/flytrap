@@ -44,41 +44,41 @@
 #include "flytrap.h"
 #include "ethernet.h"
 
-static FILE *logfile;
+static FILE *csvfile;
 
 int
-log_packet4(const struct timeval *tv,
+csv_packet4(const struct timeval *tv,
     const ip4_addr *sa, int sp,
     const ip4_addr *da, int dp,
     const char *proto, size_t len, const char *fmt, ...)
 {
 	va_list ap;
 
-	fprintf(logfile,
+	fprintf(csvfile,
 	    "%llu.%06lu,%d.%d.%d.%d,%d,%d.%d.%d.%d,%d,%s,%zu,",
 	    (unsigned long long)tv->tv_sec, (unsigned long)tv->tv_usec,
 	    sa->o[0], sa->o[1], sa->o[2], sa->o[3], sp,
 	    da->o[0], da->o[1], da->o[2], da->o[3], dp,
 	    proto, len);
 	va_start(ap, fmt);
-	vfprintf(logfile ? logfile : stdout, fmt, ap);
+	vfprintf(csvfile ? csvfile : stdout, fmt, ap);
 	va_end(ap);
-	fprintf(logfile ? logfile : stdout, "\n");
-	fflush(logfile);
+	fprintf(csvfile ? csvfile : stdout, "\n");
+	fflush(csvfile);
 	return (0);
 }
 
 int
-log_open(const char *logfn)
+csv_open(const char *csvfn)
 {
 	FILE *nf, *of;
 
-	if (logfn == NULL)
+	if (csvfn == NULL)
 		nf = stdout;
-	else if ((nf = fopen(logfn, "a")) == NULL)
+	else if ((nf = fopen(csvfn, "a")) == NULL)
 		return (-1);
-	of = logfile;
-	logfile = nf;
+	of = csvfile;
+	csvfile = nf;
 	if (of != NULL && of != stdout)
 		fclose(of);
 	return (0);

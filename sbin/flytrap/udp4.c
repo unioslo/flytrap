@@ -71,7 +71,7 @@ packet_analyze_udp4(ip4_flow *fl, const void *data, size_t len)
 	}
 	data = uh + 1;
 	len -= sizeof *uh;
-	log_packet4(&fl->eth->p->ts, &fl->src, be16toh(uh->sp),
+	csv_packet4(&fl->eth->p->ts, &fl->src, be16toh(uh->sp),
 	    &fl->dst, be16toh(uh->dp), "UDP", len, "");
 	return (0);
 }

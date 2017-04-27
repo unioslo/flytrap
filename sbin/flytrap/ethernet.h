@@ -82,7 +82,7 @@ int	 packet_analyze_icmp4(struct ip4_flow *, const void *, size_t);
 int	 packet_analyze_udp4(struct ip4_flow *, const void *, size_t);
 int	 packet_analyze_tcp4(struct ip4_flow *, const void *, size_t);
 
-int	 log_packet4(const struct timeval *,
+int	 csv_packet4(const struct timeval *,
     const ip4_addr *, int, const ip4_addr *, int,
     const char *, size_t, const char *, ...);
 
