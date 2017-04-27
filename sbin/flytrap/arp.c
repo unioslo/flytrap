@@ -72,20 +72,35 @@
 struct arpn {
 	uint32_t	 addr;		/* network address */
 	uint8_t		 plen;		/* prefix length */
-	uint8_t		 claimed:1;	/* claimed by us */
-	uint8_t		 reserved:1;	/* reserved address */
-	uint64_t	 first;		/* first seen (ms since epoch) */
-	uint64_t	 last;		/* last seen (ms since epoch) */
 	union {
-		struct arpn *sub[16];	/* children */
+		/* leaf node */
+		uint64_t	 first;		/* first seen (ms) */
+		/* inner node */
+		uint64_t	 oldest;	/* oldest child */
+	};
+	union {
+		/* leaf node */
+		uint64_t	 last;		/* last seen (ms) */
+		/* inner node */
+		uint64_t	 newest;	/* newest child */
+	};
+	union {
+		/* leaf node */
 		struct {
-			ether_addr	 ether;
-			unsigned int	 nreq;
+			ether_addr	 ether;		/* Ethernet address */
+			unsigned int	 nreq;		/* requests seen */
+			int		 claimed:1;	/* claimed by us */
+			int		 reserved:1;	/* reserved address */
+		};
+		/* inner node */
+		struct {
+			struct arpn	*sub[16];	/* children */
 		};
 	};
 };
 
-struct arpn arp_root = { .first = ARP_NEVER };
+static struct arpn arp_root = { .first = ARP_NEVER };
+static unsigned int narpn, nleaves;
 
 #if 0
 /*
@@ -124,6 +139,7 @@ arp_new(uint32_t addr, uint8_t plen)
 
 	if ((n = calloc(1, sizeof *n)) == NULL)
 		return (NULL);
+	narpn++;
 	n->addr = addr & -(1 << (32 - plen));
 	n->plen = plen;
 	n->first = ARP_NEVER;
@@ -142,11 +158,14 @@ arp_delete(struct arpn *n)
 
 	if (n == NULL)
 		return;
-	if (n->plen != 32)
+	if (n->plen == 32)
+		nleaves--;
+	else
 		for (i = 0; i < 16; ++i)
 			if (n->sub[i] != NULL)
 				arp_delete(n->sub[i]);
 	ft_debug("deleted node %08x/%d", n->addr, n->plen);
+	narpn--;
 	free(n);
 }
 
@@ -156,10 +175,12 @@ arp_delete(struct arpn *n)
 static void
 arp_expire(struct arpn *n, uint64_t cutoff)
 {
-	unsigned int i;
+	unsigned int i, ndel;
 
 	if (n == NULL)
 		n = &arp_root;
+	ndel = narpn;
+	ft_debug("expiring in %08x/%d", n->addr, n->plen);
 	/* reset fences */
 	n->first = ARP_NEVER;
 	n->last = 0;
@@ -169,22 +190,24 @@ arp_expire(struct arpn *n, uint64_t cutoff)
 			continue;
 		if (n->sub[i]->plen < 32) {
 			/* check descendants first */
-			if (n->sub[i]->first < cutoff)
+			if (n->sub[i]->oldest < cutoff)
 				arp_expire(n->sub[i], cutoff);
 		}
-		if (n->sub[i]->last < cutoff) {
+		if (n->sub[i]->newest < cutoff) {
 			/* expired or empty */
 			arp_delete(n->sub[i]);
 			n->sub[i] = NULL;
 		}
 		if (n->sub[i] != NULL) {
 			/* update our fences */
-			if (n->sub[i]->last < n->first)
-				n->first = n->sub[i]->last;
-			if (n->sub[i]->last > n->last)
-				n->last = n->sub[i]->last;
+			if (n->sub[i]->newest < n->oldest)
+				n->oldest = n->sub[i]->newest;
+			if (n->sub[i]->newest > n->newest)
+				n->newest = n->sub[i]->newest;
 		}
 	}
+	ndel -= narpn;
+	ft_debug("expired %u nodes under %08x/%d", ndel, n->addr, n->plen);
 }
 
 /*
@@ -228,16 +251,17 @@ arp_insert(struct arpn *n, uint32_t addr, uint64_t when)
 			ft_verbose("arp: inserted %d.%d.%d.%d",
 			    (addr >> 24) & 0xff, (addr >> 16) & 0xff,
 			    (addr >> 8) & 0xff, addr & 0xff);
+			nleaves++;
 		}
 		n->sub[sub] = sn;
 	}
 	if ((rn = arp_insert(sn, addr, when)) == NULL)
 		return (NULL);
 	/* for non-leaf nodes, first / last means oldest / newest */
-	if (sn->last < n->first)
-		n->first = sn->last;
-	if (sn->last > n->last)
-		n->last = sn->last;
+	if (sn->newest < n->oldest)
+		n->oldest = sn->newest;
+	if (sn->newest > n->newest)
+		n->newest = sn->newest;
 	return (rn);
 }
 
@@ -446,5 +470,6 @@ packet_analyze_arp(ether_flow *fl, const void *data, size_t len)
 	}
 	/* run expiry, assume packet time is <= current time */
 	arp_expire(&arp_root, when - ARP_EXPIRE);
+	ft_debug("%u nodes / %u leaves in tree", narpn, nleaves);
 	return (0);
 }
