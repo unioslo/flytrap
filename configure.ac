@@ -141,7 +141,9 @@ AC_CONFIG_FILES([
     sbin/flytrap/Makefile
     sbin/flytrap/flytrap.8
     rc/Makefile
+    rc/flytrap.init
     rc/flytrap.logrotate
+    rc/flytrap.rc
     rc/flytrap.systemd
     t/Makefile
 ])

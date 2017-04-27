@@ -1,0 +1,55 @@
+#!/bin/sh
+#
+# FreeBSD rc script for Flytrap
+#
+
+# PROVIDE: flytrap
+# REQUIRE: NETWORK FILESYSTEMS
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name="flytrap"
+command="@sbindir@/${name}"
+start_precmd="flytrap_precmd"
+start_cmd="flytrap_start"
+reload_precmd="flytrap_precmd"
+restart_precmd="flytrap_precmd"
+pidfile="/var/run/${name}.pid"
+
+: ${flytrap_csvfile:="@FT_CSVFILE@"}
+
+flytrap_precmd() {
+	if [ -z "${flytrap_interface}" ] ; then
+		iface=$(/sbin/ifconfig -lu | cut -d' ' -f1)
+		if [ -z "${iface}" ] ; then
+			err 1 "\$flytrap_interface not defined," \
+			    "no eligible interface found"
+		else
+			warn "\$flytrap_interface not defined," \
+			    "using ${iface}"
+			flytrap_interface="${iface}"
+		fi
+	else
+		for iface in $(ifconfig -l) "" ; do
+			if [ "${iface}" = "${flytrap_interface}" ] ; then
+				break
+			fi
+		done
+		if [ -z "${iface}" ] ; then
+			err 1 "interface ${flytrap_interface} not found"
+		fi
+	fi
+	if [ -z "$(/sbin/ifconfig -u ${flytrap_interface})" ] ; then
+		warn "interface ${flytrap_interface} is down"
+	fi
+	return 0
+}
+
+flytrap_start() {
+	"${command}" -p "${flytrap_pidfile}" -t "${flytrap_csvfile}" \
+	    "${flytrap_flags:---}" "${flytrap_interface}"
+}
+
+load_rc_config $name
+run_rc_command "$1"
