@@ -8,8 +8,9 @@ After=network.target
 [Service]
 Type=forking
 PIDFile=/var/run/flytrap.pid
+Environment=CSVFILE=@FT_CSVFILE@
 EnvironmentFile=/etc/sysconfig/flytrap
-ExecStart=@sbindir@/flytrap -t ${CSVFILE:-@FT_CSVFILE@} $OPTIONS $INTERFACE
+ExecStart=@sbindir@/flytrap -t $CSVFILE $OPTIONS $INTERFACE
 KillMode=process
 Restart=on-failure
 RestartSec=42s
