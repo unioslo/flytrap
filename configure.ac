@@ -24,6 +24,7 @@ AC_C_VOLATILE
 # other programs
 AC_PROG_INSTALL
 AC_PROG_RANLIB
+AC_PROG_SED
 AC_PATH_PROGS([Z], [xz bzip2 gzip])
 AC_PATH_PROGS([UNZ], [unxz bunzip2 gunzip])
 case ${ac_cv_path_Z##*/} in

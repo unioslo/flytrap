@@ -2,3 +2,4 @@
 /flytrap.logrotate
 /flytrap.rc
 /flytrap.systemd
+/edit-stamp
