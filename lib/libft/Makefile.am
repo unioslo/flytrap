@@ -11,6 +11,6 @@ libft_a_SOURCES		+= ft_ip4.c
 libft_a_SOURCES		+= ft_ip4_set.c
 libft_a_SOURCES		+= ft_log.c
 libft_a_SOURCES		+= ft_pidfile.c
-libft_a_SOURCES		+= ft_sbuf.c
+libft_a_SOURCES		+= ft_string.c
 libft_a_SOURCES		+= ft_strlcat.c
 libft_a_SOURCES		+= ft_strlcpy.c

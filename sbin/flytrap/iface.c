@@ -50,7 +50,7 @@
 #include <ft/ethernet.h>
 #include <ft/ip4.h>
 #include <ft/log.h>
-#include <ft/sbuf.h>
+#include <ft/string.h>
 #include <ft/strlcpy.h>
 
 #include "flytrap.h"
@@ -103,9 +103,9 @@ fail:
 int
 iface_activate(iface *i)
 {
-	char fsz[1024];
-	struct sbuf fsb;
 	struct bpf_program fprog;
+	string *fstr;
+	const char *fsz;
 
 	/* activate interface */
 #if HAVE_PCAP_PCAP_H
@@ -129,19 +129,20 @@ iface_activate(iface *i)
 	}
 
 	/* compose and compile filter program */
-	sbuf_new(&fsb, fsz, sizeof fsz, 0);
-	sbuf_printf(&fsb,
+	fstr = string_new();
+	string_printf(fstr,
 	    "arp"
 	    " or ether dst %02x:%02x:%02x:%02x:%02x:%02x"
 	    " or ether dst ff:ff:ff:ff:ff:ff",
 	    i->ether.o[0], i->ether.o[1], i->ether.o[2],
 	    i->ether.o[3], i->ether.o[4], i->ether.o[5]);
-	sbuf_finish(&fsb);
+	fsz = string_buf(fstr);
 	if (pcap_compile(i->pch, &fprog, fsz, 1, 0xffffffffU) != 0) {
 		ft_error("%s: failed to compile filter: %s",
 		    i->name, pcap_geterr(i->pch));
 		return (-1);
 	}
+	string_delete(fstr);
 
 	/* install filter program */
 	if (pcap_setfilter(i->pch, &fprog) != 0) {
