@@ -42,7 +42,7 @@
 
 #define FT_LOGV_REQUIRED
 #include <ft/log.h>
-#include <ft/strutil.h>
+#include <ft/strlcpy.h>
 
 static char ft_prog_name[16];
 static FILE *ft_logfile;

@@ -1,6 +1,5 @@
 /*-
- * Copyright (c) 2011-2012 Dag-Erling Smørgrav
- * Copyright (c) 2014 The University of Oslo
+ * Copyright (c) 2011-2017 Dag-Erling Smørgrav
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +27,19 @@
  * SUCH DAMAGE.
  */
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
+#if HAVE_CONFIG_H
+#include "config.h"
 #endif
-
-#ifndef HAVE_STRLCAT
 
 #include <stddef.h>
 
-#include <ft/strutil.h>
+#include <ft/strlcat.h>
 
 /*
- * Like strcat(3), but always NUL-terminates; returns strlen(src)
+ * Like strcat(3), but always NUL-terminates.
+ *
+ * Returns strlen(dst) + strlen(src), regardless of how much was copied,
+ * if dst was properly terminated.  Returns size + strlen(src) otherwise.
  */
 
 size_t
@@ -47,14 +47,13 @@ ft_strlcat(char *dst, const char *src, size_t size)
 {
 	size_t len;
 
-	for (len = 0; *dst && size > 1; ++len, --size)
-		dst++;
-	for (; *src && size > 1; ++len, --size)
-		*dst++ = *src++;
-	*dst = '\0';
+	for (len = 0; *dst && len < size; ++len, ++dst)
+		/* nothing */;
+	for (; *src && len + 1 < size; ++len, ++src, ++dst)
+		*dst = *src;
+	if (len < size)
+		*dst = '\0';
 	while (*src)
 		++len, ++src;
 	return (len);
 }
-
-#endif

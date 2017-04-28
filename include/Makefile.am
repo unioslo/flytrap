@@ -11,4 +11,5 @@ noinst_HEADERS += ft/ip4.h
 noinst_HEADERS += ft/log.h
 noinst_HEADERS += ft/pidfile.h
 noinst_HEADERS += ft/sbuf.h
-noinst_HEADERS += ft/strutil.h
+noinst_HEADERS += ft/strlcat.h
+noinst_HEADERS += ft/strlcpy.h

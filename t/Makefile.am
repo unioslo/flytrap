@@ -15,6 +15,12 @@ t_ip4_range_LDADD	 = $(LIBFT) $(LIBCRYB_TEST)
 check_PROGRAMS		+= t_ip4_set
 t_ip4_set_LDADD		 = $(LIBFT) $(LIBCRYB_TEST)
 
+check_PROGRAMS		+= t_strlcat
+t_strlcat_LDADD		 = $(LIBFT) $(LIBCRYB_TEST)
+
+check_PROGRAMS		+= t_strlcpy
+t_strlcpy_LDADD		 = $(LIBFT) $(LIBCRYB_TEST)
+
 TESTS = $(check_PROGRAMS)
 
 endif

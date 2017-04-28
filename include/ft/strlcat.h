@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011-2017 Dag-Erling Smørgrav
+ * Copyright (c) 2011-2016 Dag-Erling Smørgrav
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,29 +27,14 @@
  * SUCH DAMAGE.
  */
 
-#if HAVE_CONFIG_H
-#include "config.h"
+#ifndef FT_STRLCAT_H_INCLUDED
+#define FT_STRLCAT_H_INCLUDED
+
+size_t ft_strlcat(char *, const char *, size_t);
+
+#if !HAVE_STRLCAT
+#undef strlcat
+#define strlcat(arg, ...) ft_strlcat(arg, __VA_ARGS__)
 #endif
 
-#include <stddef.h>
-
-#include <ft/strlcpy.h>
-
-/*
- * Like strcpy(3), but always NUL-terminates.
- *
- * Returns strlen(src), regardless of how much was copied.
- */
-
-size_t
-ft_strlcpy(char *dst, const char *src, size_t size)
-{
-	size_t len;
-
-	for (len = 0; *src && size > 1; ++len, --size)
-		*dst++ = *src++;
-	*dst = '\0';
-	while (*src)
-		++len, ++src;
-	return (len);
-}
+#endif

@@ -1,6 +1,5 @@
 /*-
- * Copyright (c) 2011-2012 Dag-Erling Smørgrav
- * Copyright (c) 2013-2014 The University of Oslo
+ * Copyright (c) 2011-2016 Dag-Erling Smørgrav
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,17 +27,12 @@
  * SUCH DAMAGE.
  */
 
-#ifndef FT_STRUTIL_H_INCLUDED
-#define FT_STRUTIL_H_INCLUDED
+#ifndef FT_STRLCPY_H_INCLUDED
+#define FT_STRLCPY_H_INCLUDED
 
-#ifndef HAVE_STRLCAT
-size_t ft_strlcat(char *, const char *, size_t);
-#undef strlcat
-#define strlcat(arg, ...) ft_strlcat(arg, __VA_ARGS__)
-#endif
-
-#ifndef HAVE_STRLCPY
 size_t ft_strlcpy(char *, const char *, size_t);
+
+#if !HAVE_STRLCPY
 #undef strlcpy
 #define strlcpy(arg, ...) ft_strlcpy(arg, __VA_ARGS__)
 #endif

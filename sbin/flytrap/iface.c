@@ -51,7 +51,7 @@
 #include <ft/ip4.h>
 #include <ft/log.h>
 #include <ft/sbuf.h>
-#include <ft/strutil.h>
+#include <ft/strlcpy.h>
 
 #include "flytrap.h"
 #include "ethernet.h"
