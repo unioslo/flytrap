@@ -43,13 +43,4 @@ size_t ft_strlcpy(char *, const char *, size_t);
 #define strlcpy(arg, ...) ft_strlcpy(arg, __VA_ARGS__)
 #endif
 
-int ft_straddch(char **, size_t *, size_t *, int);
-#define straddch(arg, ...) ft_straddch(arg, __VA_ARGS__)
-#ifdef _IOFBF
-char *ft_readword(FILE *, int *, size_t *);
-#define readword(arg, ...) ft_readword(arg, __VA_ARGS__)
-char **ft_readlinev(FILE *, int *, int *);
-#define readlinev(arg, ...) ft_readlinev(arg, __VA_ARGS__)
-#endif
-
 #endif
