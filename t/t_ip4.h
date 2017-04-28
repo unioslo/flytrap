@@ -38,7 +38,7 @@ t_compare_ip4_addr(const ip4_addr *e, const ip4_addr *r)
 {
 
 	if (e->q != r->q) {
-		t_verbose("expected %d.%d.%d.%d\n"
+		t_printv("expected %d.%d.%d.%d\n"
 		    "received %d.%d.%d.%d\n",
 		    e->o[0], e->o[1], e->o[2], e->o[3],
 		    r->o[0], r->o[1], r->o[2], r->o[3]);

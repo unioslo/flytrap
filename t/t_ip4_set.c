@@ -134,7 +134,7 @@ t_ip4a(char **desc CRYB_UNUSED, void *arg)
 		q = ip4_parse(p, &addr);
 		ft_assert(q != NULL && (*q == '\0' || *q == ','));
 		if (ip4s_lookup(n, be32toh(addr.q)) != 1) {
-			t_verbose("expected %d.%d.%d.%d present\n",
+			t_printv("expected %d.%d.%d.%d present\n",
 			    addr.o[0], addr.o[1], addr.o[2], addr.o[3]);
 			ret = 0;
 		}
@@ -143,7 +143,7 @@ t_ip4a(char **desc CRYB_UNUSED, void *arg)
 		q = ip4_parse(p, &addr);
 		ft_assert(q != NULL && (*q == '\0' || *q == ','));
 		if (ip4s_lookup(n, be32toh(addr.q)) != 0) {
-			t_verbose("expected %d.%d.%d.%d absent\n",
+			t_printv("expected %d.%d.%d.%d absent\n",
 			    addr.o[0], addr.o[1], addr.o[2], addr.o[3]);
 			ret = 0;
 		}
