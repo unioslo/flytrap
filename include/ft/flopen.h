@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007 Dag-Erling Coïdan Smørgrav
+ * Copyright (c) 2007 Dag-Erling Smørgrav
  * Copyright (c) 2015 The University of Oslo
  * All rights reserved.
  *
