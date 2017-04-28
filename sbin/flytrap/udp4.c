@@ -57,14 +57,14 @@ packet_analyze_udp4(ip4_flow *fl, const void *data, size_t len)
 
 	uh = data;
 	if (len < sizeof *uh) {
-		ft_notice("%d.%03d short UDP packet (%zd < %zd)",
+		ft_verbose("%d.%03d short UDP packet (%zd < %zd)",
 		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
 		    len, sizeof *uh);
 		return (-1);
 	}
 	if (uh->sum != 0 &&
 	    (sum = ~ip4_cksum(fl->sum, data, len)) != 0) {
-		ft_notice("%d.%03d invalid UDP checksum 0x%04hx",
+		ft_verbose("%d.%03d invalid UDP checksum 0x%04hx",
 		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
 		    sum);
 		return (-1);

@@ -56,7 +56,7 @@ packet_analyze_ethernet(packet *p, const void *data, size_t len)
 	int ret;
 
 	if (len < sizeof(ether_hdr)) {
-		ft_notice("%d.%03d short Ethernet packet (%zd < %zd)",
+		ft_verbose("%d.%03d short Ethernet packet (%zd < %zd)",
 		    p->ts.tv_sec, p->ts.tv_usec / 1000,
 		    len, sizeof(ether_hdr));
 		return (-1);

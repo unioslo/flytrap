@@ -91,13 +91,13 @@ packet_analyze_icmp4(ip4_flow *fl, const void *data, size_t len)
 
 	ih = data;
 	if (len < sizeof *ih) {
-		ft_notice("%d.%03d short ICMP packet (%zd < %zd)",
+		ft_verbose("%d.%03d short ICMP packet (%zd < %zd)",
 		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
 		    len, sizeof *ih);
 		return (-1);
 	}
 	if ((sum = ~ip4_cksum(0, data, len)) != 0) {
-		ft_notice("%d.%03d invalid ICMP checksum 0x%04hx",
+		ft_verbose("%d.%03d invalid ICMP checksum 0x%04hx",
 		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
 		    sum);
 		return (-1);

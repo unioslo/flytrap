@@ -65,7 +65,7 @@ packet_analyze_ip4(ether_flow *ethfl, const void *data, size_t len)
 	int ret;
 
 	if (len < sizeof(ip4_hdr)) {
-		ft_notice("%d.%03d short IP packet (%zd < %zd)",
+		ft_verbose("%d.%03d short IP packet (%zd < %zd)",
 		    ethfl->p->ts.tv_sec, ethfl->p->ts.tv_usec / 1000,
 		    len, sizeof(ip4_hdr));
 		return (-1);
@@ -73,7 +73,8 @@ packet_analyze_ip4(ether_flow *ethfl, const void *data, size_t len)
 	ih = data;
 	ihl = ip4_hdr_ihl(ih) * 4;
 	if (ihl < 20 || len < ihl || len < be16toh(ih->len)) {
-		ft_notice("%d.%03d malformed IP header (plen %zd len %zd ihl %zd)",
+		ft_verbose("%d.%03d malformed IP header "
+		    "(plen %zd len %zd ihl %zd)",
 		    ethfl->p->ts.tv_sec, ethfl->p->ts.tv_usec / 1000,
 		    len, be16toh(ih->len), ihl);
 		return (-1);

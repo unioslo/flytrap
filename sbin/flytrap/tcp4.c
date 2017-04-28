@@ -211,20 +211,20 @@ packet_analyze_tcp4(ip4_flow *fl, const void *data, size_t len)
 	th = data;
 	thlen = len >= sizeof *th ? (tcp4_hdr_off(th) * 4U) : sizeof *th;
 	if (len < thlen) {
-		ft_notice("%d.%03d short TCP packet (%zd < %zd)",
+		ft_verbose("%d.%03d short TCP packet (%zd < %zd)",
 		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
 		    len, thlen);
 		return (-1);
 	}
 	if ((sum = ~ip4_cksum(fl->sum, data, len)) != 0) {
-		ft_notice("%d.%03d invalid TCP checksum 0x%04hx",
+		ft_verbose("%d.%03d invalid TCP checksum 0x%04hx",
 		    fl->eth->p->ts.tv_sec, fl->eth->p->ts.tv_usec / 1000,
 		    sum);
 		return (-1);
 	}
 	data = (const uint8_t *)data + thlen;
 	len -= thlen;
-	ft_verbose("tcp4 port %hu to %hu seq %lu ack %lu win %hu len %zu",
+	ft_debug("tcp4 port %hu to %hu seq %lu ack %lu win %hu len %zu",
 	    (unsigned short)be16toh(th->sp), (unsigned short)be16toh(th->dp),
 	    (unsigned long)be32toh(th->seq), (unsigned long)be32toh(th->ack),
 	    (unsigned short)be16toh(th->win), len);
