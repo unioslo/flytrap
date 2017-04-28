@@ -14,6 +14,6 @@
     # signal flytrap(8) after rotating
     sharedscripts
     postrotate
-        kill -HUP `cat /var/run/flytrap.pid`
+        service flytrap reload
     endscript
 }
