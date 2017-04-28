@@ -38,6 +38,7 @@ gzip)
 	AC_SUBST([ZEXT], [.gz])
 	;;
 esac
+AX_PROG_PKG_CONFIG
 
 ############################################################################
 #
@@ -82,6 +83,7 @@ AC_CHECK_HEADERS([pcap.h pcap/pcap.h])
 # Extra libraries
 #
 
+# libpcap
 save_LIBS="${LIBS}"
 LIBS=""
 AC_SEARCH_LIBS([pcap_open_live], [pcap])
@@ -89,13 +91,10 @@ LIBPCAP="${LIBS}"
 LIBS="${save_LIBS}"
 AC_SUBST(LIBPCAP)
 
-save_LIBS="${LIBS}"
-LIBS=""
-AC_CHECK_LIB([cryb-test], [t_add_tests])
-LIBCRYB_TEST="${LIBS}"
-LIBS="${save_LIBS}"
-AC_SUBST(LIBCRYB_TEST)
-AM_CONDITIONAL([WITH_TESTS], [test x"${LIBCRYB_TEST}" != x""])
+# cryb-test
+AX_PKG_CONFIG_CHECK([cryb-test],
+  [AC_MSG_NOTICE([Cryb test framework found, unit tests enabled.])],
+  [AC_MSG_WARN([Cryb test framework not found, unit tests disabled.])])
 
 ############################################################################
 #
