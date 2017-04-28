@@ -11,6 +11,7 @@ PIDFile=/var/run/flytrap.pid
 Environment=CSVFILE=@FT_CSVFILE@
 EnvironmentFile=/etc/sysconfig/flytrap
 ExecStart=@sbindir@/flytrap -t $CSVFILE $OPTIONS $INTERFACE
+ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process
 Restart=on-failure
 RestartSec=42s
