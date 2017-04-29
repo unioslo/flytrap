@@ -9,7 +9,7 @@ CLEANFILES = $(GENFILES) edit-stamp
 noinst_DATA = edit-stamp
 
 edit-stamp: $(GENFILES) Makefile
-	$(SED) -i \
+	$(SED) -i- \
 	    -e "s@\$${exec_prefix}@${exec_prefix}@" \
 	    $(GENFILES)
 	touch edit-stamp

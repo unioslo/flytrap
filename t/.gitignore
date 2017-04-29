@@ -1,5 +1,8 @@
 *.log
 *.trs
-t_ip4_addr
-t_ip4_range
-t_ip4_set
+/t_ip4_addr
+/t_ip4_range
+/t_ip4_set
+/t_string
+/t_strlcat
+/t_strlcpy
