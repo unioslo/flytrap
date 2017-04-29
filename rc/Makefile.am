@@ -5,7 +5,7 @@ EXTRA_DIST = \
 	flytrap.systemd.in
 
 GENFILES = flytrap.init flytrap.logrotate flytrap.rc flytrap.systemd
-CLEANFILES = $(GENFILES) edit-stamp
+CLEANFILES = $(GENFILES) $(GENFILES:=-) edit-stamp
 noinst_DATA = edit-stamp
 
 edit-stamp: $(GENFILES) Makefile
