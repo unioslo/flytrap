@@ -315,7 +315,7 @@ string_printf(string *str, const char_t *fmt, ...)
 ssize_t
 string_vprintf(string *str, const char_t *fmt, va_list ap)
 {
-	va_list ap2;
+	va_list apc;
 	ssize_t res, ret;
 	int len;
 
@@ -325,9 +325,9 @@ string_vprintf(string *str, const char_t *fmt, va_list ap)
 	 */
 	for (;;) {
 		res = str->size / sizeof(char_t) - str->len;
-		va_copy(ap2, ap);
-		len = vsnprintf(str->buf + str->len, res, fmt, ap);
-		va_end(ap2);
+		va_copy(apc, ap);
+		len = vsnprintf(str->buf + str->len, res, fmt, apc);
+		va_end(apc);
 		if (len < res)
 			break;
 		str->buf[str->len] = 0;
