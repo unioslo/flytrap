@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2014 Dag-Erling Smørgrav
- * Copyright (c) 2016 Universitetet i Oslo
+ * Copyright (c) 2016 The University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
