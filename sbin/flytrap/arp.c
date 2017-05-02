@@ -55,16 +55,16 @@
 #define ARP_NEVER	UINT64_MAX
 
 /* min unanswered ARP requests before we claim an address */
-#define ARP_MINREQ	    3
+#define ARP_MINREQ	     3
 
 /* how long to wait (in ms) before claiming an address */
-#define ARP_TIMEOUT	 3000
+#define ARP_TIMEOUT	  3000
 
 /* age (in ms) of an entry before it is considered stale */
-#define ARP_STALE	30000
+#define ARP_STALE	 30000
 
 /* age (in ms) of an entry before it is removed from the tree */
-#define ARP_EXPIRE	60000
+#define ARP_EXPIRE	300000
 
 /*
  * A node in the tree.
