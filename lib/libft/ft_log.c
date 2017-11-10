@@ -91,7 +91,9 @@ ft_log_level_to_string(ft_log_level_t level)
 void
 ft_logv(ft_log_level_t level, const char *fmt, va_list ap)
 {
+	int serrno;
 
+	serrno = errno;
 	if (ft_logfile != NULL) {
 		fprintf(ft_logfile, "%s: %s: ", ft_prog_name,
 		    ft_log_level_to_string(level));
@@ -100,6 +102,7 @@ ft_logv(ft_log_level_t level, const char *fmt, va_list ap)
 	} else {
 		vsyslog(ft_log_level_to_syslog(level), fmt, ap);
 	}
+	errno = serrno;
 }
 
 /*
@@ -109,15 +112,12 @@ void
 ft_log(ft_log_level_t level, const char *fmt, ...)
 {
 	va_list ap;
-	int serrno;
 
-	serrno = errno;
 	if (level >= ft_log_level) {
 		va_start(ap, fmt);
 		ft_logv(level, fmt, ap);
 		va_end(ap);
 	}
-	errno = serrno;
 }
 
 void
