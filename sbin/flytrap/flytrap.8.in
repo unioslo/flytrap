@@ -26,7 +26,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd April 24, 2017
+.Dd November 14, 2018
 .Dt FLYTRAP 8
 .Os
 .Sh NAME
@@ -34,7 +34,7 @@
 .Nd Detect and impede port scanners
 .Sh SYNOPSIS
 .Nm
-.Op Fl dfnv
+.Op Fl dfnov
 .Op Fl I Ar addr Ns | Ns Ar range Ns | Ns Ar subnet
 .Op Fl i Ar addr Ns | Ns Ar range Ns | Ns Ar subnet
 .Op Fl p Ar pidfile
@@ -70,6 +70,12 @@ address, range or subnet.
 .It Fl n
 Dry-run mode.
 Does everything except inject packets into the network.
+.It Fl o
+Log outgoing packets as well as incoming ones.
+Use this option with great care, especially in a system that takes
+automatic action (blackhole routing, for instance) based on
+.Nm
+logs.
 .It Fl p Ar pidfile
 Write the daemon's PID to the specified file instead of
 .Pa /var/run/flytrap.pid .

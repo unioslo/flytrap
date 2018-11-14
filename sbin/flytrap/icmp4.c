@@ -53,6 +53,20 @@
 #include "packet.h"
 
 /*
+ * Log an ICMP packet.
+ */
+static int
+csv_icmp4(const struct timeval *ts, const ip4_addr *sa, const ip4_addr *da,
+    const icmp_hdr *ih, size_t len)
+{
+	int ret;
+
+	ret = csv_packet4(ts, sa, 0, da, 0, "ICMP", len,
+	    "%u.%u", ih->type, ih->code);
+	return (ret);
+}
+
+/*
  * Reply to an echo request
  */
 static int
@@ -74,6 +88,8 @@ icmp4_reply(const ip4_flow *fl, uint16_t id, uint16_t seq,
 	ft_verbose("echo reply to %d.%d.%d.%d id 0x%04x seq 0x%04x",
 	    fl->src.o[0], fl->src.o[1], fl->src.o[2], fl->src.o[3],
 	    id, seq);
+	if (ft_logout)
+		csv_icmp4(&fl->eth->p->ts, &fl->dst, &fl->src, ih, len);
 	ret = ip4_reply(fl, ip_proto_icmp, ih, len);
 	free(ih);
 	return (ret);
@@ -104,6 +120,7 @@ packet_analyze_icmp4(const ip4_flow *fl, const void *data, size_t len)
 	}
 	data = ih + 1;
 	len -= sizeof *ih;
+	csv_icmp4(&fl->eth->p->ts, &fl->src, &fl->dst, ih, len);
 	switch (ih->type) {
 	case icmp_type_echo_request:
 		id = be32toh(ih->hdata) >> 16;
@@ -111,13 +128,10 @@ packet_analyze_icmp4(const ip4_flow *fl, const void *data, size_t len)
 		ft_verbose("echo request from %d.%d.%d.%d id 0x%04x seq 0x%04x",
 		    fl->src.o[0], fl->src.o[1], fl->src.o[2], fl->src.o[3],
 		    id, seq);
-		ret = icmp4_reply(fl, id, seq,
-		    (const uint16_t *)ih->data, len);
+		ret = icmp4_reply(fl, id, seq, ih->data, len);
 		break;
 	default:
 		ret = 0;
 	}
-	csv_packet4(&fl->eth->p->ts, &fl->src, 0, &fl->dst, 0,
-	    "ICMP", len, "%u.%u", ih->type, ih->code);
 	return (ret);
 }

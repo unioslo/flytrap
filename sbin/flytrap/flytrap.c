@@ -41,6 +41,7 @@
 #include "flytrap.h"
 
 int ft_dryrun;
+int ft_logout;
 
 #ifndef FT_CSVFILE
 #define FT_CSVFILE "/var/csv/flytrap.csv"

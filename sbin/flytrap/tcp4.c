@@ -49,6 +49,27 @@
 #include "packet.h"
 
 /*
+ * Log a TCP packet.
+ */
+static int
+csv_tcp4(const struct timeval *ts, const ip4_addr *sa, const ip4_addr *da,
+    const tcp4_hdr *th, size_t len)
+{
+	char flags[] = "NCEUAPRSF";
+	unsigned int bit, mask;
+	int ret;
+
+	if (!tcp4_hdr_ns(th))
+		flags[0] = '-';
+	for (bit = 1, mask = 0x80; mask > 0; ++bit, mask >>= 1)
+		if (!(th->fl & mask))
+			flags[bit] = '-';
+	ret = csv_packet4(ts, sa, be16toh(th->sp), da, be16toh(th->dp),
+	    "TCP", len, flags);
+	return (ret);
+}
+
+/*
  * Reply to a TCP packet with an RST.
  */
 static int
@@ -80,6 +101,8 @@ tcp4_go_away(const ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.sum = htobe16(~ip4_cksum(sum, &oth, sizeof oth));
 
 	/* send packet */
+	if (ft_logout)
+		csv_tcp4(&fl->eth->p->ts, &fl->dst, &fl->src, &oth, 0);
 	ret = ip4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
 	return (ret);
 }
@@ -118,6 +141,8 @@ tcp4_hello(const ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.sum = htobe16(~ip4_cksum(sum, &oth, sizeof oth));
 
 	/* send packet */
+	if (ft_logout)
+		csv_tcp4(&fl->eth->p->ts, &fl->dst, &fl->src, &oth, 0);
 	ret = ip4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
 	return (ret);
 }
@@ -155,6 +180,8 @@ tcp4_please_hold(const ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.sum = htobe16(~ip4_cksum(sum, &oth, sizeof oth));
 
 	/* send packet */
+	if (ft_logout)
+		csv_tcp4(&fl->eth->p->ts, &fl->dst, &fl->src, &oth, 0);
 	ret = ip4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
 	return (ret);
 }
@@ -191,6 +218,8 @@ tcp4_goodbye(const ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.sum = htobe16(~ip4_cksum(sum, &oth, sizeof oth));
 
 	/* send packet */
+	if (ft_logout)
+		csv_tcp4(&fl->eth->p->ts, &fl->dst, &fl->src, &oth, 0);
 	ret = ip4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
 	return (ret);
 }
@@ -201,10 +230,8 @@ tcp4_goodbye(const ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 int
 packet_analyze_tcp4(const ip4_flow *fl, const void *data, size_t len)
 {
-	char flags[] = "NCEUAPRSF";
 	const tcp4_hdr *th;
 	size_t thlen;
-	unsigned int bit, mask;
 	uint16_t sum;
 	int ret;
 
@@ -228,13 +255,7 @@ packet_analyze_tcp4(const ip4_flow *fl, const void *data, size_t len)
 	    (unsigned short)be16toh(th->sp), (unsigned short)be16toh(th->dp),
 	    (unsigned long)be32toh(th->seq), (unsigned long)be32toh(th->ack),
 	    (unsigned short)be16toh(th->win), len);
-	if (!tcp4_hdr_ns(th))
-		flags[0] = '-';
-	for (bit = 1, mask = 0x80; mask > 0; ++bit, mask >>= 1)
-		if (!(th->fl & mask))
-			flags[bit] = '-';
-	csv_packet4(&fl->eth->p->ts, &fl->src, be16toh(th->sp),
-	    &fl->dst, be16toh(th->dp), "TCP", len, flags);
+	csv_tcp4(&fl->eth->p->ts, &fl->src, &fl->dst, th, len);
 	if (th->fl & TCP4_SYN) {
 		if (th->fl & TCP4_ACK)
 			ret = tcp4_go_away(fl, th, len);

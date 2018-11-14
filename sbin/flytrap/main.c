@@ -115,7 +115,7 @@ usage(void)
 {
 
 	fprintf(stderr, "usage: "
-	    "flytrap [-dfnv] [-p pidfile] [-t csvfile] [-Ii addr] [-Xx addr] "
+	    "flytrap [-dfnov] [-p pidfile] [-t csvfile] [-Ii addr] [-Xx addr] "
 	    "iface\n");
 	exit(1);
 }
@@ -128,7 +128,7 @@ main(int argc, char *argv[])
 
 	ifname = NULL;
 	ft_log_level = FT_LOG_LEVEL_NOTICE;
-	while ((opt = getopt(argc, argv, "dfhI:i:np:t:vX:x:")) != -1) {
+	while ((opt = getopt(argc, argv, "dfhI:i:nop:t:vX:x:")) != -1) {
 		switch (opt) {
 		case 'd':
 			if (ft_log_level > FT_LOG_LEVEL_DEBUG)
@@ -147,6 +147,9 @@ main(int argc, char *argv[])
 			break;
 		case 'n':
 			ft_dryrun = 1;
+			break;
+		case 'o':
+			ft_logout = 1;
 			break;
 		case 'p':
 			ft_pidfile = optarg;
