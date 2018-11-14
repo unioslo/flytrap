@@ -57,14 +57,10 @@ The following options are available:
 Enable log messages at debug level or higher.
 .It Fl f
 Foreground mode: do not daemonize and do not create a pidfile.
-.It Fl I Ar a.b.c.d
-.It Fl I Ar a.b.c.d-e.f.g.h
-.It Fl I Ar a.b.c.d/p
-Process and respond to packets sent from the specified IPv4 address,
-range or subnet.
-.It Fl i Ar a.b.c.d
-.It Fl i Ar a.b.c.d-e.f.g.h
-.It Fl i Ar a.b.c.d/p
+.It Fl I Ar a.b.c.d Ns | Ns Ar a.b.c.d-e.f.g.h Ns | Ns Ar a.b.c.d/p
+Process and respond to packets originating from the specified IPv4
+address, range or subnet.
+.It Fl i Ar a.b.c.d Ns | Ns Ar a.b.c.d-e.f.g.h Ns | Ns Ar a.b.c.d/p
 Process and respond to packets addressed to the specified IPv4
 address, range or subnet.
 .It Fl n
@@ -85,13 +81,10 @@ file instead of
 .Pa @FT_CSVFILE@ .
 .It Fl v
 Enable log messages at verbose level or higher.
-.It Fl X Ar a.b.c.d
-.It Fl X Ar a.b.c.d-e.f.g.h
-.It Fl X Ar a.b.c.d/p
-Ignore packets sent from the specified IPv4 address, range or subnet.
-.It Fl x Ar a.b.c.d
-.It Fl x Ar a.b.c.d-e.f.g.h
-.It Fl x Ar a.b.c.d/p
+.It Fl X Ar a.b.c.d Ns | Ns Ar a.b.c.d-e.f.g.h Ns | Ns Ar a.b.c.d/p
+Ignore packets originating from the specified IPv4 address, range or
+subnet.
+.It Fl x Ar a.b.c.d Ns | Ns Ar a.b.c.d-e.f.g.h Ns | Ns Ar a.b.c.d/p
 Ignore packets addressed to the specified IPv4 address, range or
 subnet.
 .El

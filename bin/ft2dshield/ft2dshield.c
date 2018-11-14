@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2016 The University of Oslo
+ * Copyright (c) 2016-2018 The University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,8 @@ static const char *sender;
 static const char *recipient;
 
 static unsigned long userid;
-static ip4s_node *included;
+static ip4s_node *src_set;
+static ip4s_node *dst_set;
 
 struct ftlog {
 	struct timeval	 tv;
@@ -266,8 +267,11 @@ ft2dshield(const char *fn)
 			warnx("%s:%d: unparseable log entry", fn, lno);
 			continue;
 		}
-		if (included != NULL &&
-		    !ip4s_lookup(included, be32toh(logent.sa.q)))
+		if (src_set != NULL &&
+		    !ip4s_lookup(src_set, be32toh(logent.sa.q)))
+			continue;
+		if (dst_set != NULL &&
+		    !ip4s_lookup(dst_set, be32toh(logent.da.q)))
 			continue;
 		if (ftlogprint(&logent) < 0) {
 			warnx("%s:%d: failed to print entry", fn, lno);
@@ -287,35 +291,32 @@ ft2dshield(const char *fn)
 }
 
 static void
-include_range(const char *range)
+include_range(ip4s_node **set, const char *range)
 {
 	ip4_addr first, last;
 
 	if (ip4_parse_range(range, &first, &last) == NULL)
 		errx(1, "invalid address or range: %s", range);
-	if (included == NULL) {
-		if ((included = ip4s_new()) == NULL)
+	if (*set == NULL)
+		if ((*set = ip4s_new()) == NULL)
 			err(1, "ip4s_new()");
-	}
-	if (ip4s_insert(included, be32toh(first.q), be32toh(last.q)) != 0)
+	if (ip4s_insert(*set, be32toh(first.q), be32toh(last.q)) != 0)
 		err(1, "ip4s_insert()");
 }
 
 static void
-exclude_range(const char *range)
+exclude_range(ip4s_node **set, const char *range)
 {
 	ip4_addr first, last;
 
 	if (ip4_parse_range(range, &first, &last) == NULL)
 		errx(1, "invalid address or range: %s", range);
-	if (included == NULL) {
-		if ((included = ip4s_new()) == NULL)
+	if (*set == NULL)
+		if ((*set = ip4s_new()) == NULL ||
+		    ip4s_insert(*set, 0U, ~0U) != 0)
 			err(1, "ip4s_new()");
-		if (ip4s_insert(included, 0U, ~0U) != 0)
-			err(1, "ip4s_insert()");
-	}
-	if (ip4s_remove(included, be32toh(first.q), be32toh(last.q)) != 0)
-		err(1, "ip4s_remove()");
+	if (ip4s_remove(*set, be32toh(first.q), be32toh(last.q)) != 0)
+		err(1, "ip4s_insert()");
 }
 
 static void
@@ -323,8 +324,9 @@ usage(void)
 {
 
 	fprintf(stderr, "usage: ft2dshield "
-	    "[-h] [-i addr|range|subnet] [-o output] [-r recipient] "
-	    "[-s sender] [-u userid] [-x addr|range|subnet] [file ...]\n");
+	    "[-h] [-o output] [-r recipient] [-s sender] [-u userid] "
+	    "[-Ii addr|range|subnet] [-Xx addr|range|subnet] "
+	    "[file ...]\n");
 	exit(1);
 }
 
@@ -334,10 +336,13 @@ main(int argc, char *argv[])
 	char *e;
 	int i, opt;
 
-	while ((opt = getopt(argc, argv, "hi:o:r:s:u:x:")) != -1)
+	while ((opt = getopt(argc, argv, "hI:i:o:r:s:u:X:x:")) != -1)
 		switch (opt) {
+		case 'I':
+			include_range(&src_set, optarg);
+			break;
 		case 'i':
-			include_range(optarg);
+			include_range(&dst_set, optarg);
 			break;
 		case 'o':
 			if ((freopen(optarg, "a", stdout)) == NULL)
@@ -354,8 +359,11 @@ main(int argc, char *argv[])
 			if (e == optarg || *e != '\0')
 				usage();
 			break;
+		case 'X':
+			exclude_range(&src_set, optarg);
+			break;
 		case 'x':
-			exclude_range(optarg);
+			exclude_range(&dst_set, optarg);
 			break;
 		default:
 			usage();

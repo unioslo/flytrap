@@ -115,7 +115,8 @@ usage(void)
 {
 
 	fprintf(stderr, "usage: "
-	    "flytrap [-dfnov] [-p pidfile] [-t csvfile] [-Ii addr] [-Xx addr] "
+	    "flytrap [-dfnov] [-p pidfile] [-t csvfile] "
+	    "[-Ii addr|range|subnet] [-Xx addr|range|subnet] "
 	    "iface\n");
 	exit(1);
 }
