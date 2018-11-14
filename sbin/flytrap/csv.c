@@ -53,18 +53,22 @@ csv_packet4(const struct timeval *tv,
     const char *proto, size_t len, const char *fmt, ...)
 {
 	va_list ap;
+	FILE *f;
 
-	fprintf(csvfile,
-	    "%llu.%06lu,%d.%d.%d.%d,%d,%d.%d.%d.%d,%d,%s,%zu,",
+	if ((f = csvfile) == NULL)
+		f = stdout;
+	fprintf(f, "%llu.%06lu,%d.%d.%d.%d,%d,%d.%d.%d.%d,%d,%s,%zu,",
 	    (unsigned long long)tv->tv_sec, (unsigned long)tv->tv_usec,
 	    sa->o[0], sa->o[1], sa->o[2], sa->o[3], sp,
 	    da->o[0], da->o[1], da->o[2], da->o[3], dp,
 	    proto, len);
-	va_start(ap, fmt);
-	vfprintf(csvfile ? csvfile : stdout, fmt, ap);
-	va_end(ap);
-	fprintf(csvfile ? csvfile : stdout, "\n");
-	fflush(csvfile);
+	if (fmt != NULL && *fmt != '\0') {
+		va_start(ap, fmt);
+		vfprintf(f, fmt, ap);
+		va_end(ap);
+	}
+	fprintf(f, "\n");
+	fflush(f);
 	return (0);
 }
 
