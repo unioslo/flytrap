@@ -198,7 +198,7 @@ iface_next(iface *i)
 }
 
 int
-iface_transmit(packet *p)
+iface_transmit(const packet *p)
 {
 
 	if (!ft_dryrun && pcap_inject(p->i->pch, p->data, p->len) != (int)p->len)

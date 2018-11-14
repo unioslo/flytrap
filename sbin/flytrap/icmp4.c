@@ -56,7 +56,7 @@
  * Reply to an echo request
  */
 static int
-icmp4_reply(ip4_flow *fl, uint16_t id, uint16_t seq,
+icmp4_reply(const ip4_flow *fl, uint16_t id, uint16_t seq,
     const void *payload, size_t payloadlen)
 {
 	icmp_hdr *ih;
@@ -83,7 +83,7 @@ icmp4_reply(ip4_flow *fl, uint16_t id, uint16_t seq,
  * Analyze a captured ICMP packet
  */
 int
-packet_analyze_icmp4(ip4_flow *fl, const void *data, size_t len)
+packet_analyze_icmp4(const ip4_flow *fl, const void *data, size_t len)
 {
 	const icmp_hdr *ih;
 	uint16_t id, seq, sum;

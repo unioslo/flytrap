@@ -49,7 +49,7 @@
 #include "packet.h"
 
 int
-packet_analyze_ethernet(packet *p, const void *data, size_t len)
+packet_analyze_ethernet(const packet *p, const void *data, size_t len)
 {
 	ether_flow fl;
 	const ether_hdr *eh;
@@ -91,7 +91,7 @@ packet_analyze_ethernet(packet *p, const void *data, size_t len)
 }
 
 int
-ethernet_send(iface *i, ether_type type, ether_addr *dst,
+ethernet_send(iface *i, ether_type type, const ether_addr *dst,
     const void *data, size_t len)
 {
 	packet p;
@@ -128,7 +128,7 @@ ethernet_send(iface *i, ether_type type, ether_addr *dst,
 }
 
 int
-ethernet_reply(ether_flow *fl, const void *data, size_t len)
+ethernet_reply(const ether_flow *fl, const void *data, size_t len)
 {
 
 	return (ethernet_send(fl->p->i, fl->type, &fl->src, data, len));

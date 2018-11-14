@@ -57,7 +57,7 @@
  * Analyze a captured IP packet
  */
 int
-packet_analyze_ip4(ether_flow *ethfl, const void *data, size_t len)
+packet_analyze_ip4(const ether_flow *ethfl, const void *data, size_t len)
 {
 	ip4_flow fl;
 	const ip4_hdr *ih;
@@ -123,7 +123,7 @@ packet_analyze_ip4(ether_flow *ethfl, const void *data, size_t len)
 }
 
 int
-ip4_reply(ip4_flow *fl, ip_proto proto,
+ip4_reply(const ip4_flow *fl, ip_proto proto,
     const void *data, size_t len)
 {
 	ip4_hdr *ih;

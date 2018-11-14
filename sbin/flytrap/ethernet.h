@@ -40,18 +40,18 @@ extern ether_addr flytrap_ether_addr;
 #define FLYTRAP_TCP4_SEQ 0x18110902U
 
 typedef struct ether_flow {
-	struct packet	*p;
-	ether_addr	 src;
-	ether_addr	 dst;
-	uint16_t	 type;
-	uint16_t	 len;
+	const struct packet	*p;
+	ether_addr		 src;
+	ether_addr		 dst;
+	uint16_t		 type;
+	uint16_t		 len;
 } ether_flow;
 
 extern ip4s_node *src_set;
 extern ip4s_node *dst_set;
 
 typedef struct ip4_flow {
-	struct ether_flow	*eth;
+	const struct ether_flow	*eth;
 	/* pseudo-header */
 	union {
 		uint8_t		 pseudo[12];
@@ -68,19 +68,19 @@ typedef struct ip4_flow {
 int	 arp_register(const ip4_addr *, const ether_addr *, uint64_t);
 int	 arp_lookup(const ip4_addr *, ether_addr *);
 
-int	 ethernet_send(struct iface *, ether_type, ether_addr *,
+int	 ethernet_send(struct iface *, ether_type, const ether_addr *,
     const void *, size_t);
-int	 ethernet_reply(struct ether_flow *, const void *, size_t);
+int	 ethernet_reply(const struct ether_flow *, const void *, size_t);
 
-int	 ip4_reply(ip4_flow *, ip_proto, const void *, size_t);
+int	 ip4_reply(const ip4_flow *, ip_proto, const void *, size_t);
 
 
-int	 packet_analyze_ethernet(struct packet *, const void *, size_t);
-int	 packet_analyze_arp(struct ether_flow *, const void *, size_t);
-int	 packet_analyze_ip4(struct ether_flow *, const void *, size_t);
-int	 packet_analyze_icmp4(struct ip4_flow *, const void *, size_t);
-int	 packet_analyze_udp4(struct ip4_flow *, const void *, size_t);
-int	 packet_analyze_tcp4(struct ip4_flow *, const void *, size_t);
+int	 packet_analyze_ethernet(const struct packet *, const void *, size_t);
+int	 packet_analyze_arp(const struct ether_flow *, const void *, size_t);
+int	 packet_analyze_ip4(const struct ether_flow *, const void *, size_t);
+int	 packet_analyze_icmp4(const struct ip4_flow *, const void *, size_t);
+int	 packet_analyze_udp4(const struct ip4_flow *, const void *, size_t);
+int	 packet_analyze_tcp4(const struct ip4_flow *, const void *, size_t);
 
 int	 csv_packet4(const struct timeval *,
     const ip4_addr *, int, const ip4_addr *, int,

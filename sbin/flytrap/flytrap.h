@@ -34,6 +34,7 @@ struct iface;
 struct packet;
 
 extern int ft_dryrun;
+extern int ft_logout;
 extern const char *ft_csvfile;
 
 /* main loop */
@@ -47,7 +48,7 @@ struct iface	*iface_open(const char *);
 int		 iface_activate(struct iface *);
 void		 iface_close(struct iface *);
 struct packet	*iface_next(struct iface *);
-int		 iface_transmit(struct packet *);
+int		 iface_transmit(const struct packet *);
 int		 packet_analyze(struct packet *);
 void		 packet_drop(struct packet *);
 

@@ -333,7 +333,7 @@ arp_lookup(const ip4_addr *ip4, ether_addr *ether)
  * Claim an IP address
  */
 static int
-arp_reply(ether_flow *fl, const arp_pkt *iap, struct arpn *an)
+arp_reply(const ether_flow *fl, const arp_pkt *iap, struct arpn *an)
 {
 	arp_pkt ap;
 
@@ -373,7 +373,7 @@ arp_reserve(const ip4_addr *addr)
  * Analyze a captured ARP packet
  */
 int
-packet_analyze_arp(ether_flow *fl, const void *data, size_t len)
+packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 {
 	const arp_pkt *ap;
 	struct arpn *an;
