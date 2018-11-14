@@ -92,7 +92,7 @@ LIBS="${save_LIBS}"
 AC_SUBST(LIBPCAP)
 
 # cryb-test
-AX_PKG_CONFIG_CHECK([cryb-test],
+AX_PKG_CONFIG_CHECK([cryb-test], [20180513],
   [AC_MSG_NOTICE([Cryb test framework found, unit tests enabled.])],
   [AC_MSG_WARN([Cryb test framework not found, unit tests disabled.])])
 
