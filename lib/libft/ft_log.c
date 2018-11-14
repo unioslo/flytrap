@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2013-2017 The University of Oslo
+ * Copyright (c) 2013-2018 The University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

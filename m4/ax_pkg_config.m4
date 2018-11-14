@@ -1,6 +1,6 @@
 dnl -*- autoconf -*-
 dnl
-dnl Copyright (c) 2017 The University of Oslo
+dnl Copyright (c) 2017-2018 The University of Oslo
 dnl Copyright (c) 2017-2018 Dag-Erling Smørgrav
 dnl All rights reserved.
 dnl
