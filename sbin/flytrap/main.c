@@ -101,12 +101,12 @@ daemonize(void)
 			ft_fatal("already running with PID %lu",
 			    (unsigned long)pid);
 		} else {
-			ft_fatal("unable to open or create pidfile %s: %s",
-			    ft_pidfile, strerror(errno));
+			ft_fatal("unable to open or create pidfile %s: %m",
+			    ft_pidfile);
 		}
 	}
 	if (daemon(0, 0) != 0)
-		ft_fatal("unable to daemonize: %s", strerror(errno));
+		ft_fatal("unable to daemonize: %m");
 	ft_pidfile_write(pidfh);
 }
 

@@ -109,13 +109,13 @@ fly(const char *target, int linger, int timeout)
 		return (-1);
 	}
 	if ((sd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-		ft_error("socket(): %s", strerror(errno));
+		ft_error("socket(): %m");
 		return (-1);
 	}
 	tv.tv_sec = timeout;
 	tv.tv_usec = 0;
 	if (setsockopt(sd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof tv) != 0) {
-		ft_error("setsockopt(SO_SNDTIMEO): %s", strerror(errno));
+		ft_error("setsockopt(SO_SNDTIMEO): %m");
 		close(sd);
 		return (-1);
 	}
@@ -123,14 +123,14 @@ fly(const char *target, int linger, int timeout)
 		l.l_onoff = 1;
 		l.l_linger = timeout;
 		if (setsockopt(sd, SOL_SOCKET, SO_LINGER, &l, sizeof l) != 0) {
-			ft_error("setsockopt(SO_LINGER): %s", strerror(errno));
+			ft_error("setsockopt(SO_LINGER): %m");
 			close(sd);
 			return (-1);
 		}
 	}
 	ft_verbose("attempting to connect to %s", target);
 	if (connect(sd, (struct sockaddr *)&sin4, sizeof sin4) != 0) {
-		ft_error("connect(): %s", strerror(errno));
+		ft_error("connect(): %m");
 		close(sd);
 		return (-1);
 	}
@@ -139,7 +139,7 @@ fly(const char *target, int linger, int timeout)
 		if (errno == EWOULDBLOCK) {
 			ft_warning("timed out while sending");
 		} else {
-			ft_error("write(): %s", strerror(errno));
+			ft_error("write(): %m");
 			close(sd);
 			return (-1);
 		}
@@ -149,7 +149,7 @@ fly(const char *target, int linger, int timeout)
 	fds.fd = sd;
 	fds.events = POLLIN | POLLOUT | POLLHUP;
 	if ((ret = poll(&fds, 1, timeout * 1000)) < 0) {
-		ft_error("poll(): %s", strerror(errno));
+		ft_error("poll(): %m");
 		close(sd);
 		return (-1);
 	} else if (ret > 0) {
@@ -157,7 +157,7 @@ fly(const char *target, int linger, int timeout)
 	}
 	ft_verbose("closing connection");
 	if (close(sd) != 0) {
-		ft_error("close(): %s", strerror(errno));
+		ft_error("close(): %m");
 		return (-1);
 	}
 	ft_verbose("connection closed");

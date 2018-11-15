@@ -91,8 +91,19 @@ ft_log_level_to_string(ft_log_level_t level)
 void
 ft_logv(ft_log_level_t level, const char *fmt, va_list ap)
 {
+	char fmtx[BUFSIZ + 1];
+	unsigned int i, j;
 	int serrno;
 
+	for (i = j = 0; j < BUFSIZ && fmt[i] != '\0'; ++i) {
+		if (fmt[i] == '%' && fmt[i + 1] == 'm') {
+			j += snprintf(fmtx + j, BUFSIZ - j, "%s",
+			    strerror(errno));
+			i++;
+		} else {
+			fmtx[j++] = fmt[i];
+		}
+	}
 	serrno = errno;
 	if (ft_logfile != NULL) {
 		fprintf(ft_logfile, "%s: %s: ", ft_prog_name,
@@ -149,8 +160,7 @@ ft_log_init(const char *ident, const char *logspec)
 		openlog(ft_prog_name, LOG_NDELAY|LOG_PID, LOG_DAEMON);
 		f = NULL;
 	} else if ((f = fopen(logspec, "a")) == NULL) {
-		ft_error("unable to open log file %s: %s",
-		    logspec, strerror(errno));
+		ft_error("unable to open log file %s: %m", logspec);
 		return (-1);
 	}
 	if (ft_logfile != NULL && ft_logfile != stderr)

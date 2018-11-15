@@ -34,7 +34,6 @@
 #include <errno.h>
 #include <signal.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <ft/log.h>
 
@@ -69,7 +68,7 @@ flytrap(const char *iname)
 	struct packet *p;
 
 	if (csv_open(ft_csvfile) != 0) {
-		ft_error("failed to open CSV file: %s", strerror(errno));
+		ft_error("failed to open CSV file: %m");
 		return (-1);
 	}
 	signal(SIGHUP, signal_handler); 
@@ -80,10 +79,8 @@ flytrap(const char *iname)
 	for (;;) {
 		if (sighup) {
 			sighup--;
-			if (csv_open(ft_csvfile) != 0) {
-				ft_warning("failed to reopen CSV file: %s",
-				    strerror(errno));
-			}
+			if (csv_open(ft_csvfile) != 0)
+				ft_warning("failed to reopen CSV file: %m");
 		}
 		if ((p = iface_next(i)) == NULL) {
 			if (errno == EAGAIN)
