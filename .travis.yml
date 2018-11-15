@@ -4,9 +4,19 @@ compiler:
   - clang
   - gcc
 
+dist: xenial
+sudo: required
+
+env:
+  global:
+   - CRYB_TO=0.20180513
+
 before_install:
-  - sudo apt-get -qq update
+  - sudo apt-get update -q
   - sudo apt-get install -y libpcap-dev
+  - sudo apt-get install -y pkg-config
+  - wget https://github.com/cryb-to/cryb-to/releases/download/${CRYB_TO}/cryb-to_${CRYB_TO}-1_amd64.deb
+  - sudo dpkg -i cryb-to_${CRYB_TO}-1_amd64.deb
 
 before_script:
   - ./autogen.sh
