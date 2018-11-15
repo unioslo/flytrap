@@ -26,7 +26,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd November 14, 2018
+.Dd November 15, 2018
 .Dt FT2DSHIELD 1
 .Os
 .Sh NAME
@@ -34,7 +34,7 @@
 .Nd Convert Flytrap logs to DShield format
 .Sh SYNOPSIS
 .Nm
-.Op Fl h
+.Op Fl dhv
 .Op Fl I Ar addr Ns | Ns Ar range Ns | Ns Ar subnet
 .Op Fl i Ar addr Ns | Ns Ar range Ns | Ns Ar subnet
 .Op Fl o Ar output
@@ -53,6 +53,8 @@ and outputs the same data in the Internet Storm Center's DShield submission form
 .Pp
 The following options are available:
 .Bl -tag -width Fl
+.It Fl d
+Enable log messages at debug level or higher.
 .It Fl h
 Print a usage message and exit.
 .It Fl I Ar a.b.c.d Ns | Ns Ar a.b.c.d-e.f.g.h Ns | Ns Ar a.b.c.d/p
@@ -79,6 +81,8 @@ Use the specified DShield user ID instead of 0.
 This option is required if the
 .Fl s
 option is used.
+.It Fl v
+Enable log messages at verbose level or higher.
 .It Fl X Ar a.b.c.d Ns | Ns Ar a.b.c.d-e.f.g.h Ns | Ns Ar a.b.c.d/p
 Exclude log entries for traffic originating from the specified IPv4
 address, range or subnet.

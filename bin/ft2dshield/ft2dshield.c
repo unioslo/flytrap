@@ -31,7 +31,6 @@
 #include "config.h"
 #endif
 
-#include <err.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,6 +40,7 @@
 
 #include <ft/endian.h>
 #include <ft/ip4.h>
+#include <ft/log.h>
 
 #define DSHIELD_RECIPIENT "reports@dshield.org"
 
@@ -247,7 +247,7 @@ ft2dshield(const char *fn)
 		f = stdin;
 	} else {
 		if ((f = fopen(fn, "r")) == NULL) {
-			warn("%s", fn);
+			ft_warning("%s: %m", fn);
 			return (-1);
 		}
 	}
@@ -258,13 +258,13 @@ ft2dshield(const char *fn)
 		for (len = 0; line[len] != '\0' && line[len] != '\n'; ++len)
 			/* nothing */ ;
 		if (line[len] != '\n') {
-			warnx("%s:%d: line too long", fn, lno + 1);
+			ft_warning("%s:%d: line too long", fn, lno + 1);
 			continue;
 		}
 		lno++;
 		line[len] = '\0';
 		if (ftlogparse(&logent, line) != 0) {
-			warnx("%s:%d: unparseable log entry", fn, lno);
+			ft_warning("%s:%d: unparseable log entry", fn, lno);
 			continue;
 		}
 		if (src_set != NULL &&
@@ -274,14 +274,14 @@ ft2dshield(const char *fn)
 		    !ip4s_lookup(dst_set, be32toh(logent.da.q)))
 			continue;
 		if (ftlogprint(&logent) < 0) {
-			warnx("%s:%d: failed to print entry", fn, lno);
+			ft_warning("%s:%d: failed to print entry", fn, lno);
 			continue;
 		}
 	}
 
 	/* error or just EOF? */
 	if ((ret = ferror(f)) != 0)
-		warn("%s", fn);
+		ft_warning("%s: %m", fn);
 
 	/* close */
 	if (f != stdin)
@@ -296,12 +296,16 @@ include_range(ip4s_node **set, const char *range)
 	ip4_addr first, last;
 
 	if (ip4_parse_range(range, &first, &last) == NULL)
-		errx(1, "invalid address or range: %s", range);
-	if (*set == NULL)
+		ft_fatal("invalid address or range: %s", range);
+	ft_verbose("include %u.%u.%u.%u - %u.%u.%u.%u",
+	    first.o[0], first.o[1], first.o[2], first.o[3],
+	    last.o[0], last.o[1], last.o[2], last.o[3]);
+	if (*set == NULL) {
 		if ((*set = ip4s_new()) == NULL)
-			err(1, "ip4s_new()");
+			ft_fatal("ip4s_new(): %m");
+	}
 	if (ip4s_insert(*set, be32toh(first.q), be32toh(last.q)) != 0)
-		err(1, "ip4s_insert()");
+		ft_fatal("ip4s_insert(): %m");
 }
 
 static void
@@ -310,21 +314,25 @@ exclude_range(ip4s_node **set, const char *range)
 	ip4_addr first, last;
 
 	if (ip4_parse_range(range, &first, &last) == NULL)
-		errx(1, "invalid address or range: %s", range);
-	if (*set == NULL)
+		ft_fatal("invalid address or range: %s", range);
+	ft_verbose("exclude %u.%u.%u.%u - %u.%u.%u.%u",
+	    first.o[0], first.o[1], first.o[2], first.o[3],
+	    last.o[0], last.o[1], last.o[2], last.o[3]);
+	if (*set == NULL) {
 		if ((*set = ip4s_new()) == NULL ||
 		    ip4s_insert(*set, 0U, ~0U) != 0)
-			err(1, "ip4s_new()");
+			ft_fatal("ip4s_new(): %m");
+	}
 	if (ip4s_remove(*set, be32toh(first.q), be32toh(last.q)) != 0)
-		err(1, "ip4s_insert()");
+		ft_fatal("ip4s_remove(): %m");
 }
 
 static void
 usage(void)
 {
 
-	fprintf(stderr, "usage: ft2dshield "
-	    "[-h] [-o output] [-r recipient] [-s sender] [-u userid] "
+	fprintf(stderr, "usage: ft2dshield [-dhv] "
+	    "[-o output] [-r recipient] [-s sender] [-u userid] "
 	    "[-Ii addr|range|subnet] [-Xx addr|range|subnet] "
 	    "[file ...]\n");
 	exit(1);
@@ -336,8 +344,15 @@ main(int argc, char *argv[])
 	char *e;
 	int i, opt;
 
-	while ((opt = getopt(argc, argv, "hI:i:o:r:s:u:X:x:")) != -1)
+	ft_log_init("ft2dshield", NULL);
+
+	ft_log_level = FT_LOG_LEVEL_NOTICE;
+	while ((opt = getopt(argc, argv, "dhI:i:o:r:s:u:vX:x:")) != -1)
 		switch (opt) {
+		case 'd':
+			if (ft_log_level > FT_LOG_LEVEL_DEBUG)
+				ft_log_level = FT_LOG_LEVEL_DEBUG;
+			break;
 		case 'I':
 			include_range(&src_set, optarg);
 			break;
@@ -346,7 +361,7 @@ main(int argc, char *argv[])
 			break;
 		case 'o':
 			if ((freopen(optarg, "a", stdout)) == NULL)
-				err(1, "%s", optarg);
+				ft_fatal("%s: %m", optarg);
 			break;
 		case 'r':
 			recipient = optarg;
@@ -358,6 +373,10 @@ main(int argc, char *argv[])
 			userid = strtoul(optarg, &e, 10);
 			if (e == optarg || *e != '\0')
 				usage();
+			break;
+		case 'v':
+			if (ft_log_level > FT_LOG_LEVEL_VERBOSE)
+				ft_log_level = FT_LOG_LEVEL_VERBOSE;
 			break;
 		case 'X':
 			exclude_range(&src_set, optarg);

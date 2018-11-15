@@ -63,9 +63,10 @@ include_range(ip4s_node **set, const char *range)
 	ft_verbose("include %u.%u.%u.%u - %u.%u.%u.%u",
 	    first.o[0], first.o[1], first.o[2], first.o[3],
 	    last.o[0], last.o[1], last.o[2], last.o[3]);
-	if (*set == NULL)
+	if (*set == NULL) {
 		if ((*set = ip4s_new()) == NULL)
 			return (-1);
+	}
 	if (ip4s_insert(*set, be32toh(first.q), be32toh(last.q)) != 0)
 		return (-1);
 	return (0);
@@ -81,10 +82,11 @@ exclude_range(ip4s_node **set, const char *range)
 	ft_verbose("exclude %u.%u.%u.%u - %u.%u.%u.%u",
 	    first.o[0], first.o[1], first.o[2], first.o[3],
 	    last.o[0], last.o[1], last.o[2], last.o[3]);
-	if (*set == NULL)
+	if (*set == NULL) {
 		if ((*set = ip4s_new()) == NULL ||
 		    ip4s_insert(*set, 0U, ~0U) != 0)
 			return (-1);
+	}
 	if (ip4s_remove(*set, be32toh(first.q), be32toh(last.q)) != 0)
 		return (-1);
 	return (0);
