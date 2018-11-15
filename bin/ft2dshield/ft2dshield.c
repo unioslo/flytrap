@@ -50,6 +50,8 @@ static const char *recipient;
 static unsigned long userid;
 static ip4s_node *src_set;
 static ip4s_node *dst_set;
+static time_t fromdate;
+static time_t todate;
 
 struct ftlog {
 	struct timeval	 tv;
@@ -182,15 +184,16 @@ ftlogparse(struct ftlog *ftl, const char *s)
 static int
 ftlogprint(const struct ftlog *ftl)
 {
-	char tstr[64];
+	static char tstr[64];
+	static time_t t;
 	const char *proto;
-	struct tm *tm;
-	time_t t;
 	int ret;
 
-	t = ftl->tv.tv_sec;
-	tm = gmtime(&t);
-	strftime(tstr, sizeof tstr, "%Y-%m-%d %H:%M:%S %z", tm);
+	if (ftl->tv.tv_sec != t) {
+		t = ftl->tv.tv_sec;
+		strftime(tstr, sizeof tstr, "%Y-%m-%d %H:%M:%S %z",
+		    localtime(&t));
+	}
 	switch (ftl->proto) {
 	case ip_proto_icmp:
 		proto = "ICMP";
@@ -267,6 +270,10 @@ ft2dshield(const char *fn)
 			ft_warning("%s:%d: unparseable log entry", fn, lno);
 			continue;
 		}
+		if (logent.tv.tv_sec < fromdate)
+			continue;
+		if (logent.tv.tv_sec > todate)
+			continue;
 		if (src_set != NULL &&
 		    !ip4s_lookup(src_set, be32toh(logent.sa.q)))
 			continue;
@@ -327,6 +334,74 @@ exclude_range(ip4s_node **set, const char *range)
 		ft_fatal("ip4s_remove(): %m");
 }
 
+static time_t
+parse_date(const char *date, int hilo)
+{
+	char tstr[64];
+	struct tm tm, dt;
+	time_t now, t;
+	const char *e, *p;
+
+	time(&now);
+	p = date;
+	t = (time_t)-1;
+	memset(&dt, 0, sizeof dt);
+
+	/* look for a date */
+	if ((e = strptime(p, "%Y-%m-%d", &tm)) == NULL &&
+	    (e = strptime(p, "%Y%m%d", &tm)) == NULL) {
+		localtime_r(&now, &tm);
+	} else {
+		ft_debug("got date: %.*s => %04d-%02d-%02d", (int)(e - p), p,
+		    1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday);
+	}
+	dt.tm_year = tm.tm_year;
+	dt.tm_mon = tm.tm_mon;
+	dt.tm_mday = tm.tm_mday;
+
+	/* advance, possibly skipping a separator */
+	if (e != NULL) {
+		if (*e == 'T' || *e == ' ')
+			e++;
+		p = e;
+	}
+
+	/* look for a time */
+	if ((e = strptime(p, "%H:%M:%S", &tm)) == NULL &&
+	    (e = strptime(p, "%H%M%S", &tm)) == NULL) {
+		tm.tm_hour = hilo > 0 ? 23 : 0;
+		tm.tm_min = tm.tm_sec = hilo > 0 ? 59 : 0;
+	} else {
+		ft_debug("got time: %.*s => %02d:%02d:%02d", (int)(e - p), p,
+		    tm.tm_hour, tm.tm_min, tm.tm_sec);
+	}
+	dt.tm_hour = tm.tm_hour;
+	dt.tm_min = tm.tm_min;
+	dt.tm_sec = tm.tm_sec;
+
+	if (e != NULL)
+		if (*(p = e) == 'Z')
+			p++;
+
+	/* did we reach the end of the string? */
+	if (p == date || *p != '\0')
+		ft_fatal("malformed date: %s", date);
+
+	/* convert */
+	dt.tm_isdst = -1;
+	if (e != NULL && *e == 'Z')
+		t = timegm(&dt);
+	else
+		t = mktime(&dt);
+	if (t == (time_t)-1)
+		ft_fatal("invalid date: %s", date);
+
+	strftime(tstr, sizeof tstr, "%Y-%m-%d %H:%M:%S %z", &dt);
+	ft_debug("got %lu => %s", (unsigned long)t, tstr);
+
+	return (t);
+}
+
 static void
 usage(void)
 {
@@ -334,7 +409,7 @@ usage(void)
 	fprintf(stderr, "usage: ft2dshield [-dhv] "
 	    "[-o output] [-r recipient] [-s sender] [-u userid] "
 	    "[-Ii addr|range|subnet] [-Xx addr|range|subnet] "
-	    "[file ...]\n");
+	    "[-f date] [-t date] [file ...]\n");
 	exit(1);
 }
 
@@ -344,14 +419,23 @@ main(int argc, char *argv[])
 	char *e;
 	int i, opt;
 
-	ft_log_init("ft2dshield", NULL);
+	/* don't assume the signedness of time_t */
+	fromdate = 0;
+	todate = (time_t)-1;
+	if (todate < fromdate)
+		todate = (uintmax_t)todate >> 1;
 
+	tzset();
+	ft_log_init("ft2dshield", NULL);
 	ft_log_level = FT_LOG_LEVEL_NOTICE;
-	while ((opt = getopt(argc, argv, "dhI:i:o:r:s:u:vX:x:")) != -1)
+	while ((opt = getopt(argc, argv, "df:hI:i:o:r:s:f:t:u:vX:x:")) != -1)
 		switch (opt) {
 		case 'd':
 			if (ft_log_level > FT_LOG_LEVEL_DEBUG)
 				ft_log_level = FT_LOG_LEVEL_DEBUG;
+			break;
+		case 'f':
+			fromdate = parse_date(optarg, -1);
 			break;
 		case 'I':
 			include_range(&src_set, optarg);
@@ -368,6 +452,9 @@ main(int argc, char *argv[])
 			break;
 		case 's':
 			sender = optarg;
+			break;
+		case 't':
+			todate = parse_date(optarg, 1);
 			break;
 		case 'u':
 			userid = strtoul(optarg, &e, 10);

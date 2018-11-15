@@ -35,11 +35,13 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl dhv
+.Op Fl f Ar date
 .Op Fl I Ar addr Ns | Ns Ar range Ns | Ns Ar subnet
 .Op Fl i Ar addr Ns | Ns Ar range Ns | Ns Ar subnet
 .Op Fl o Ar output
 .Op Fl r Ar recipient
 .Op Fl s Ar sender
+.Op Fl t Ar date
 .Op Fl u Ar userid
 .Op Fl X Ar addr Ns | Ns Ar range Ns | Ns Ar subnet
 .Op Fl x Ar addr Ns | Ns Ar range Ns | Ns Ar subnet
@@ -55,6 +57,16 @@ The following options are available:
 .Bl -tag -width Fl
 .It Fl d
 Enable log messages at debug level or higher.
+.It Fl f Ar date
+Ignore log entries older than the specified date, which can be an ISO
+8601 date with or without separators, an ISO 8601 time with or without
+separators, or an ISO 8601 datetime with or without separators.
+A time or datetime may be followed by a
+.Sq Z
+to specify UTC; otherwise, the local timezone is used.
+If a date is provided without a time, 00:00:00 is assumed.
+If a time is provided without a date, today's date is assumed, even if
+the result lies in the future.
 .It Fl h
 Print a usage message and exit.
 .It Fl I Ar a.b.c.d Ns | Ns Ar a.b.c.d-e.f.g.h Ns | Ns Ar a.b.c.d/p
@@ -81,6 +93,16 @@ Use the specified DShield user ID instead of 0.
 This option is required if the
 .Fl s
 option is used.
+.It Fl t Ar date
+Ignore log entries newer than the specified date, which can be an ISO
+8601 date with or without separators, an ISO 8601 time with or without
+separators, or an ISO 8601 datetime with or without separators.
+A time or datetime may be followed by a
+.Sq Z
+to specify UTC; otherwise, the local timezone is used.
+If a date is provided without a time, 23:59:59 is assumed.
+If a time is provided without a date, today's date is assumed, even if
+the result lies in the future.
 .It Fl v
 Enable log messages at verbose level or higher.
 .It Fl X Ar a.b.c.d Ns | Ns Ar a.b.c.d-e.f.g.h Ns | Ns Ar a.b.c.d/p
