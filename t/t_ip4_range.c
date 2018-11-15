@@ -196,8 +196,8 @@ t_prepare(int argc CRYB_UNUSED, char *argv[] CRYB_UNUSED)
 	unsigned int i;
 
 	for (i = 0; i < sizeof t_ip4r_cases / sizeof t_ip4r_cases[0]; ++i)
-		t_add_test(t_ip4r, &t_ip4r_cases[i], t_ip4r_cases[i].desc ?
-		    t_ip4r_cases[i].desc : t_ip4r_cases[i].str);
+		t_add_test(t_ip4r, &t_ip4r_cases[i],
+		    "%s", t_ip4r_cases[i].desc);
 	return (0);
 }
 
