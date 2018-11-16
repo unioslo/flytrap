@@ -70,14 +70,38 @@ csv_tcp4(const struct timeval *ts, const ip4_addr *sa, const ip4_addr *da,
 }
 
 /*
+ * Reply to a TCP packet.
+ */
+static int
+tcp4_reply(const ip4_flow *fl, tcp4_hdr *th)
+{
+	uint16_t len, sum;
+
+	/* compute pseudo-header checksum, then packet checksum */
+	sum = ip4_cksum(0, &fl->dst, sizeof fl->dst);
+	sum = ip4_cksum(sum, &fl->src, sizeof fl->src);
+	sum = ip4_cksum(sum, &fl->proto, sizeof fl->proto);
+	len = htobe16(sizeof *th);
+	sum = ip4_cksum(sum, &len, sizeof len);
+	th->sum = htobe16(~ip4_cksum(sum, th, sizeof *th));
+
+	/* log and send packet */
+	ft_debug("tcp4 port %hu to %hu seq %lu ack %lu win %hu len %zu",
+	    (unsigned short)be16toh(th->sp), (unsigned short)be16toh(th->dp),
+	    (unsigned long)be32toh(th->seq), (unsigned long)be32toh(th->ack),
+	    (unsigned short)be16toh(th->win), len);
+	if (ft_logout)
+		csv_tcp4(&fl->eth->p->ts, &fl->dst, &fl->src, th, 0);
+	return (ip4_reply(fl, ip_proto_tcp, th, sizeof *th));
+}
+
+/*
  * Reply to a TCP packet with an RST.
  */
 static int
 tcp4_go_away(const ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 {
 	tcp4_hdr oth;
-	uint16_t olen, sum;
-	int ret;
 
 	(void)ilen;
 
@@ -92,19 +116,8 @@ tcp4_go_away(const ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.sum = htobe16(0);
 	oth.urg = htobe16(0);
 
-	/* compute pseudo-header checksum, then packet checksum */
-	sum = ip4_cksum(0, &fl->dst, sizeof fl->dst);
-	sum = ip4_cksum(sum, &fl->src, sizeof fl->src);
-	sum = ip4_cksum(sum, &fl->proto, sizeof fl->proto);
-	olen = htobe16(sizeof oth);
-	sum = ip4_cksum(sum, &olen, sizeof olen);
-	oth.sum = htobe16(~ip4_cksum(sum, &oth, sizeof oth));
-
 	/* send packet */
-	if (ft_logout)
-		csv_tcp4(&fl->eth->p->ts, &fl->dst, &fl->src, &oth, 0);
-	ret = ip4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
-	return (ret);
+	return (tcp4_reply(fl, &oth));
 }
 
 /*
@@ -115,8 +128,6 @@ tcp4_hello(const ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 {
 	tcp4_hdr oth;
 	uint32_t ack;
-	uint16_t olen, sum;
-	int ret;
 
 	(void)ilen;
 
@@ -132,19 +143,8 @@ tcp4_hello(const ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.sum = htobe16(0);
 	oth.urg = htobe16(0);
 
-	/* compute pseudo-header checksum, then packet checksum */
-	sum = ip4_cksum(0, &fl->dst, sizeof fl->dst);
-	sum = ip4_cksum(sum, &fl->src, sizeof fl->src);
-	sum = ip4_cksum(sum, &fl->proto, sizeof fl->proto);
-	olen = htobe16(sizeof oth);
-	sum = ip4_cksum(sum, &olen, sizeof olen);
-	oth.sum = htobe16(~ip4_cksum(sum, &oth, sizeof oth));
-
 	/* send packet */
-	if (ft_logout)
-		csv_tcp4(&fl->eth->p->ts, &fl->dst, &fl->src, &oth, 0);
-	ret = ip4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
-	return (ret);
+	return (tcp4_reply(fl, &oth));
 }
 
 /*
@@ -155,8 +155,6 @@ static int
 tcp4_please_hold(const ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 {
 	tcp4_hdr oth;
-	uint16_t olen, sum;
-	int ret;
 
 	(void)ilen;
 
@@ -171,19 +169,8 @@ tcp4_please_hold(const ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.sum = htobe16(0);
 	oth.urg = htobe16(0);
 
-	/* compute pseudo-header checksum, then packet checksum */
-	sum = ip4_cksum(0, &fl->dst, sizeof fl->dst);
-	sum = ip4_cksum(sum, &fl->src, sizeof fl->src);
-	sum = ip4_cksum(sum, &fl->proto, sizeof fl->proto);
-	olen = htobe16(sizeof oth);
-	sum = ip4_cksum(sum, &olen, sizeof olen);
-	oth.sum = htobe16(~ip4_cksum(sum, &oth, sizeof oth));
-
 	/* send packet */
-	if (ft_logout)
-		csv_tcp4(&fl->eth->p->ts, &fl->dst, &fl->src, &oth, 0);
-	ret = ip4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
-	return (ret);
+	return (tcp4_reply(fl, &oth));
 }
 
 /*
@@ -193,8 +180,6 @@ static int
 tcp4_goodbye(const ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 {
 	tcp4_hdr oth;
-	uint16_t olen, sum;
-	int ret;
 
 	(void)ilen;
 
@@ -209,19 +194,8 @@ tcp4_goodbye(const ip4_flow *fl, const tcp4_hdr *ith, size_t ilen)
 	oth.sum = htobe16(0);
 	oth.urg = htobe16(0);
 
-	/* compute pseudo-header checksum, then packet checksum */
-	sum = ip4_cksum(0, &fl->dst, sizeof fl->dst);
-	sum = ip4_cksum(sum, &fl->src, sizeof fl->src);
-	sum = ip4_cksum(sum, &fl->proto, sizeof fl->proto);
-	olen = htobe16(sizeof oth);
-	sum = ip4_cksum(sum, &olen, sizeof olen);
-	oth.sum = htobe16(~ip4_cksum(sum, &oth, sizeof oth));
-
 	/* send packet */
-	if (ft_logout)
-		csv_tcp4(&fl->eth->p->ts, &fl->dst, &fl->src, &oth, 0);
-	ret = ip4_reply(fl, ip_proto_tcp, &oth, sizeof oth);
-	return (ret);
+	return (tcp4_reply(fl, &oth));
 }
 
 /*
