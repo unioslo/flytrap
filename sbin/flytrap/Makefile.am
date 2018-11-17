@@ -13,7 +13,7 @@ flytrap_SOURCES		+= iface.c
 flytrap_SOURCES		+= packet.c
 
 # Protocol stack
-flytrap_SOURCES		+= ether.c
+flytrap_SOURCES		+= ethernet.c
 flytrap_SOURCES		+= icmp4.c
 flytrap_SOURCES		+= ip4.c
 flytrap_SOURCES		+= tcp4.c
@@ -22,7 +22,7 @@ flytrap_SOURCES		+= udp4.c
 flytrap_LDADD		 = $(LIBPCAP) $(top_builddir)/lib/libft/libft.a
 
 noinst_HEADERS		 =
-noinst_HEADERS		+= ethernet.h
+noinst_HEADERS		+= flow.h
 noinst_HEADERS		+= flytrap.h
 noinst_HEADERS		+= iface.h
 noinst_HEADERS		+= packet.h

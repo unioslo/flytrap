@@ -48,7 +48,7 @@
 #include <ft/log.h>
 
 #include "flytrap.h"
-#include "ethernet.h"
+#include "flow.h"
 #include "iface.h"
 #include "packet.h"
 

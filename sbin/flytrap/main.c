@@ -45,7 +45,7 @@
 #include <ft/pidfile.h>
 
 #include "flytrap.h"
-#include "ethernet.h"
+#include "flow.h"
 
 static const char *ft_pidfile = "/var/run/flytrap.pid";
 static int ft_foreground = 0;

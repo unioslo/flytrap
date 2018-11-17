@@ -27,8 +27,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef FLYTRAP_ETHERNET_H_INCLUDED
-#define FLYTRAP_ETHERNET_H_INCLUDED
+#ifndef FLYTRAP_FLOW_H_INCLUDED
+#define FLYTRAP_FLOW_H_INCLUDED
 
 struct iface;
 struct packet;
@@ -73,7 +73,6 @@ int	 ethernet_send(struct iface *, ether_type, const ether_addr *,
 int	 ethernet_reply(const struct ether_flow *, const void *, size_t);
 
 int	 ip4_reply(const ip4_flow *, ip_proto, const void *, size_t);
-
 
 int	 packet_analyze_ethernet(const struct packet *, const void *, size_t);
 int	 packet_analyze_arp(const struct ether_flow *, const void *, size_t);

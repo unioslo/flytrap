@@ -41,7 +41,7 @@
 #include <ft/ip4.h>
 
 #include "flytrap.h"
-#include "ethernet.h"
+#include "flow.h"
 #include "packet.h"
 
 int
