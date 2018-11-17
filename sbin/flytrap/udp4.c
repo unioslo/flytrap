@@ -71,6 +71,9 @@ packet_analyze_udp4(const ip4_flow *fl, const void *data, size_t len)
 	}
 	data = uh + 1;
 	len -= sizeof *uh;
+	ft_debug("> udp4 port %hu to %hu len %zu",
+	    (unsigned short)be16toh(uh->sp), (unsigned short)be16toh(uh->dp),
+	    len);
 	csv_packet4(&fl->eth->p->ts, &fl->src, be16toh(uh->sp),
 	    &fl->dst, be16toh(uh->dp), "UDP", len, "");
 	return (0);

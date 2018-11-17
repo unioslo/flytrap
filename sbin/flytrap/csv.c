@@ -57,7 +57,7 @@ csv_packet4(const struct timeval *tv,
 
 	if ((f = csvfile) == NULL)
 		f = stdout;
-	fprintf(f, "%llu.%06lu,%d.%d.%d.%d,%d,%d.%d.%d.%d,%d,%s,%zu,",
+	fprintf(f, "%llu.%06lu,%u.%u.%u.%u,%d,%u.%u.%u.%u,%d,%s,%zu,",
 	    (unsigned long long)tv->tv_sec, (unsigned long)tv->tv_usec,
 	    sa->o[0], sa->o[1], sa->o[2], sa->o[3], sp,
 	    da->o[0], da->o[1], da->o[2], da->o[3], dp,

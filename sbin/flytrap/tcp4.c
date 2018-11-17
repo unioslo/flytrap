@@ -86,7 +86,7 @@ tcp4_reply(const ip4_flow *fl, tcp4_hdr *th)
 	th->sum = htobe16(~ip4_cksum(sum, th, sizeof *th));
 
 	/* log and send packet */
-	ft_debug("tcp4 port %hu to %hu seq %lu ack %lu win %hu len %zu",
+	ft_debug("< tcp4 port %hu to %hu seq %lu ack %lu win %hu len %zu",
 	    (unsigned short)be16toh(th->sp), (unsigned short)be16toh(th->dp),
 	    (unsigned long)be32toh(th->seq), (unsigned long)be32toh(th->ack),
 	    (unsigned short)be16toh(th->win), len);
@@ -225,7 +225,7 @@ packet_analyze_tcp4(const ip4_flow *fl, const void *data, size_t len)
 	}
 	data = (const uint8_t *)data + thlen;
 	len -= thlen;
-	ft_debug("tcp4 port %hu to %hu seq %lu ack %lu win %hu len %zu",
+	ft_debug("> tcp4 port %hu to %hu seq %lu ack %lu win %hu len %zu",
 	    (unsigned short)be16toh(th->sp), (unsigned short)be16toh(th->dp),
 	    (unsigned long)be32toh(th->seq), (unsigned long)be32toh(th->ack),
 	    (unsigned short)be16toh(th->win), len);

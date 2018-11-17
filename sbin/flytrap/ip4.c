@@ -81,7 +81,7 @@ packet_analyze_ip4(const ether_flow *ethfl, const void *data, size_t len)
 	}
 	len = be16toh(ih->len);
 	ft_debug("\tIP version %d proto %d len %zu"
-	    " from %d.%d.%d.%d to %d.%d.%d.%d",
+	    " from %u.%u.%u.%u to %u.%u.%u.%u",
 	    ip4_hdr_ver(ih), ih->proto, len,
 	    ih->srcip.o[0], ih->srcip.o[1], ih->srcip.o[2], ih->srcip.o[3],
 	    ih->dstip.o[0], ih->dstip.o[1], ih->dstip.o[2], ih->dstip.o[3]);

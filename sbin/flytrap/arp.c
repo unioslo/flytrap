@@ -248,7 +248,7 @@ arp_insert(struct arpn *n, uint32_t addr, uint64_t when)
 		if ((sn = arp_new(addr, splen)) == NULL)
 			return (NULL);
 		if (sn->plen == 32) {
-			ft_verbose("arp: inserted %d.%d.%d.%d",
+			ft_verbose("arp: inserted %u.%u.%u.%u",
 			    (addr >> 24) & 0xff, (addr >> 16) & 0xff,
 			    (addr >> 8) & 0xff, addr & 0xff);
 			nleaves++;
@@ -279,7 +279,7 @@ arp_register(const ip4_addr *ip4, const ether_addr *ether, uint64_t when)
 		/* warn if the ip4_addr moved from one ether_addr to another */
 		if (an->ether.o[0] || an->ether.o[1] || an->ether.o[2] ||
 		    an->ether.o[3] || an->ether.o[4] || an->ether.o[5]) {
-			ft_verbose("%d.%d.%d.%d moved"
+			ft_verbose("%u.%u.%u.%u moved"
 			    " from %02x:%02x:%02x:%02x:%02x:%02x"
 			    " to %02x:%02x:%02x:%02x:%02x:%02x",
 			    ip4->o[0], ip4->o[1], ip4->o[2], ip4->o[3],
@@ -288,7 +288,7 @@ arp_register(const ip4_addr *ip4, const ether_addr *ether, uint64_t when)
 			    ether->o[0], ether->o[1], ether->o[2],
 			    ether->o[3], ether->o[4], ether->o[5]);
 		} else {
-			ft_verbose("%d.%d.%d.%d registered"
+			ft_verbose("%u.%u.%u.%u registered"
 			    " at %02x:%02x:%02x:%02x:%02x:%02x",
 			    ip4->o[0], ip4->o[1], ip4->o[2], ip4->o[3],
 			    ether->o[0], ether->o[1], ether->o[2],
@@ -308,7 +308,7 @@ arp_lookup(const ip4_addr *ip4, ether_addr *ether)
 {
 	struct arpn *an;
 
-	ft_debug("ARP lookup %d.%d.%d.%d",
+	ft_debug("ARP lookup %u.%u.%u.%u",
 	    ip4->o[0], ip4->o[1], ip4->o[2], ip4->o[3]);
 	an = &arp_root;
 	if ((an = an->sub[ip4->o[0] / 16]) == NULL ||
@@ -321,7 +321,7 @@ arp_lookup(const ip4_addr *ip4, ether_addr *ether)
 	    (an = an->sub[ip4->o[3] % 16]) == NULL)
 		return (-1);
 	memcpy(ether, &an->ether, sizeof(ether_addr));
-	ft_debug("%d.%d.%d.%d is"
+	ft_debug("%u.%u.%u.%u is"
 	    " at %02x:%02x:%02x:%02x:%02x:%02x",
 	    ip4->o[0], ip4->o[1], ip4->o[2], ip4->o[3],
 	    ether->o[0], ether->o[1], ether->o[2],
@@ -361,7 +361,7 @@ arp_reserve(const ip4_addr *addr)
 {
 	struct arpn *an;
 
-	ft_debug("arp: reserving %d.%d.%d.%d",
+	ft_debug("arp: reserving %u.%u.%u.%u",
 	    addr->o[0], addr->o[1], addr->o[2], addr->o[3]);
 	if ((an = arp_insert(NULL, be32toh(addr->q), 0)) == NULL)
 		return (-1);
@@ -395,12 +395,12 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 	}
 	switch (be16toh(ap->oper)) {
 	case arp_oper_who_has:
-		ft_debug("\twho-has %d.%d.%d.%d tell %d.%d.%d.%d",
+		ft_debug("\twho-has %u.%u.%u.%u tell %u.%u.%u.%u",
 		    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3],
 		    ap->spa.o[0], ap->spa.o[1], ap->spa.o[2], ap->spa.o[3]);
 		break;
 	case arp_oper_is_at:
-		ft_debug("\t%d.%d.%d.%d is-at %02x:%02x:%02x:%02x:%02x:%02x",
+		ft_debug("\t%u.%u.%u.%u is-at %02x:%02x:%02x:%02x:%02x:%02x",
 		    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3], ap->tha.o[0],
 		    ap->tha.o[1], ap->tha.o[2], ap->tha.o[3], ap->tha.o[4], ap->tha.o[5]);
 		break;
@@ -429,7 +429,7 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 			/* new entry */
 			an->first = when;
 		} else {
-			ft_verbose("%d.%d.%d.%d: last seen %d.%03d",
+			ft_verbose("%u.%u.%u.%u: last seen %d.%03d",
 			    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3],
 			    an->last / 1000, an->last % 1000);
 		}
@@ -439,7 +439,7 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 			an->nreq = 0;
 		} else if (an->claimed) {
 			/* already ours, refresh */
-			ft_debug("refreshing %d.%d.%d.%d",
+			ft_debug("refreshing %u.%u.%u.%u",
 			    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3]);
 			an->nreq = 0;
 			if (arp_reply(fl, ap, an) != 0)
@@ -451,7 +451,7 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 		} else if (an->nreq >= ARP_MINREQ &&
 		    when - an->first >= ARP_TIMEOUT) {
 			/* claim new address */
-			ft_verbose("claiming %d.%d.%d.%d nreq = %d", ap->tpa.o[0],
+			ft_verbose("claiming %u.%u.%u.%u nreq = %d", ap->tpa.o[0],
 			    ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3], an->nreq);
 			an->claimed = 1;
 			an->nreq = 0;
