@@ -131,6 +131,7 @@ main(int argc, char *argv[])
 
 	ifname = NULL;
 	ft_log_level = FT_LOG_LEVEL_NOTICE;
+	ft_log_init("flytrap", NULL);
 	while ((opt = getopt(argc, argv, "dfhI:i:nop:t:vX:x:")) != -1) {
 		switch (opt) {
 		case 'd':
@@ -184,11 +185,10 @@ main(int argc, char *argv[])
 		usage();
 	ifname = *argv;
 
-	if (!ft_foreground)
+	if (!ft_foreground) {
 		daemonize();
-
-	/* ft_log is used for error messages, not traffic logs! */
-	ft_log_init("flytrap", ft_foreground ? NULL : "syslog:");
+		ft_log_init("flytrap", "syslog:");
+	}
 	ret = flytrap(ifname);
 	ft_log_exit();
 
