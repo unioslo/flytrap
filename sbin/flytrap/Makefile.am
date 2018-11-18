@@ -3,7 +3,6 @@ AM_CPPFLAGS		 = -I$(top_srcdir)/include
 sbin_PROGRAMS		 = flytrap
 
 flytrap_SOURCES		 =
-flytrap_SOURCES		+= arp.c
 flytrap_SOURCES		+= csv.c
 flytrap_SOURCES		+= flytrap.c
 flytrap_SOURCES		+= main.c
@@ -14,6 +13,7 @@ flytrap_SOURCES		+= packet.c
 
 # Protocol stack
 flytrap_SOURCES		+= ethernet.c
+flytrap_SOURCES		+= arp.c
 flytrap_SOURCES		+= icmp4.c
 flytrap_SOURCES		+= ip4.c
 flytrap_SOURCES		+= tcp4.c
