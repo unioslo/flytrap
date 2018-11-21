@@ -92,6 +92,20 @@ exclude_range(ip4s_node **set, const char *range)
 	return (0);
 }
 
+static int
+set_ether_addr(const char *addr)
+{
+	ether_addr ea;
+	const char *e;
+
+	if ((e = ether_parse(addr, &ea)) == NULL || *e != '\0')
+		return (-1);
+	ft_verbose("ethernet address %02x:%02x:%02x:%02x:%02x:%02x",
+	    ea.o[0], ea.o[1], ea.o[2], ea.o[3], ea.o[4], ea.o[5]);
+	flytrap_ether_addr = ea;
+	return (0);
+}
+
 static void
 daemonize(void)
 {
@@ -117,7 +131,7 @@ usage(void)
 {
 
 	fprintf(stderr, "usage: "
-	    "flytrap [-dfnov] [-p pidfile] [-t csvfile] "
+	    "flytrap [-dfnov] [-p pidfile] [-t csvfile] [-e addr] "
 	    "[-Ii addr|range|subnet] [-Xx addr|range|subnet] "
 	    "iface\n");
 	exit(1);
@@ -132,7 +146,7 @@ main(int argc, char *argv[])
 	ifname = NULL;
 	ft_log_level = FT_LOG_LEVEL_NOTICE;
 	ft_log_init("flytrap", NULL);
-	while ((opt = getopt(argc, argv, "dfhI:i:nop:t:vX:x:")) != -1) {
+	while ((opt = getopt(argc, argv, "de:fhI:i:nop:t:vX:x:")) != -1) {
 		switch (opt) {
 		case 'd':
 			if (ft_log_level > FT_LOG_LEVEL_DEBUG)
@@ -143,6 +157,10 @@ main(int argc, char *argv[])
 			break;
 		case 'I':
 			if (include_range(&src_set, optarg) != 0)
+				usage();
+			break;
+		case 'e':
+			if (set_ether_addr(optarg) != 0)
 				usage();
 			break;
 		case 'i':
