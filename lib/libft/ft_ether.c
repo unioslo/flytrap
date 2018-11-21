@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2016 The University of Oslo
+ * Copyright (c) 2016-2018 The University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -99,8 +99,11 @@ static const uint32_t crc32tab[256] = {
 	0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d,
 };
 
+/*
+ * Compute the 32-bit Frame Check Sequence for an Ethernet frame.
+ */
 uint32_t
-ether_crc32(const uint8_t *data, size_t len)
+ether_fcs(const uint8_t *data, size_t len)
 {
 	uint32_t crc32;
 

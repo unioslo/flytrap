@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2016-2017 The University of Oslo
+ * Copyright (c) 2016-2018 The University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,6 @@ typedef struct ether_ftr {
 	uint32_t	 fcs;
 } __attribute__((__packed__)) ether_ftr;
 
-uint32_t ether_crc32(const uint8_t *, size_t);
+uint32_t	 ether_fcs(const uint8_t *, size_t);
 
 #endif
