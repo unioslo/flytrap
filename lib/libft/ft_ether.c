@@ -30,6 +30,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <ft/ctype.h>
 #include <ft/ethernet.h>
 
 static const uint32_t crc32tab[256] = {
@@ -111,4 +112,39 @@ ether_fcs(const uint8_t *data, size_t len)
 	while (len--)
 		crc32 = (crc32 >> 8) ^ crc32tab[(crc32 ^ *data++) & 0xff];
 	return (crc32);
+}
+
+/*
+ * Parse the textual representation of an Ethernet address.  We accept
+ * both the traditional colon-separated syntax and the less common
+ * hyphen-separated syntax.
+ */
+static const uint8_t x2b[256] = {
+	['0'] = 0x00, ['1'] = 0x01, ['2'] = 0x02, ['3'] = 0x03,
+	['4'] = 0x04, ['5'] = 0x05, ['6'] = 0x06, ['7'] = 0x07,
+	['8'] = 0x08, ['9'] = 0x09, ['A'] = 0x0a, ['B'] = 0x0b,
+	['C'] = 0x0c, ['D'] = 0x0d, ['E'] = 0x0e, ['F'] = 0x0f,
+	['a'] = 0x0a, ['b'] = 0x0b, ['c'] = 0x0c, ['d'] = 0x0d,
+	['e'] = 0x0e, ['f'] = 0x0f,
+};
+#define is_sep(ch) ((ch) == ':' || (ch) == '-')
+const char *
+ether_parse(const char *str, ether_addr *addr)
+{
+	const unsigned char *us;
+	char sep;
+	int i;
+
+	us = (const unsigned char *)str;
+	if (is_xdigit(us[0]) && is_xdigit(us[1]) && is_sep(us[2])) {
+		addr->o[0] = x2b[us[0]] << 4 | x2b[us[1]];
+		sep = us[2];
+		us += 2;
+		for (i = 1; i < 6; ++i, us += 3) {
+			if (us[0] != sep || !is_xdigit(us[1]) || !is_xdigit(us[2]))
+				return (NULL);
+			addr->o[i] = x2b[us[1]] << 4 | x2b[us[2]];
+		}
+	}
+	return ((const char *)us);
 }

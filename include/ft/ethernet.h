@@ -50,5 +50,6 @@ typedef struct ether_ftr {
 } __attribute__((__packed__)) ether_ftr;
 
 uint32_t	 ether_fcs(const uint8_t *, size_t);
+const char	*ether_parse(const char *, ether_addr *);
 
 #endif
