@@ -66,12 +66,14 @@ packet_analyze_ethernet(const packet *p, const void *data, size_t len)
 	len -= sizeof *eh;
 	ft_debug("%d.%03d recv type %04x packet "
 	    "from %02x:%02x:%02x:%02x:%02x:%02x "
-	    "to %02x:%02x:%02x:%02x:%02x:%02x",
+	    "to %02x:%02x:%02x:%02x:%02x:%02x "
+	    "len %zu",
 	    p->ts.tv_sec, p->ts.tv_usec / 1000, be16toh(eh->type),
 	    eh->src.o[0], eh->src.o[1], eh->src.o[2],
 	    eh->src.o[3], eh->src.o[4], eh->src.o[5],
 	    eh->dst.o[0], eh->dst.o[1], eh->dst.o[2],
-	    eh->dst.o[3], eh->dst.o[4], eh->dst.o[5]);
+	    eh->dst.o[3], eh->dst.o[4], eh->dst.o[5],
+	    len);
 	fl.p = p;
 	fl.src = eh->src;
 	fl.dst = eh->dst;

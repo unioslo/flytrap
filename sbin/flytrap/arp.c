@@ -401,8 +401,9 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 		break;
 	case arp_oper_is_at:
 		ft_debug("\t%u.%u.%u.%u is-at %02x:%02x:%02x:%02x:%02x:%02x",
-		    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3], ap->tha.o[0],
-		    ap->tha.o[1], ap->tha.o[2], ap->tha.o[3], ap->tha.o[4], ap->tha.o[5]);
+		    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3],
+		    ap->tha.o[0], ap->tha.o[1], ap->tha.o[2], ap->tha.o[3],
+		    ap->tha.o[4], ap->tha.o[5]);
 		break;
 	default:
 		ft_verbose("%d.%03d unknown ARP operation 0x%04x", be16toh(ap->oper));
@@ -430,8 +431,8 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 			an->first = when;
 		} else {
 			ft_verbose("%u.%u.%u.%u: last seen %d.%03d",
-			    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3],
-			    an->last / 1000, an->last % 1000);
+			    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2],
+			    ap->tpa.o[3], an->last / 1000, an->last % 1000);
 		}
 		if (an->reserved) {
 			/* ignore */
@@ -439,8 +440,8 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 			an->nreq = 0;
 		} else if (an->claimed) {
 			/* already ours, refresh */
-			ft_debug("refreshing %u.%u.%u.%u",
-			    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3]);
+			ft_debug("refreshing %u.%u.%u.%u", ap->tpa.o[0],
+			    ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3]);
 			an->nreq = 0;
 			if (arp_reply(fl, ap, an) != 0)
 				return (-1);
@@ -451,8 +452,10 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 		} else if (an->nreq >= ARP_MINREQ &&
 		    when - an->first >= ARP_TIMEOUT) {
 			/* claim new address */
-			ft_verbose("claiming %u.%u.%u.%u nreq = %d", ap->tpa.o[0],
-			    ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3], an->nreq);
+			ft_verbose("claiming %u.%u.%u.%u nreq = %d in %lu ms",
+			    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2],
+			    ap->tpa.o[3], an->nreq,
+			    (unsigned long)(when - an->first));
 			an->claimed = 1;
 			an->nreq = 0;
 			if (arp_reply(fl, ap, an) != 0)
