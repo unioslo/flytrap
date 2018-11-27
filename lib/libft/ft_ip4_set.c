@@ -192,6 +192,7 @@ ip4s_insert(ip4s_node *n, uint32_t first, uint32_t last)
 		/*
 		 * Insert into subnet and adjust our coverage number.
 		 */
+		n->coverage -= sn->coverage;
 		ret = ip4s_insert(sn, first, last);
 		n->coverage += sn->coverage;
 		if (ret != 0)
