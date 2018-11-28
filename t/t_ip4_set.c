@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2016 The University of Oslo
+ * Copyright (c) 2016-2018 The University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,13 +55,13 @@ static struct t_ip4s_case {
 	{
 		.desc		 = "full",
 		.insert		 = "0.0.0.0/0",
-		.count		 = (1LU << 32),
+		.count		 = (1UL << 32),
 		.present	 = "0.0.0.0,127.255.255.255,128.0.0.0,255.255.255.255",
 	},
 	{
 		.desc		 = "half full",
 		.insert		 = "0.0.0.0/1",
-		.count		 = (1LU << 31),
+		.count		 = (1UL << 31),
 		.present	 = "0.0.0.0,127.255.255.255",
 		.absent		 = "128.0.0.0,255.255.255.255",
 	},
@@ -69,7 +69,7 @@ static struct t_ip4s_case {
 		.desc		 = "half empty",
 		.insert		 = "0.0.0.0/0",
 		.remove		 = "128.0.0.0/1",
-		.count		 = (1LU << 31),
+		.count		 = (1UL << 31),
 		.present	 = "0.0.0.0,127.255.255.255",
 		.absent		 = "128.0.0.0,255.255.255.255",
 	},
@@ -84,14 +84,14 @@ static struct t_ip4s_case {
 		.desc		 = "single removal",
 		.insert		 = "0.0.0.0/0",
 		.remove		 = "172.16.23.42",
-		.count		 = (1LU << 32) - 1,
+		.count		 = (1UL << 32) - 1,
 		.present	 = "0.0.0.0,172.16.23.41,172.16.23.43,255.255.255.255",
 		.absent		 = "172.16.23.42",
 	},
 	{
 		.desc		 = "unaligned insertion",
 		.insert		 = "172.16.0.0/15",
-		.count		 = (1LU << 17),
+		.count		 = (1UL << 17),
 		.present	 = "172.16.0.0,172.17.255.255",
 		.absent		 = "0.0.0.0,172.15.255.255,172.18.0.0,255.255.255.255",
 	},
@@ -99,14 +99,32 @@ static struct t_ip4s_case {
 		.desc		 = "unaligned removal",
 		.insert		 = "0.0.0.0/0",
 		.remove		 = "172.16.0.0/15",
-		.count		 = (1LU << 32) - (1LU << 17),
+		.count		 = (1UL << 32) - (1UL << 17),
 		.present	 = "0.0.0.0,172.15.255.255,172.18.0.0,255.255.255.255",
 		.absent		 = "172.16.0.0,172.17.255.255",
+	},
+	{
+		.desc		 = "insert into full",
+		.insert		 = "0.0.0.0/0,192.168.144.1/32",
+		.count		 = (1UL << 32),
+		.present	 = "192.168.144.1",
+	},
+	{
+		.desc		 = "insert duplicate",
+		.insert		 = "192.168.144.0/24,192.168.144.1/32",
+		.count		 = (1UL << 8),
+		.present	 = "192.168.144.0,192.168.144.255",
+	},
+	{
+		.desc		 = "aggregate",
+		.insert		 = "192.168.144.0/25,192.168.144.128/25",
+		.count		 = (1UL << 8),
+		.present	 = "192.168.144.0,192.168.144.255",
 	},
 };
 
 static int
-t_ip4a(char **desc CRYB_UNUSED, void *arg)
+t_ip4s(char **desc CRYB_UNUSED, void *arg)
 {
 	struct t_ip4s_case *t = arg;
 	ip4_addr addr, first, last;
@@ -148,6 +166,8 @@ t_ip4a(char **desc CRYB_UNUSED, void *arg)
 			ret = 0;
 		}
 	}
+	if (!ret && t_verbose)
+		ip4s_fprint(stderr, n);
 	ip4s_destroy(n);
 	return (ret);
 }
@@ -158,7 +178,7 @@ t_prepare(int argc CRYB_UNUSED, char *argv[] CRYB_UNUSED)
 	unsigned int i;
 
 	for (i = 0; i < sizeof t_ip4s_cases / sizeof t_ip4s_cases[0]; ++i)
-		t_add_test(t_ip4a, &t_ip4s_cases[i],
+		t_add_test(t_ip4s, &t_ip4s_cases[i],
 		    "%s", t_ip4s_cases[i].desc);
 	return (0);
 }
