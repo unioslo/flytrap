@@ -65,19 +65,19 @@ ip4s_fprint(FILE *f, const ip4s_node *n)
 {
 	unsigned int i;
 
-	if (n->leaf) {
-		fprintf(f, "%u.%u.%u.%u",
-		    (n->addr >> 24) & 0xff,
-		    (n->addr >> 16) & 0xff,
-		    (n->addr >> 8) & 0xff,
-		    n->addr & 0xff);
-		if (n->plen < 32)
-			fprintf(f, "/%u", n->plen);
-		fprintf(f, "\n");
-	} else {
-		for (i = 0; i < IP4S_SUBS; ++i)
+	fprintf(f, "%*s%u.%u.%u.%u",
+	    (int)(n->plen / 2), "",
+	    (n->addr >> 24) & 0xff,
+	    (n->addr >> 16) & 0xff,
+	    (n->addr >> 8) & 0xff,
+	    n->addr & 0xff);
+	if (n->plen < 32) {
+		fprintf(f, "/%u (%lu)\n", n->plen, n->coverage);
+		for (i = 0; i < 16; ++i)
 			if (n->sub[i] != NULL)
 				ip4s_fprint(f, n->sub[i]);
+	} else {
+		fprintf(f, "\n");
 	}
 }
 
