@@ -56,19 +56,18 @@ packet_analyze_ethernet(const packet *p, const void *data, size_t len)
 	int ret;
 
 	if (len < sizeof(ether_hdr)) {
-		ft_verbose("%d.%03d short Ethernet packet (%zd < %zd)",
-		    p->ts.tv_sec, p->ts.tv_usec / 1000,
-		    len, sizeof(ether_hdr));
+		ft_verbose("%lu.%03lu short Ethernet packet (%zd < %zd)",
+		    FT_TIME_SEC_UL, FT_TIME_MSEC_UL, len, sizeof(ether_hdr));
 		return (-1);
 	}
 	eh = data;
 	data = eh + 1;
 	len -= sizeof *eh;
-	ft_debug("%d.%03d recv type %04x packet "
+	ft_debug("%lu.%03lu recv type %04x packet "
 	    "from %02x:%02x:%02x:%02x:%02x:%02x "
 	    "to %02x:%02x:%02x:%02x:%02x:%02x "
 	    "len %zu",
-	    p->ts.tv_sec, p->ts.tv_usec / 1000, be16toh(eh->type),
+	    FT_TIME_SEC_UL, FT_TIME_MSEC_UL, be16toh(eh->type),
 	    eh->src.o[0], eh->src.o[1], eh->src.o[2],
 	    eh->src.o[3], eh->src.o[4], eh->src.o[5],
 	    eh->dst.o[0], eh->dst.o[1], eh->dst.o[2],
@@ -110,10 +109,10 @@ ethernet_send(iface *i, ether_type type, const ether_addr *dst,
 	eh->type = htobe16(type);
 	memcpy(eh + 1, data, len);
 	gettimeofday(&p.ts, NULL);
-	ft_debug("%d.%03d send type %04x packet "
+	ft_debug("%lu.%03lu send type %04x packet "
 	    "from %02x:%02x:%02x:%02x:%02x:%02x "
 	    "to %02x:%02x:%02x:%02x:%02x:%02x",
-	    p.ts.tv_sec, p.ts.tv_usec / 1000, be16toh(eh->type),
+	    FT_TIME_SEC_UL, FT_TIME_MSEC_UL, be16toh(eh->type),
 	    eh->src.o[0], eh->src.o[1], eh->src.o[2],
 	    eh->src.o[3], eh->src.o[4], eh->src.o[5],
 	    eh->dst.o[0], eh->dst.o[1], eh->dst.o[2],

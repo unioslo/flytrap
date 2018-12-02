@@ -387,9 +387,8 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 	struct arpn *an;
 
 	if (len < sizeof(arp_pkt)) {
-		ft_verbose("%d.%03d short ARP packet (%zd < %zd)",
-		    fl->p->ts.tv_sec, fl->p->ts.tv_usec / 1000,
-		    len, sizeof(arp_pkt));
+		ft_verbose("%lu.%03lu short ARP packet (%zd < %zd)",
+		    FT_TIME_SEC_UL, FT_TIME_MSEC_UL, len, sizeof(arp_pkt));
 		return (-1);
 	}
 	ap = (const arp_pkt *)data;
@@ -413,7 +412,7 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 		    ap->tha.o[4], ap->tha.o[5]);
 		break;
 	default:
-		ft_verbose("%d.%03d unknown ARP operation 0x%04x", be16toh(ap->oper));
+		ft_verbose("\tunknown operation 0x%04x", be16toh(ap->oper));
 		return (0);
 	}
 	switch (be16toh(ap->oper)) {
