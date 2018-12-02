@@ -47,4 +47,28 @@ t_compare_ip4_addr(const ip4_addr *e, const ip4_addr *r)
 	return (1);
 }
 
+static inline int
+t_ip4s_present(const ip4s_node *set, const ip4_addr *addr)
+{
+
+	if (ip4s_lookup(set, be32toh(addr->q)) == 0) {
+		t_printv("expected %d.%d.%d.%d present\n",
+		    addr->o[0], addr->o[1], addr->o[2], addr->o[3]);
+		return (0);
+	}
+	return (1);
+}
+
+static inline int
+t_ip4s_absent(const ip4s_node *set, const ip4_addr *addr)
+{
+
+	if (ip4s_lookup(set, be32toh(addr->q)) != 0) {
+		t_printv("expected %d.%d.%d.%d absent\n",
+		    addr->o[0], addr->o[1], addr->o[2], addr->o[3]);
+		return (0);
+	}
+	return (1);
+}
+
 #endif

@@ -89,6 +89,37 @@ static struct t_ip4s_case {
 		.absent		 = "172.16.23.42",
 	},
 	{
+		.desc		 = "complete removal",
+		.insert		 = "172.16.0.0/24",
+		.remove		 = "172.16.0.0/25,172.16.0.128/25",
+		.count		 = 0,
+	},
+	{
+		.desc		 = "left removal",
+		.insert		 = "172.16.23.0/24",
+		.remove		 = "172.16.22.255-172.16.23.1",
+		.count		 = 254,
+		.present	 = "172.16.23.2-172.16.23.255",
+		.absent		 = "172.16.23.0,172.16.23.1",
+	},
+	{
+		.desc		 = "right removal",
+		.insert		 = "172.16.23.0/24",
+		.remove		 = "172.16.23.254-172.16.24.1",
+		.count		 = 254,
+		.present	 = "172.16.23.0-172.16.23.253",
+		.absent		 = "172.16.23.254,172.16.23.255",
+	},
+	{
+		.desc		 = "partial removal from leaf",
+		.insert		 = "172.16.16.0/20",
+		.remove		 = "172.16.23.0/24",
+		.count		 = (1UL << 12) - (1UL << 8),
+		.present	 = "172.16.16.0-172.16.22.255,"
+					"172.16.24.0-172.16.31.255",
+		.absent		 = "172.16.23.0-172.16.23.255",
+	},
+	{
 		.desc		 = "unaligned insertion",
 		.insert		 = "172.16.0.0/15",
 		.count		 = (1UL << 17),
@@ -105,21 +136,21 @@ static struct t_ip4s_case {
 	},
 	{
 		.desc		 = "insert into full",
-		.insert		 = "0.0.0.0/0,192.168.144.1/32",
+		.insert		 = "0.0.0.0/0,172.16.0.1/32",
 		.count		 = (1UL << 32),
-		.present	 = "192.168.144.1",
+		.present	 = "172.16.0.1",
 	},
 	{
 		.desc		 = "insert duplicate",
-		.insert		 = "192.168.144.0/24,192.168.144.1/32",
+		.insert		 = "172.16.0.0/24,172.16.0.1/32",
 		.count		 = (1UL << 8),
-		.present	 = "192.168.144.0,192.168.144.255",
+		.present	 = "172.16.0.0,172.16.0.255",
 	},
 	{
 		.desc		 = "aggregate",
-		.insert		 = "192.168.144.0/25,192.168.144.128/25",
+		.insert		 = "172.16.0.0/25,172.16.0.128/25",
 		.count		 = (1UL << 8),
-		.present	 = "192.168.144.0,192.168.144.255",
+		.present	 = "172.16.0.0,172.16.0.255",
 	},
 };
 
@@ -127,11 +158,12 @@ static int
 t_ip4s(char **desc CRYB_UNUSED, void *arg)
 {
 	struct t_ip4s_case *t = arg;
-	ip4_addr addr, first, last;
+	ip4_addr first, last;
 	const char *p, *q;
 	ip4s_node *n;
 	int ret;
 
+	ret = 1;
 	n = ip4s_new();
 	if (!t_is_not_null(n))
 		return (0);
@@ -147,24 +179,18 @@ t_ip4s(char **desc CRYB_UNUSED, void *arg)
 		if (ip4s_remove(n, be32toh(first.q), be32toh(last.q)) != 0)
 			return (-1);
 	}
-	ret = t_compare_ul(t->count, ip4s_count(n));
+	ret &= t_compare_ul(t->count, ip4s_count(n));
 	for (p = q = t->present; q != NULL && *q != '\0'; p = q + 1) {
-		q = ip4_parse(p, &addr);
+		q = ip4_parse_range(p, &first, &last);
 		ft_assert(q != NULL && (*q == '\0' || *q == ','));
-		if (ip4s_lookup(n, be32toh(addr.q)) != 1) {
-			t_printv("expected %d.%d.%d.%d present\n",
-			    addr.o[0], addr.o[1], addr.o[2], addr.o[3]);
-			ret = 0;
-		}
+		ret &= t_ip4s_present(n, &first);
+		ret &= t_ip4s_present(n, &last);
 	}
 	for (p = q = t->absent; q != NULL && *q != '\0'; p = q + 1) {
-		q = ip4_parse(p, &addr);
+		q = ip4_parse_range(p, &first, &last);
 		ft_assert(q != NULL && (*q == '\0' || *q == ','));
-		if (ip4s_lookup(n, be32toh(addr.q)) != 0) {
-			t_printv("expected %d.%d.%d.%d absent\n",
-			    addr.o[0], addr.o[1], addr.o[2], addr.o[3]);
-			ret = 0;
-		}
+		ret &= t_ip4s_absent(n, &first);
+		ret &= t_ip4s_absent(n, &last);
 	}
 	if (!ret && t_verbose)
 		ip4s_fprint(stderr, n);
