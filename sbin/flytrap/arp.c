@@ -117,16 +117,24 @@ arp_print_tree(FILE *f, struct arpn *n)
 	    (n->addr >> 8) & 0xff,
 	    n->addr & 0xff);
 	if (n->plen < 32) {
-		fprintf(f, "/%u\n", n->plen);
+		fprintf(f, "/%u", n->plen);
+		if (n->newest > 0) {
+			fprintf(f, " %lu.%03lu s",
+			    U64_SEC_UL(ft_time - n->newest),
+			    U64_MSEC_UL(ft_time - n->newest));
+		}
+		fprintf(f, "\n");
 		for (i = 0; i < 16; ++i)
 			if (n->sub[i] != NULL)
 				arp_print_tree(f, n->sub[i]);
 	} else if (n->nreq > 0) {
-		fprintf(f, " unknown (%u)\n", n->nreq);
+		fprintf(f, " unknown (%u req)\n", n->nreq);
 	} else {
-		fprintf(f, " = %02x:%02x:%02x:%02x:%02x:%02x%s\n",
+		fprintf(f, " = %02x:%02x:%02x:%02x:%02x:%02x %lu.%03lu s%s\n",
 		    n->ether.o[0], n->ether.o[1], n->ether.o[2],
 		    n->ether.o[3], n->ether.o[4], n->ether.o[5],
+		    U64_SEC_UL(ft_time - n->last),
+		    U64_MSEC_UL(ft_time - n->last),
 		    n->claimed ? " !" : "");
 	}
 }
@@ -147,7 +155,7 @@ arp_new(uint32_t addr, uint8_t plen)
 	n->plen = plen;
 	n->first = ARP_NEVER;
 	n->last = 0;
-	ft_debug("created node %d.%d.%d.%d/%d",
+	ft_debug("created node %u.%u.%u.%u/%u",
 	    (n->addr >> 24) & 0xff, (n->addr >> 16) & 0xff,
 	    (n->addr >> 8) & 0xff, n->addr & 0xff, n->plen);
 	return (n);
@@ -169,7 +177,7 @@ arp_delete(struct arpn *n)
 		for (i = 0; i < 16; ++i)
 			if (n->sub[i] != NULL)
 				arp_delete(n->sub[i]);
-	ft_debug("deleted node %d.%d.%d.%d/%d",
+	ft_debug("deleted node %u.%u.%u.%u/%u",
 	    (n->addr >> 24) & 0xff, (n->addr >> 16) & 0xff,
 	    (n->addr >> 8) & 0xff, n->addr & 0xff, n->plen);
 	narpn--;
@@ -182,12 +190,18 @@ arp_delete(struct arpn *n)
 static void
 arp_expire(struct arpn *n, uint64_t cutoff)
 {
-	unsigned int i, ndel;
+	unsigned int i, ndel, nexp;
 
 	if (n == NULL)
 		n = &arp_root;
 	ndel = narpn;
-	ft_debug("expiring in %08x/%d", n->addr, n->plen);
+	nexp = nleaves;
+	ft_debug("expiring in %u.%u.%u.%u/%u "
+	    "oldest %lu.%03lu s newest %lu.%03lu s",
+	    (n->addr >> 24) & 0xff, (n->addr >> 16) & 0xff,
+	    (n->addr >> 8) & 0xff, n->addr & 0xff, n->plen,
+	    U64_SEC_UL(ft_time - n->oldest), U64_MSEC_UL(ft_time - n->oldest),
+	    U64_SEC_UL(ft_time - n->newest), U64_MSEC_UL(ft_time - n->newest));
 	/* reset fences */
 	n->first = ARP_NEVER;
 	n->last = 0;
@@ -214,7 +228,12 @@ arp_expire(struct arpn *n, uint64_t cutoff)
 		}
 	}
 	ndel -= narpn;
-	ft_debug("expired %u nodes under %08x/%d", ndel, n->addr, n->plen);
+	nexp -= nleaves;
+	if (nexp > 0 || ndel > 0) {
+		ft_debug("expired %u nodes under %u.%u.%u.%u/%u (%u deleted)",
+		    nexp, (n->addr >> 24) & 0xff, (n->addr >> 16) & 0xff,
+		    (n->addr >> 8) & 0xff, n->addr & 0xff, n->plen, ndel);
+	}
 }
 
 /*
@@ -407,9 +426,9 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 		break;
 	case arp_oper_is_at:
 		ft_debug("\t%u.%u.%u.%u is-at %02x:%02x:%02x:%02x:%02x:%02x",
-		    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2], ap->tpa.o[3],
-		    ap->tha.o[0], ap->tha.o[1], ap->tha.o[2], ap->tha.o[3],
-		    ap->tha.o[4], ap->tha.o[5]);
+		    ap->spa.o[0], ap->spa.o[1], ap->spa.o[2], ap->spa.o[3],
+		    ap->sha.o[0], ap->sha.o[1], ap->sha.o[2], ap->sha.o[3],
+		    ap->sha.o[4], ap->sha.o[5]);
 		break;
 	default:
 		ft_verbose("\tunknown operation 0x%04x", be16toh(ap->oper));
@@ -435,9 +454,10 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 			/* new entry */
 			an->first = ft_time;
 		} else {
-			ft_verbose("%u.%u.%u.%u: last seen %d.%03d",
+			ft_verbose("%u.%u.%u.%u: last seen %lu.%03lu",
 			    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2],
-			    ap->tpa.o[3], an->last / 1000, an->last % 1000);
+			    ap->tpa.o[3], U64_SEC_UL(an->last),
+			    U64_MSEC_UL(an->last));
 		}
 		if (an->reserved) {
 			/* ignore */
@@ -482,7 +502,7 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 		arp_expire(&arp_root, ft_time - ARP_EXPIRE);
 		ft_debug("%u nodes / %u leaves in tree", narpn, nleaves);
 	} else if (arp_root.oldest != ARP_NEVER) {
-		ft_debug("%lu.03%lu s until expiry",
+		ft_debug("%lu.%03lu s until expiry",
 		    (arp_root.oldest + ARP_EXPIRE - ft_time) / 1000,
 		    (arp_root.oldest + ARP_EXPIRE - ft_time) % 1000);
 	}
