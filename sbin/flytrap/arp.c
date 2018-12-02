@@ -102,7 +102,6 @@ struct arpn {
 static struct arpn arp_root = { .first = ARP_NEVER };
 static unsigned int narpn, nleaves;
 
-#if 0
 /*
  * Print the leaf nodes of a tree in order.
  */
@@ -111,22 +110,26 @@ arp_print_tree(FILE *f, struct arpn *n)
 {
 	unsigned int i;
 
-	if (n->plen == 32) {
-		fprintf(f, "%u.%u.%u.%u",
-		    (n->addr >> 24) & 0xff,
-		    (n->addr >> 16) & 0xff,
-		    (n->addr >> 8) & 0xff,
-		    n->addr & 0xff);
-		if (n->plen < 32)
-			fprintf(f, "/%u", n->plen);
-		fprintf(f, "\n");
-	} else {
+	fprintf(f, "%*s%u.%u.%u.%u",
+	    (int)(n->plen / 2), "",
+	    (n->addr >> 24) & 0xff,
+	    (n->addr >> 16) & 0xff,
+	    (n->addr >> 8) & 0xff,
+	    n->addr & 0xff);
+	if (n->plen < 32) {
+		fprintf(f, "/%u\n", n->plen);
 		for (i = 0; i < 16; ++i)
 			if (n->sub[i] != NULL)
 				arp_print_tree(f, n->sub[i]);
+	} else if (n->nreq > 0) {
+		fprintf(f, " unknown (%u)\n", n->nreq);
+	} else {
+		fprintf(f, " = %02x:%02x:%02x:%02x:%02x:%02x%s\n",
+		    n->ether.o[0], n->ether.o[1], n->ether.o[2],
+		    n->ether.o[3], n->ether.o[4], n->ether.o[5],
+		    n->claimed ? " !" : "");
 	}
 }
-#endif
 
 /*
  * Create a node for the subnet of the specified prefix length which
@@ -144,7 +147,9 @@ arp_new(uint32_t addr, uint8_t plen)
 	n->plen = plen;
 	n->first = ARP_NEVER;
 	n->last = 0;
-	ft_debug("added node %08x/%d", n->addr, n->plen);
+	ft_debug("created node %d.%d.%d.%d/%d",
+	    (n->addr >> 24) & 0xff, (n->addr >> 16) & 0xff,
+	    (n->addr >> 8) & 0xff, n->addr & 0xff, n->plen);
 	return (n);
 }
 
@@ -164,7 +169,9 @@ arp_delete(struct arpn *n)
 		for (i = 0; i < 16; ++i)
 			if (n->sub[i] != NULL)
 				arp_delete(n->sub[i]);
-	ft_debug("deleted node %08x/%d", n->addr, n->plen);
+	ft_debug("deleted node %d.%d.%d.%d/%d",
+	    (n->addr >> 24) & 0xff, (n->addr >> 16) & 0xff,
+	    (n->addr >> 8) & 0xff, n->addr & 0xff, n->plen);
 	narpn--;
 	free(n);
 }
@@ -452,10 +459,11 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 		} else if (an->nreq >= ARP_MINREQ &&
 		    when - an->first >= ARP_TIMEOUT) {
 			/* claim new address */
-			ft_verbose("claiming %u.%u.%u.%u nreq = %d in %lu ms",
+			ft_verbose("claiming %u.%u.%u.%u nreq = %u in %lu ms",
 			    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2],
 			    ap->tpa.o[3], an->nreq,
 			    (unsigned long)(when - an->first));
+			an->ether = fl->p->i->ether;
 			an->claimed = 1;
 			an->nreq = 0;
 			if (arp_reply(fl, ap, an) != 0)
@@ -475,6 +483,11 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 	if (arp_root.oldest < when - ARP_EXPIRE) {
 		arp_expire(&arp_root, when - ARP_EXPIRE);
 		ft_debug("%u nodes / %u leaves in tree", narpn, nleaves);
+	} else if (arp_root.oldest != ARP_NEVER) {
+		ft_debug("%lu.03%lu s until expiry",
+		    (arp_root.oldest + ARP_EXPIRE - when) / 1000,
+		    (arp_root.oldest + ARP_EXPIRE - when) % 1000);
 	}
+	arp_print_tree(stderr, &arp_root);
 	return (0);
 }
