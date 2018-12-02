@@ -44,11 +44,14 @@
 #include "flow.h"
 #include "packet.h"
 
+uint64_t ft_time;
+
 int
 packet_analyze(packet *p)
 {
 	int ret;
 
+	ft_time = p->ts.tv_sec * 1000 + p->ts.tv_usec / 1000;
 	ret = packet_analyze_ethernet(p, p->data, p->len);
 	return (ret);
 }

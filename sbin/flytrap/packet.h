@@ -39,4 +39,10 @@ typedef struct packet {
 	size_t		 len;
 } packet;
 
+extern uint64_t ft_time;
+#define U64_SEC_UL(u64)		((unsigned long)((u64) / 1000))
+#define U64_MSEC_UL(u64)	((unsigned long)((u64) % 1000))
+#define FT_TIME_SEC_UL		U64_SEC_UL(ft_time)
+#define FT_TIME_MSEC_UL		U64_MSEC_UL(ft_time)
+
 #endif

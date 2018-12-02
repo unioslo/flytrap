@@ -233,7 +233,7 @@ arp_periodic(struct timeval *tv)
  * Insert an address into a tree.
  */
 static struct arpn *
-arp_insert(struct arpn *n, uint32_t addr, uint64_t when)
+arp_insert(struct arpn *n, uint32_t addr)
 {
 	struct arpn *sn, *rn;
 	uint32_t sub;
@@ -243,10 +243,10 @@ arp_insert(struct arpn *n, uint32_t addr, uint64_t when)
 		n = &arp_root;
 	if (n->plen == 32) {
 		ft_assert(n->addr == addr);
-		if (when < n->first)
-			n->first = when;
-		if (when > n->last)
-			n->last = when;
+		if (ft_time < n->first)
+			n->first = ft_time;
+		if (ft_time > n->last)
+			n->last = ft_time;
 		return (n);
 	}
 	splen = n->plen + 4;
@@ -262,7 +262,7 @@ arp_insert(struct arpn *n, uint32_t addr, uint64_t when)
 		}
 		n->sub[sub] = sn;
 	}
-	if ((rn = arp_insert(sn, addr, when)) == NULL)
+	if ((rn = arp_insert(sn, addr)) == NULL)
 		return (NULL);
 	/* for non-leaf nodes, first / last means oldest / newest */
 	if (sn->newest < n->oldest)
@@ -276,11 +276,11 @@ arp_insert(struct arpn *n, uint32_t addr, uint64_t when)
  * ARP registration
  */
 int
-arp_register(const ip4_addr *ip4, const ether_addr *ether, uint64_t when)
+arp_register(const ip4_addr *ip4, const ether_addr *ether)
 {
 	struct arpn *an;
 
-	if ((an = arp_insert(NULL, be32toh(ip4->q), when)) == NULL)
+	if ((an = arp_insert(NULL, be32toh(ip4->q))) == NULL)
 		return (-1);
 	if (memcmp(&an->ether, ether, sizeof an->ether) != 0) {
 		/* warn if the ip4_addr moved from one ether_addr to another */
@@ -370,8 +370,9 @@ arp_reserve(const ip4_addr *addr)
 
 	ft_debug("arp: reserving %u.%u.%u.%u",
 	    addr->o[0], addr->o[1], addr->o[2], addr->o[3]);
-	if ((an = arp_insert(NULL, be32toh(addr->q), 0)) == NULL)
+	if ((an = arp_insert(NULL, be32toh(addr->q))) == NULL)
 		return (-1);
+	an->first = an->last = 0;
 	an->reserved = 1;
 	return (0);
 }
@@ -384,7 +385,6 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 {
 	const arp_pkt *ap;
 	struct arpn *an;
-	uint64_t when;
 
 	if (len < sizeof(arp_pkt)) {
 		ft_verbose("%d.%03d short ARP packet (%zd < %zd)",
@@ -416,7 +416,6 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 		ft_verbose("%d.%03d unknown ARP operation 0x%04x", be16toh(ap->oper));
 		return (0);
 	}
-	when = fl->p->ts.tv_sec * 1000 + fl->p->ts.tv_usec / 1000;
 	switch (be16toh(ap->oper)) {
 	case arp_oper_who_has:
 		/* ARP request */
@@ -425,17 +424,17 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 			break;
 		}
 		/* register sender */
-		arp_register(&ap->spa, &ap->sha, when);
+		arp_register(&ap->spa, &ap->sha);
 		/*
-		 * Note that arp_insert() sets an->last = when so we don't
-		 * have to, but leaves an->first untouched.  For new
+		 * Note that arp_insert() sets an->last = ft_time so we
+		 * don't have to, but leaves an->first untouched.  For new
 		 * nodes, this is the magic value ARP_NEVER.
 		 */
-		if ((an = arp_insert(NULL, be32toh(ap->tpa.q), when)) == NULL)
+		if ((an = arp_insert(NULL, be32toh(ap->tpa.q))) == NULL)
 			return (-1);
 		if (an->first == ARP_NEVER) {
 			/* new entry */
-			an->first = when;
+			an->first = ft_time;
 		} else {
 			ft_verbose("%u.%u.%u.%u: last seen %d.%03d",
 			    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2],
@@ -452,17 +451,17 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 			an->nreq = 0;
 			if (arp_reply(fl, ap, an) != 0)
 				return (-1);
-		} else if (an->nreq == 0 || when - an->last >= ARP_STALE) {
+		} else if (an->nreq == 0 || ft_time - an->last >= ARP_STALE) {
 			/* new or stale, start over */
 			an->nreq = 1;
-			an->first = when;
+			an->first = ft_time;
 		} else if (an->nreq >= ARP_MINREQ &&
-		    when - an->first >= ARP_TIMEOUT) {
+		    ft_time - an->first >= ARP_TIMEOUT) {
 			/* claim new address */
 			ft_verbose("claiming %u.%u.%u.%u nreq = %u in %lu ms",
 			    ap->tpa.o[0], ap->tpa.o[1], ap->tpa.o[2],
 			    ap->tpa.o[3], an->nreq,
-			    (unsigned long)(when - an->first));
+			    (unsigned long)(ft_time - an->first));
 			an->ether = fl->p->i->ether;
 			an->claimed = 1;
 			an->nreq = 0;
@@ -470,23 +469,23 @@ packet_analyze_arp(const ether_flow *fl, const void *data, size_t len)
 				return (-1);
 		} else {
 			an->nreq++;
-			an->last = when;
+			an->last = ft_time;
 		}
 		break;
 	case arp_oper_is_at:
 		/* ARP reply */
-		arp_register(&ap->spa, &ap->sha, when);
-		arp_register(&ap->tpa, &ap->tha, when);
+		arp_register(&ap->spa, &ap->sha);
+		arp_register(&ap->tpa, &ap->tha);
 		break;
 	}
 	/* run expiry, assume packet time is <= current time */
-	if (arp_root.oldest < when - ARP_EXPIRE) {
-		arp_expire(&arp_root, when - ARP_EXPIRE);
+	if (arp_root.oldest < ft_time - ARP_EXPIRE) {
+		arp_expire(&arp_root, ft_time - ARP_EXPIRE);
 		ft_debug("%u nodes / %u leaves in tree", narpn, nleaves);
 	} else if (arp_root.oldest != ARP_NEVER) {
 		ft_debug("%lu.03%lu s until expiry",
-		    (arp_root.oldest + ARP_EXPIRE - when) / 1000,
-		    (arp_root.oldest + ARP_EXPIRE - when) % 1000);
+		    (arp_root.oldest + ARP_EXPIRE - ft_time) / 1000,
+		    (arp_root.oldest + ARP_EXPIRE - ft_time) % 1000);
 	}
 	arp_print_tree(stderr, &arp_root);
 	return (0);
