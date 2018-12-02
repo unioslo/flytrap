@@ -262,10 +262,10 @@ ip4s_remove(ip4s_node *n, uint32_t first, uint32_t last)
 	lsub = (last >> (32 - splen)) % IP4S_SUBS;
 
 	/*
-	 * If we are a full leaf, we have to create child nodes for the
+	 * If we are a leaf, we have to create child nodes for the
 	 * subtrees we aren't removing.
 	 */
-	if (n->leaf && n->coverage == mask + 1LU) {
+	if (n->leaf) {
 		n->coverage = 0;
 		n->leaf = 0;
 		for (i = 0; i < IP4S_SUBS; ++i) {
