@@ -27,29 +27,26 @@
  * SUCH DAMAGE.
  */
 
-#ifndef FT_ETHERNET_H_INCLUDED
-#define FT_ETHERNET_H_INCLUDED
+#ifndef T_ETHER_H_INCLUDED
+#define T_ETHER_H_INCLUDED
 
-typedef union { uint8_t o[6]; } __attribute__((__packed__)) ether_addr;
+#include <string.h>
 
-typedef enum ether_type {
-	ether_type_ip	 = 0x0800,
-	ether_type_arp	 = 0x0806,
-	ether_type_vlan	 = 0x8100,
-	ether_type_ipv6	 = 0x86dd,
-} ether_type;
+#include <ft/endian.h>
+#include <ft/ethernet.h>
 
-typedef struct ether_hdr {
-	ether_addr	 dst;
-	ether_addr	 src;
-	uint16_t	 type;
-} __attribute__((__packed__)) ether_hdr;
+static inline int
+t_compare_ether_addr(const ether_addr *e, const ether_addr *r)
+{
 
-typedef struct ether_ftr {
-	uint32_t	 fcs;
-} __attribute__((__packed__)) ether_ftr;
-
-uint32_t	 ether_fcs(const uint8_t *, size_t);
-const char	*ether_parse(const char *, ether_addr *);
+	if (memcmp(e, r, sizeof(ether_addr)) != 0) {
+		t_printv("expected %02x:%02x:%02x:%02x:%02x:%02x\n"
+		    "received %02x:%02x:%02x:%02x:%02x:%02x\n",
+		    e->o[0], e->o[1], e->o[2], e->o[3], e->o[4], e->o[5],
+		    r->o[0], r->o[1], r->o[2], r->o[3], r->o[4], r->o[5]);
+		return (0);
+	}
+	return (1);
+}
 
 #endif

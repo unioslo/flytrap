@@ -1,5 +1,6 @@
 *.log
 *.trs
+/t_ether_addr
 /t_ip4_addr
 /t_ip4_range
 /t_ip4_set

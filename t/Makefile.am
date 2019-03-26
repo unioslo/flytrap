@@ -1,10 +1,13 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include $(CRYB_TEST_CFLAGS)
 LIBFT = $(top_builddir)/lib/libft/libft.a
-noinst_HEADERS = t_ip4.h
+noinst_HEADERS = t_ether.h t_ip4.h
 
 if HAVE_CRYB_TEST
 
 check_PROGRAMS		 =
+
+check_PROGRAMS		+= t_ether_addr
+t_ether_addr_LDADD	 = $(LIBFT) $(CRYB_TEST_LIBS)
 
 check_PROGRAMS		+= t_ip4_addr
 t_ip4_addr_LDADD	 = $(LIBFT) $(CRYB_TEST_LIBS)
